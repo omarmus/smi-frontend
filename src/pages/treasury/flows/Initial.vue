@@ -62,7 +62,6 @@ const getDepartments = async () => {
 
 const getInitial = async () => {
   const items = await http.get(`flows?id_company=${idCompany}&type=INITIAL`) as Result<Flow>
-  console.log(items)
   if (items.count) {
     departments.value = items.rows.map((item: Flow) => ({
       id: item.department.id,

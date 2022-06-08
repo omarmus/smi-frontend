@@ -46,7 +46,7 @@ export default boot(({ app, router, store }) => {
         if (axios.isAxiosError(error)) {
           message.error(error.response?.data?.message as string)
         } else {
-          console.log(error)
+          // console.log(error)
         }
       })
   }

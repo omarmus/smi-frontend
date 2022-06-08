@@ -32,7 +32,7 @@ const storage = {
       try {
         return JSON.parse(data)
       } catch (e) {
-        console.error('Storage JSON', e)
+        // console.error('Storage JSON', e)
       }
     } else {
       return false
