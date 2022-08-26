@@ -11,7 +11,7 @@
       <span class="subtitle">Total: {{ totalExpenses }} Bs.</span>
     </h2>
     <div class="row">
-      <div class="col-xs-12 col-sm-6" v-if="expense.state !== 'CLOSED'">
+      <div class="col-xs-12 col-sm-5" v-if="expense.state !== 'CLOSED'">
         <q-form
           v-if="formRender"
           @submit="saveDetail"
@@ -34,7 +34,7 @@
                   <q-item-section class="treasury-department-item">
                     <q-item-label>{{ scope.opt.label }}</q-item-label>
                     <q-item-label caption>{{ scope.opt.type }}</q-item-label>
-                    <span class="treasury-department-total">{{ scope.opt.total }} Bs.</span>
+                    <!-- <span class="treasury-department-total">{{ scope.opt.total }} Bs.</span> -->
                   </q-item-section>
                 </q-item>
               </template>
@@ -58,9 +58,11 @@
               <template v-slot:append>
                 <q-icon name="event" class="cursor-pointer">
                   <q-popup-proxy ref="qDateProxy" cover transition-show="scale" transition-hide="scale">
-                    <q-date v-model="form.date">
+                    <q-date
+                      v-model="form.date"
+                      minimal>
                       <div class="row items-center justify-end">
-                        <q-btn v-close-popup label="Close" color="primary" flat />
+                        <q-btn v-close-popup label="Cerrar" color="primary" flat />
                       </div>
                     </q-date>
                   </q-popup-proxy>
@@ -73,7 +75,7 @@
               filled
               label="Valor"
               v-model="form.value"
-              :rules="[ val => !!val || 'Debe llenar el valor' ]" />
+              :rules="[validation.required, validation.decimal]" />
           </div>
           <h3 class="text-secondary treasury-subtitle q-px-md">Datos de la factura, recibo...</h3>
           <div class="col-xs-12">
@@ -116,7 +118,7 @@
           </div>
         </q-form>
       </div>
-      <div class="col-xs-12 tithe-column" :class="{ 'col-sm-6': expense.state !== 'CLOSED', 'col-sm-12': expense.state === 'CLOSED' }">
+      <div class="col-xs-12 tithe-column" :class="{ 'col-sm-7': expense.state !== 'CLOSED', 'col-sm-12': expense.state === 'CLOSED' }">
         <!-- <h3 class="text-secondary treasury-subtitle">Detalle</h3> -->
         <div class="q-table-simple q-table__container q-table--horizontal-separator column no-wrap q-table--dense q-table--no-wrap">
           <table class="q-table" :class="{ 'treasury-table-data': expense.state === 'CLOSED' }">
@@ -203,6 +205,10 @@ import { Result } from '../../../components/entities/Entity'
 import { Department } from '../../../components/entities/Department'
 import { Flow } from '../../../components/entities/Flow'
 import { Entry } from '../../../components/entities/Entry'
+import { useStore } from '../../../store'
+import validation from '../../../components/plugins/validation'
+
+const store = useStore()
 
 const documentTypes = [
   { value: 'FACTURA', label: 'FACTURA' },
@@ -210,7 +216,7 @@ const documentTypes = [
   { value: 'NOTA DE VENTA', label: 'NOTA DE VENTA' },
   { value: 'OTRO', label: 'OTRO' }
 ]
-const idCompany = 9
+const idCompany = store.state.user?.user?.company.id as number
 const departments = ref([])
 const flows = ref<Flow[]>([])
 const departmentsFilter = ref([])
@@ -272,22 +278,22 @@ const saveDetail = async () => {
   form.value.id_department = form.value.idDepartment.value as number
 
   if (form.value.id) {
-    await http.put(`expenses/details/${form.value.id}`, form.value)
+    await http.put(`expensesdetails/${form.value.id}`, form.value)
   } else {
-    await http.post('expenses/details', form.value)
+    await http.post('expensesdetails', form.value)
   }
   await getExpenseDetails()
   await cleanExpenseDetail()
 }
 
 const editExpenseDetails = async (id: number) => {
-  form.value = await http.get(`expenses/details/${id}`) as ExpenseDetail
+  form.value = await http.get(`expensesdetails/${id}`) as ExpenseDetail
   form.value.idDepartment = { value: form.value.department.id, label: form.value.department.name }
   form.value.documentType = { value: form.value.document_type, label: form.value.document_type }
 }
 const removeExpenseDetails = (id: number) => {
   Confirm('¿Desea eliminar el registro?', async () => {
-    await http.delete(`expenses/details/${id}`)
+    await http.delete(`expensesdetails/${id}`)
     await getExpenseDetails()
   })
 }
@@ -312,7 +318,7 @@ const cleanExpenseDetail = async () => {
 }
 
 const getExpenseDetails = async () => {
-  const items = await http.get(`expenses/details?id_expense=${expense.value.id as string}`) as Result<ExpenseDetail>
+  const items = await http.get(`expensesdetails?id_expense=${expense.value.id as string}`) as Result<ExpenseDetail>
   expensesDetails.value = items.rows
 }
 

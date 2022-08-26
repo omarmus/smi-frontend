@@ -6,8 +6,10 @@ import {
   useStore as vuexUseStore
 } from 'vuex'
 
-// import example from './module-example'
-// import { ExampleStateInterface } from './module-example/state'
+import user from './user'
+import global from './global'
+import { UserStateInterface } from './user/state'
+import { GlobalStateInterface } from './global/state'
 
 /*
  * If not building with SSR mode, you can
@@ -20,9 +22,9 @@ import {
 
 export interface StateInterface {
   // Define your own store structure, using submodules if needed
-  // example: ExampleStateInterface
+  user: UserStateInterface
   // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
-  example: unknown
+  global: GlobalStateInterface
 }
 
 // provide typings for `this.$store`
@@ -38,7 +40,8 @@ export const storeKey: InjectionKey<VuexStore<StateInterface>> = Symbol('vuex-ke
 export default store(function (/* { ssrContext } */) {
   const Store = createStore<StateInterface>({
     modules: {
-      // example
+      user,
+      global
     },
 
     // enable strict mode (adds overhead!)

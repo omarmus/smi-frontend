@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="row">
-      <div class="col-xs-6 col-sm-3 q-pr-sm">
+      <div class="col-xs-6 col-sm-3 q-pr-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -9,10 +9,10 @@
           icon="edit_note"
           label="Secretaría"
           no-caps
-          @click="$router.push('secretary')"
+          @click="$router.push('/secretary')"
           class="full-width btn-block" />
       </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm">
+      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -20,12 +20,24 @@
           icon="paid"
           label="Tesorería"
           no-caps
-          @click="$router.push('/treasury')"
+          @click="goTreasury"
           class="full-width btn-block" />
       </div>
     </div>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { useRouter } from 'vue-router'
+import { storage } from 'boot/storage'
+
+const router = useRouter()
+
+const goTreasury = () => {
+  const initial = storage.get('initial')
+  return router.push(initial ? '/treasury/flows/initial' : '/treasury')
+}
+</script>
 
 <style lang="scss">
 </style>

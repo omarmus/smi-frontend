@@ -8,10 +8,10 @@
         @click="$router.push(`/treasury/entryexpense/${$route.params.entryId}/${expense.id}`)" />
       Ingresos {{ months[entry.month - 1] }} - Diezmos y ofrendas
       <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span>
-      <span class="subtitle">Total: {{ total }} Bs.</span></h2>
+      <span class="subtitle">Total: {{ total.toFixed(2) }} Bs.</span></h2>
     <div class="row treasury-row">
       <div
-        class="col-xs-6 col-sm-3 q-pa-sm"
+        class="col-xs-6 col-sm-3 q-pa-sm card-button"
         v-for="item in weeks"
         :key="item.week">
         <q-btn
@@ -58,6 +58,10 @@ import { Entry, EntryDetail } from '../../../components/entities/Entry'
 import { Result } from '../../../components/entities/Entity'
 import { months, getWeeks } from '../../../components/plugins/datetime'
 import { Expense } from '../../../components/entities/Expense'
+import { useStore } from '../../../store'
+
+const store = useStore()
+const idCompany = store.state.user?.user?.company.id as number
 
 const entry = ref<Entry>()
 const expense = ref<Expense>()
@@ -84,12 +88,10 @@ const getDisable = (item: { day: number }) => {
   return item.day >= day
 }
 
-const idCompany = 9
-
 const getEntry = async () => {
   entry.value = await http.get(`entries/${parseInt(entryId)}`) as Entry
   weeks.value = getWeeks(entry.value.year, entry.value.month)
-  const items = await http.get(`entries/details?id_entry=${entry.value.id as string}`) as Result<EntryDetail>
+  const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}`) as Result<EntryDetail>
   const totals = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
   items.rows.forEach(row => {
     totals[row.week] += parseFloat(row.value)

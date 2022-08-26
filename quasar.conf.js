@@ -61,7 +61,7 @@ module.exports = configure(function (ctx) {
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       env: require('dotenv').config().parsed,
       // transpile: false,
-      publicPath: '/sistema/',
+      // publicPath: '/sistema/',
 
       // Add dependencies for transpiling with Babel (Array of string/regex)
       // (from node_modules, which are by default not transpiled).
@@ -156,9 +156,9 @@ module.exports = configure(function (ctx) {
       },
 
       manifest: {
-        name: 'IMS System',
-        short_name: 'IMS System',
-        description: 'Frontend del sistema SMI',
+        name: 'Secretaría & Tesorería SMI',
+        short_name: 'Secretaría & Tesorería SMI',
+        description: 'Sistema de Secretaría & Tesorería SMI - Bolivia',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',

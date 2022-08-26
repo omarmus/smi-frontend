@@ -15,9 +15,12 @@
         :options="years"
         label="Gestión" />
     </div>
+    <div class="alert alert-info">
+      Seleccione el mes que quiere ver
+    </div>
     <div class="row treasury-row">
       <div
-        class="col-xs-6 col-sm-3 q-pa-sm"
+        class="col-xs-6 col-sm-3 q-pa-sm card-button"
         v-for="item in months"
         :key="item.month">
         <q-btn
@@ -45,10 +48,13 @@ import { http } from 'boot/http'
 import { Result } from '../../../components/entities/Entity'
 import { Entry } from '../../../components/entities/Entry'
 import { months as monthsLiteral } from '../../../components/plugins/datetime'
+import { useStore } from '../../../store'
+
+const store = useStore()
 
 const year = ref(new Date().getFullYear())
 const months = ref<Entry>([])
-const idCompany = 9
+const idCompany = store.state.user?.user?.company.id as number
 const years = [
   { value: 2022, label: '2022' }
 ]

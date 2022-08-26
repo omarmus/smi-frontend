@@ -8,148 +8,217 @@
         @click="$router.push(`/treasury/entryexpense/${entryId}/${expenseId}`)" />
       Informe mensual {{ months[entry.month - 1] }}
     </h2>
-    <div class="row q-col-gutter-x-lg">
-      <div class="col-xs-12 col-sm-6">
+    <q-tabs
+      v-model="tab"
+      inline-label
+      outside-arrows
+      mobile-arrows
+      align="left"
+      dense
+      no-caps
+      indicator-color="warning"
+      class="bg-primary text-white"
+    >
+      <q-tab name="local" icon="attach_money" label="Ingresos Iglesia local" />
+      <q-tab name="month" icon="money_off" label="Gastos Iglesia local" />
+      <q-tab name="global" icon="paid" label="Ingresos Asociación" />
+      <!-- <q-tab name="week" icon="movie" label="Ingreso Semanal" /> -->
+      <q-tab name="deposit" icon="payments" label="Depósito Asociación" />
+    </q-tabs>
+    <q-tab-panels
+      v-model="tab"
+      animated
+      swipeable
+      vertical
+      transition-prev="jump-up"
+      transition-next="jump-up"
+    >
+      <q-tab-panel name="local">
         <div class="row justify-start">
-          <h3 class="text-primary treasury-subtitle col-xs-12 col-sm-11">Ingreso por departamento - Iglesia local</h3>
+          <h3 class="text-primary flow-title col-xs-12 col-sm-12">Ingreso por departamento para su Iglesia local</h3>
         </div>
-        <div
-          v-for="item in flowsExpense"
-          :key="item.id"
-          class="row justify-start">
-          <div class="col-8">{{ item.department.name }}</div>
-          <div class="col-xs-4 col-sm-3 text-right">{{ item.total * 0.9 }} Bs.</div>
-        </div>
-        <div class="row justify-start">
-          <div class="col-xs-12 col-sm-11">
-            <q-separator />
-          </div>
-        </div>
-        <div class="row justify-start">
-          <div class="col-8"><strong>Total:</strong></div>
-          <div class="col-xs-4 col-sm-3 text-right"><strong>{{ totalFlowExpense * 0.9 }} Bs.</strong></div>
-        </div>
-      </div>
-      <div class="col-xs-12 col-sm-6">
-        <div class="row justify-end">
-          <h3 class="text-primary treasury-subtitle col-xs-12 col-sm-11">Ingreso por departamento - Asociación</h3>
-        </div>
-        <div
-          v-for="item in flowsEntry"
-          :key="item.id"
-          class="row justify-end">
-          <div class="col-8">{{ item.department.name }}</div>
-          <div class="col-xs-4 col-sm-3 text-right">{{ item.total }} Bs.</div>
-        </div>
-        <div class="row justify-end">
-          <div class="col-xs-12 col-sm-11">
-            <q-separator />
-          </div>
-        </div>
-        <div class="row justify-end">
-          <div class="col-8"><strong>Total:</strong></div>
-          <div class="col-xs-4 col-sm-3 text-right"><strong>{{ totalFlowEntry }} Bs.</strong></div>
-        </div>
-      </div>
-    </div>
-    <div class="row q-mt-lg justify-center q-col-gutter-x-lg">
-      <div class="col-xs-12 col-sm-6">
-        <div class="row justify-start">
-          <h3 class="text-primary treasury-subtitle col-xs-12 col-sm-11">Ingreso semanal</h3>
-        </div>
-        <div
-          v-for="item in weeks"
-          :key="item.id"
-          class="row justify-start">
-          <div class="col-8">{{ item.label }} de {{ months[entry.month - 1] }}</div>
-          <div class="col-xs-4 col-sm-3 text-right">{{ item.total }} Bs.</div>
-        </div>
-        <div class="row justify-start">
-          <div class="col-xs-12 col-sm-11">
-            <q-separator />
-          </div>
-        </div>
-        <div class="row justify-start">
-          <div class="col-8"><strong>Total:</strong></div>
-          <div class="col-xs-4 col-sm-3 text-right"><strong>{{ total }} Bs.</strong></div>
-        </div>
-      </div>
-      <div class="col-xs-12 col-sm-6">
-        <div class="row justify-end">
-          <div class="col-xs-12 col-sm-11">
-            <h3 class="text-primary treasury-subtitle">Estado del depósito</h3>
-            <div class="row q-pb-xs">
-              <div class="col-7">Total a depositar</div>
-              <div class="col-xs-5 col-sm-5">
-                <q-field
-                  standout
-                  class="text-right"
-                  dense
-                  placeholder="0"
-                  suffix="Bs.">
-                  <template v-slot:control>
-                    <div class="self-center full-width no-outline" tabindex="0">{{ totalFlowEntry }}</div>
-                  </template>
-                </q-field>
+        <div class="row">
+          <div class="col-xs-12 col-sm-7 col-md-5 col-lg-4">
+            <div
+              v-for="item in flowsEntriesLocal"
+              :key="item.id"
+              class="row justify-start">
+              <div class="col-8">{{ item.department.name }}</div>
+              <div class="col-xs-4 col-sm-4 text-right">{{ (item.total * 0.9).toFixed(2) }} Bs.</div>
+            </div>
+            <div class="row justify-start">
+              <div class="col-xs-12 col-sm-12">
+                <q-separator />
               </div>
             </div>
-            <div class="row q-pb-xs">
-              <div class="col-7">Total depositado</div>
-              <div class="col-xs-5 col-sm-5">
-                <q-input
-                  v-model="totalDeposited"
-                  standout
-                  class="text-right"
-                  dense
-                  placeholder="0"
-                  suffix="Bs.">
-                  <template v-slot:control>
-                    <div class="self-center full-width no-outline" tabindex="0">{{ totalFlowEntry }}</div>
-                  </template>
-                </q-input>
-              </div>
-            </div>
-            <div class="row q-pb-xs">
-              <div class="col-7">Fecha del depósito</div>
-              <div class="col-xs-5 col-sm-5">
-                <q-field
-                  standout
-                  class="text-right"
-                  dense
-                  placeholder="0">
-                  <template v-slot:control>
-                    <div class="self-center full-width no-outline" tabindex="0">12/03/2022</div>
-                  </template>
-                </q-field>
-              </div>
-            </div>
-            <div class="row row q-pb-sm">
-              <div class="col">
-                <q-file
-                  standout
-                  v-model="file"
-                  dense
-                  label="Adjuntar comprobante">
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" />
-                  </template>
-                </q-file>
-              </div>
-            </div>
-            <div class="text-right">
-              <q-btn
-                label="Guardar datos del depósito"
-                icon="check"
-                color="primary"
-                no-caps />
+            <div class="row justify-start">
+              <div class="col-8"><strong>Total:</strong></div>
+              <div class="col-xs-4 col-sm-4 text-right"><strong>{{ (totalFlowExpense * 0.9).toFixed(2) }} Bs.</strong></div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="row q-mt-sm justify-center">
-      <div class="col-xs-12">
-        <h3 class="text-primary treasury-subtitle">Gastos del mes</h3>
+      </q-tab-panel>
+      <q-tab-panel name="global">
+        <div class="row justify-end">
+          <h3 class="text-primary flow-title col-xs-12 col-sm-12">Ingreso por departamento para la Asociación</h3>
+        </div>
+        <div class="row">
+          <div class="col-xs-12 col-sm-7 col-md-5 col-lg-4">
+            <div
+              v-for="item in flowsEntriesGlobal"
+              :key="item.id"
+              class="row justify-end">
+              <div class="col-8">{{ item.department.name }}</div>
+              <div class="col-xs-4 col-sm-4 text-right">{{ Number(item.total).toFixed(2) }} Bs.</div>
+            </div>
+            <div class="row justify-end">
+              <div class="col-xs-12 col-sm-12">
+                <q-separator />
+              </div>
+            </div>
+            <div class="row justify-end">
+              <div class="col-8"><strong>Total:</strong></div>
+              <div class="col-xs-4 col-sm-4 text-right"><strong>{{ totalFlowEntry.toFixed(2) }} Bs.</strong></div>
+            </div>
+          </div>
+        </div>
+      </q-tab-panel>
+      <!-- <q-tab-panel name="week">
+        <div class="row justify-start">
+          <h3 class="text-primary flow-title col-xs-12 col-sm-12">Ingreso semanal</h3>
+        </div>
+        <div class="row">
+          <div class="col-xs-12 col-sm-7 col-md-5 col-lg-4">
+            <div
+              v-for="item in weeks"
+              :key="item.id"
+              class="row justify-start">
+              <div class="col-8">{{ item.label }} de {{ months[entry.month - 1] }}</div>
+              <div class="col-xs-4 col-sm-4 text-right">{{ item.total.toFixed(2) }} Bs.</div>
+            </div>
+            <div class="row justify-start">
+              <div class="col-xs-12 col-sm-12">
+                <q-separator />
+              </div>
+            </div>
+            <div class="row justify-start">
+              <div class="col-8"><strong>Total:</strong></div>
+              <div class="col-xs-4 col-sm-4 text-right"><strong>{{ total.toFixed(2) }} Bs.</strong></div>
+            </div>
+          </div>
+        </div>
+      </q-tab-panel> -->
+      <q-tab-panel name="deposit">
+        <h3 class="text-primary flow-title">Estado del depósito</h3>
+        <q-form @submit.prevent="saveDeposit">
+          <div class="row q-col-gutter-sm">
+            <div class="col-xs-12 col-sm-4">
+              <q-input
+                filled
+                class="text-right"
+                suffix="Bs."
+                label="Total a depositar"
+                v-model="totalFlowEntry"
+                readonly>
+                <template v-slot:prepend>
+                  <q-icon name="attach_money" />
+                </template>
+              </q-input>
+            </div>
+            <div class="col-xs-12 col-sm-4">
+              <q-input
+                v-model="totalDeposited"
+                filled
+                placeholder="0"
+                class="text-right"
+                label="Total depositado"
+                suffix="Bs."
+                debounce="1000">
+                <template v-slot:prepend>
+                  <q-icon name="attach_money" />
+                </template>
+              </q-input>
+            </div>
+            <div class="col-xs-12 col-sm-4">
+              <q-input
+                filled
+                label="Fecha del depósito"
+                v-model="dateDeposited"
+                debounce="1000"
+                :rules="[]">
+                <template v-slot:append>
+                  <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy
+                      ref="birthdayDateProxy"
+                      cover
+                      transition-show="scale"
+                      transition-hide="scale">
+                      <q-date
+                        v-model="dateDeposited"
+                        minimal
+                        mask="DD/MM/YYYY">
+                        <div class="row items-center justify-end">
+                          <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                        </div>
+                      </q-date>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
+            </div>
+          </div>
+          <!-- <div class="text-right q-pt-sm">
+            <q-btn
+              label="Guardar información del depósito"
+              no-caps
+              color="primary"
+              icon="check"
+              padding="10px 20px"
+              class="btn-close-month"
+              type="submit" />
+          </div> -->
+          <h3 class="text-primary flow-title q-pt-lg">Comprobante de pago</h3>
+          <div class="row q-col-gutter-sm">
+            <div class="col">
+              <q-uploader
+                :url="voucherUrl"
+                :headers="voucherHeaders"
+                field-name="file"
+                accept=".jpg, image/*, .pdf"
+                :max-file-size="5 * 1024 * 1024"
+                auto-upload
+                class="full-width"
+                @uploaded="onUploaded"
+                @rejected="onRejected">
+                <template v-slot:header="scope">
+                  <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
+                    <q-spinner v-if="scope.isUploading" class="q-uploader__spinner" />
+                    <div class="col">
+                      <a class="q-uploader__title text-white" :href="`${urlBase.replace(/\/api\//g, '')}/files/${entry.voucherDeposited}`" target="blank" v-if="entry.voucherDeposited">
+                        <q-icon name="file_download" /> {{ entry.voucherDeposited }}
+                      </a>
+                      <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+                    </div>
+                    <q-btn v-if="scope.canAddFiles" type="a" no-caps color="warning" icon="add_box" dense>
+                      <q-uploader-add-trigger />
+                      {{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+                      <q-tooltip>{{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}</q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
+                      <q-tooltip>Subir archivo</q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
+                      <q-tooltip>Cancela subida</q-tooltip>
+                    </q-btn>
+                  </div>
+                </template>
+              </q-uploader>
+            </div>
+          </div>
+        </q-form>
+      </q-tab-panel>
+      <q-tab-panel name="month">
+        <h3 class="text-primary flow-title">Gastos del mes de su Iglesia local</h3>
         <div class="q-table-simple q-table__container q-table--horizontal-separator column no-wrap q-table--dense q-table--no-wrap">
           <table class="q-table treasury-table-data">
             <thead>
@@ -175,56 +244,111 @@
                     <li v-if="item.supplier"><strong>Proveedor:</strong> {{ item.supplier }}</li>
                   </ul>
                 </td>
-                <td class="text-right total">{{ item.value }}</td>
+                <td class="text-right total">{{ Number(item.value).toFixed(2) }}</td>
               </tr>
             </tbody>
             <tfoot>
               <tr>
                 <th class="text-left" colspan="2"><strong>Total</strong></th>
-                <th class="text-right"><strong>{{ totalExpenses }}</strong></th>
+                <th class="text-right"><strong>{{ totalExpenses.toFixed(2) }}</strong></th>
               </tr>
             </tfoot>
           </table>
         </div>
-      </div>
-    </div>
+      </q-tab-panel>
+    </q-tab-panels>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { http } from 'boot/http'
-import { Result } from '../../../components/entities/Entity'
+import { http, urlBase } from 'boot/http'
+import { storage } from 'boot/storage'
+import { message } from 'boot/message'
+import { Result, Response } from '../../../components/entities/Entity'
 import { Flow } from '../../../components/entities/Flow'
-import { months, getWeeks, format } from '../../../components/plugins/datetime'
+import { months, getWeeks, format, normalize } from '../../../components/plugins/datetime'
 import { EntryDetail, Entry } from '../../../components/entities/Entry'
 import { ExpenseDetail } from '../../../components/entities/Expense'
+import { useStore } from '../../../store'
 
-const flowsEntry = ref<[Flow]>([])
-const flowsExpense = ref<[Flow]>([])
+const store = useStore()
+
+const idCompany = store.state.user?.user?.company.id as number
+
+const tab = ref('local')
+const flowsEntriesGlobal = ref<[Flow]>([])
+const flowsEntriesLocal = ref<[Flow]>([])
 const expensesDetails = ref<[ExpenseDetail]>([])
-const entry = ref<Result<Entry>>([])
+const entry = ref<Entry>()
 const weeks = ref([])
 const total = ref<number>(0)
-const totalDeposited = ref<number>(0)
-const file = ref()
+const totalDeposited = ref<number>()
+const dateDeposited = ref<string>('')
 
 const route = useRoute()
 const { entryId, expenseId } = route.params
+const voucherUrl = `${urlBase as string}entries/${entryId as string}/upload`
+const voucherHeaders = [{ name: 'Authorization', value: `Bearer ${storage.get('token') as string}` }]
 
-const idCompany = 9
-
-const getFlowsEntry = async () => {
-  const url = `flows?id_company=${idCompany}&type=MONTH&type_treasury=ENTRY&type_department=GLOBAL&order=department.id`
-  const items = await http.get(url) as Result<Flow>
-  flowsEntry.value = items.rows
+const saveDeposit = async (): void => {
+  await http.put(`entries/${entryId as string}`, {
+    totalDeposited: totalDeposited.value,
+    dateDeposited: normalize(dateDeposited.value)
+  })
 }
 
-const getFlowsExpense = async () => {
-  const url = `flows?id_company=${idCompany}&type=MONTH&type_treasury=EXPENSE&type_department=LOCAL&order=department.id`
-  const items = await http.get(url) as Result<Flow>
-  flowsExpense.value = items.rows
+watch(totalDeposited, () => {
+  saveDeposit()
+})
+
+watch(dateDeposited, () => {
+  saveDeposit()
+})
+
+const getFlowsEntriesCGlobal = async () => {
+  const query = {
+    type_treasury: 'ENTRY',
+    id_company: idCompany,
+    year: entry.value.year,
+    month: entry.value.month,
+    type: 'MONTH',
+    order: 'id_department',
+    type_department: 'GLOBAL'
+  }
+  const items = await http.get(http.convertQuery('flows', query)) as Result<Flow>
+  flowsEntriesGlobal.value = items.rows
+}
+
+const getFlowsEntriesLocal = async () => {
+  const query = {
+    type_treasury: 'ENTRY',
+    id_company: idCompany,
+    year: entry.value.year,
+    month: entry.value.month,
+    type: 'MONTH',
+    order: 'id_department',
+    type_department: 'LOCAL'
+  }
+  const items = await http.get(http.convertQuery('flows', query)) as Result<Flow>
+  flowsEntriesLocal.value = items.rows
+}
+
+function onRejected (rejectedEntries: string[]) {
+  // console.log('error upload', rejectedEntries)
+  message.error(`${rejectedEntries.length as string} el/los archivo(s) no pasaron las restricciones de validación`)
+}
+
+interface FileInfo {
+  xhr: { response: string }
+}
+
+function onUploaded (info: FileInfo) {
+  try {
+    const json: Response<{ filename: string }> = JSON.parse(info.xhr.response) // eslint-disable-line
+    entry.value.voucherDeposited = json.data.filename
+  } catch (e) {}
 }
 
 interface Total {
@@ -235,8 +359,10 @@ interface Total {
 
 const getEntry = async () => {
   entry.value = await http.get(`entries/${parseInt(entryId)}`) as Entry
+  totalDeposited.value = entry.value.totalDeposited
+  dateDeposited.value = format(entry.value.dateDeposited)
   weeks.value = getWeeks(entry.value.year, entry.value.month)
-  const items = await http.get(`entries/details?id_entry=${entry.value.id as string}`) as Result<EntryDetail>
+  const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}`) as Result<EntryDetail>
   const totals: Record<number, Total> = {
     1: { total: 0, local: 0, global: 0 },
     2: { total: 0, local: 0, global: 0 },
@@ -244,6 +370,7 @@ const getEntry = async () => {
     4: { total: 0, local: 0, global: 0 },
     5: { total: 0, local: 0, global: 0 }
   }
+
   items.rows.forEach(row => {
     totals[row.week].global += Number(row.value)
   })
@@ -255,13 +382,13 @@ const getEntry = async () => {
 }
 
 const getExpenseDetails = async () => {
-  const items = await http.get(`expenses/details?id_expense=${expenseId as string}`) as Result<ExpenseDetail>
+  const items = await http.get(`expensesdetails?id_expense=${expenseId as string}`) as Result<ExpenseDetail>
   expensesDetails.value = items.rows
 }
 
 const totalFlowEntry = computed(() => {
   let total = 0
-  flowsEntry.value.forEach(item => {
+  flowsEntriesGlobal.value.forEach(item => {
     total += Number(item.total)
   })
   return total
@@ -269,7 +396,7 @@ const totalFlowEntry = computed(() => {
 
 const totalFlowExpense = computed(() => {
   let total = 0
-  flowsExpense.value.forEach(item => {
+  flowsEntriesLocal.value.forEach(item => {
     total += Number(item.total)
   })
   return total
@@ -284,9 +411,9 @@ const totalExpenses = computed(() => {
 })
 
 onMounted(async () => {
-  await getFlowsEntry()
-  await getFlowsExpense()
   await getEntry()
+  await getFlowsEntriesCGlobal()
+  await getFlowsEntriesLocal()
   await getExpenseDetails()
 })
 </script>

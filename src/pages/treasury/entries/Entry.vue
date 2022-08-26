@@ -9,12 +9,13 @@
       Diezmos y ofrendas - Sábado {{ day }} de {{ months[entry.month - 1] }}
     </h2>
     <div class="row">
-      <div class="col-xs-12 col-sm-6" v-if="entry.state !== 'CLOSED'">
+      <div class="col-xs-12 col-sm-5" v-if="entry.state !== 'CLOSED'">
         <q-form
           v-if="formRender"
           class="q-gutter-md"
           @submit="addConcept"
-          @reset="cleanEntryDetail">
+          @reset="cleanEntryDetail"
+          ref="myForm">
           <div class="col-xs-12">
             <q-btn-group spread outline>
               <q-btn
@@ -102,7 +103,7 @@
                 <q-item v-bind="scope.itemProps">
                   <q-item-section>
                     <q-item-label>{{ scope.opt.label }}</q-item-label>
-                    <q-item-label caption>{{ scope.opt.type }}</q-item-label>
+                    <q-item-label caption>{{ scope.opt.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }}</q-item-label>
                   </q-item-section>
                 </q-item>
               </template>
@@ -114,7 +115,7 @@
               label="Valor"
               v-model="value"
               lazy-rules
-              :rules="[ val => val && val.length > 0 || 'Ingrese el valor']" />
+              :rules="[validation.decimal, validation.required]" />
           </div>
           <div class="col-xs-12">
             <q-input
@@ -165,7 +166,8 @@
                     </td>
                     <td class="text-left">
                       {{ item.concept.label }}
-                      <span class="treasury-observation">{{ item.observation }}</span>
+                      <span class="treasury-observation">{{ item.concept.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }}</span>
+                      <span class="treasury-observation" v-if="item.observation"> / {{ item.observation }}</span>
                     </td>
                     <td class="text-right">{{ item.value }}</td>
                   </tr>
@@ -200,7 +202,7 @@
           </div>
         </q-form>
       </div>
-      <div class="col-xs-12 tithe-column" :class="{ 'col-sm-6': entry.state !== 'CLOSED', 'col-sm-12': entry.state === 'CLOSED' }">
+      <div class="col-xs-12 tithe-column" :class="{ 'col-sm-7': entry.state !== 'CLOSED', 'col-sm-12': entry.state === 'CLOSED' }">
         <h3 class="text-secondary treasury-subtitle" v-if="entry.state !== 'CLOSED'">Diezmos y ofrendas</h3>
         <div
           v-if="entriesDetails.length"
@@ -209,6 +211,7 @@
             <thead>
               <tr>
                 <th class="text-left" v-if="entry.state !== 'CLOSED'"></th>
+                <th class="text-left"><strong>Nro. Boleta</strong></th>
                 <th class="text-left"><strong>Nombre</strong></th>
                 <th class="text-left" v-if="entry.state === 'CLOSED'"><strong>Detalle</strong></th>
                 <th class="text-right"><strong>Valor</strong></th>
@@ -218,7 +221,7 @@
               <tr
                 v-for="item in entriesDetails"
                 :key="item.id">
-                <td class="width-80" v-if="entry.state !== 'CLOSED'">
+                <td class="width-120" v-if="entry.state !== 'CLOSED'">
                   <q-btn
                     size="sm"
                     icon="edit"
@@ -231,6 +234,22 @@
                     round
                     flat
                     @click="removeEntryDetails(item.id)" />
+                  <q-btn
+                    v-if="item.type === 'MEMBER'"
+                    size="sm"
+                    icon="print"
+                    round
+                    flat
+                    @click="generatePdf(item.id)" />
+                </td>
+                <td class="width-120">
+                  <q-input
+                    v-if="item.type === 'MEMBER'"
+                    v-model="item.code"
+                    dense
+                    standout
+                    debounce="500"
+                    @keyup="updateCode(item)" />
                 </td>
                 <td class="text-left">
                   <span v-if="item.type === 'MEMBER'">{{ item.user?.person?.fullname }}</span>
@@ -239,6 +258,15 @@
                     <strong v-if="item.type !== 'MEMBER'">{{ item.department.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }}</strong>
                     {{ item.observations ? ` / ${item.observations}` : '' }}
                   </span>
+                  <div class="q-ml-sm q-mt-xs">
+                    <ul class="treasury-list-concepts" v-if="item.concepts?.length && entry.state !== 'CLOSED'">
+                      <li
+                        v-for="(concept, index) in item.concepts"
+                        :key="index">
+                        <strong class="text-warning">- {{ concept.concept.label }}: </strong>{{ concept.value }} / {{ concept.concept.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }} <span v-if="concept.observation"> - {{ concept.observation }}</span>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
                 <td class="text-left" v-if="entry.state === 'CLOSED'">
                   <span class="text-texto">{{ item.observations }}</span>
@@ -246,7 +274,7 @@
                     <li
                       v-for="(concept, index) in item.concepts"
                       :key="index">
-                      <strong>{{ concept.concept.label }}: </strong>{{ concept.value }} <span v-if="concept.observation"> - {{ concept.observation }}</span>
+                      <strong>{{ concept.concept.label }}: </strong>{{ concept.value }} / {{ concept.concept.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }} <span v-if="concept.observation"> - {{ concept.observation }}</span>
                     </li>
                   </ul>
                 </td>
@@ -257,13 +285,24 @@
             </tbody>
             <tfoot>
               <tr>
-                <th class="text-left" colspan="2"><strong>Total</strong></th>
+                <th class="text-left" colspan="2"></th>
+                <th class="text-left"><strong>TOTAL</strong></th>
                 <th class="text-right"><strong>{{ totalEntries }}</strong></th>
               </tr>
             </tfoot>
           </table>
         </div>
         <div v-else class="treasury-empty">Sin registros</div>
+        <div class="text-right q-pt-xs q-gutter-xs">
+          <q-btn
+            :disable="entriesDetails.length === 0"
+            label="Imprimir todos los recibos"
+            no-caps
+            icon="print"
+            padding="10px 20px"
+            class="btn-close-month"
+            @click="generatePdf(null)" />
+        </div>
       </div>
     </div>
   </div>
@@ -280,6 +319,10 @@ import { Concept, EntryDetail, Entry } from '../../../components/entities/Entry'
 import { Department } from '../../../components/entities/Department'
 import { User } from '../../../components/entities/User'
 import { months, getWeeks } from '../../../components/plugins/datetime'
+import { useStore } from '../../../store'
+import validation from '../../../components/plugins/validation'
+
+const store = useStore()
 
 const memberType = {
   member: 'Miembro',
@@ -306,6 +349,7 @@ const entriesDetails = ref<[EntryDetail]>([])
 const entry = ref<Entry>()
 const day = ref<number>()
 const formRender = ref<boolean>(true)
+const myForm = ref(null)
 
 const route = useRoute()
 const { entryId, week } = route.params
@@ -313,7 +357,7 @@ const { entryId, week } = route.params
 const data = {}
 storage.set('entry', data)
 
-const idCompany = 9
+const idCompany = store.state.user?.user?.company.id as number
 
 const getEntry = async () => {
   entry.value = await http.get(`entries/${parseInt(entryId)}`) as Entry
@@ -322,14 +366,14 @@ const getEntry = async () => {
   day.value = item.day
 }
 const getEntryDetails = async () => {
-  const items = await http.get(`entries/details?id_entry=${entry.value.id as string}&week=${week as string}`) as Result<EntryDetail>
+  const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}&week=${week as string}`) as Result<EntryDetail>
   entriesDetails.value = items.rows
 }
 const getDepartments = async () => {
   const items = await http.get('departments?order=id') as Result<Department>
   return items.rows.map(item => ({
     value: item.id,
-    type: (item.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local'),
+    type: item.type,
     label: item.name,
     group: item.group
   }))
@@ -388,6 +432,12 @@ const filterDepartment = (val: string, update: unknown) => {
 }
 
 const saveDetail = async () => {
+  if (type.value !== 'MEMBER') {
+    const success = await myForm.value.validate() // eslint-disable-line
+    if (!success) {
+      return false
+    }
+  }
   const item: EntryDetail = {
     id: idEntryDetail.value,
     concepts: conceptsItems.value,
@@ -408,26 +458,28 @@ const saveDetail = async () => {
     Confirm('¿Desea dividir la ofrenda de jóvenes para la Asociación e Iglesia local?', async () => {
       item.value = Number(item.value) / 2
       item.id_department = 25
-      await http.post('entries/details', item)
+      await http.post('entriesdetails', item)
       item.id_department = 12
-      await http.post('entries/details', item)
+      await http.post('entriesdetails', item)
       await getEntryDetails()
     }, async () => {
-      await http.post('entries/details', item)
+      await http.post('entriesdetails', item)
       await getEntryDetails()
     }, 'Ofrenda de Jóvenes', 'Si', 'No')
     await cleanEntryDetail()
   } else {
     if (idEntryDetail.value) {
-      await http.put(`entries/details/${idEntryDetail.value}`, item)
+      await http.put(`entriesdetails/${idEntryDetail.value}`, item)
     } else {
-      await http.post('entries/details', item)
+      await http.post('entriesdetails', item)
     }
     await getEntryDetails()
     await cleanEntryDetail()
   }
 }
+
 const cleanEntryDetail = async () => {
+  myForm.value.resetValidation() // eslint-disable-line
   formRender.value = false
   await nextTick(() => {
     idEntryDetail.value = null
@@ -441,7 +493,7 @@ const cleanEntryDetail = async () => {
   })
 }
 const editEntryDetails = async (id: number) => {
-  const item = await http.get(`entries/details/${id}`) as EntryDetail
+  const item = await http.get(`entriesdetails/${id}`) as EntryDetail
   type.value = item.type
   idEntryDetail.value = item.id
 
@@ -458,7 +510,7 @@ const editEntryDetails = async (id: number) => {
 }
 const removeEntryDetails = (id: number) => {
   Confirm('¿Desea eliminar el registro?', async () => {
-    await http.delete(`entries/details/${id}`)
+    await http.delete(`entriesdetails/${id}`)
     await getEntryDetails()
   }, null, 'Eliminar', 'Si', 'No')
 }
@@ -505,6 +557,42 @@ const totalEntries = computed(() => {
   return total
 })
 
+const updateCode = async (item: EntryDetail) => {
+  if (item?.code) {
+    await http.put(`entriesdetails/${item.id as string}`, { code: item.code })
+  }
+}
+
+const generatePdf = async (idEntryDetail?: number) => {
+  const url = idEntryDetail ? `entries/pdf/detail/${idEntryDetail as string}` : `entries/pdf/details/${entry.value.id as string}`
+  const pdf = await http.get(url) as string
+  const link = document.createElement('a')
+  link.href = window.URL.createObjectURL(b64toBlob(pdf, 'application/pdf'))
+  link.setAttribute('download', `invoice-${Date.now()}.pdf`)
+  document.body.appendChild(link)
+  link.click()
+}
+
+const b64toBlob = (b64Data, contentType: string, sliceSize = 512) => {
+  const byteCharacters = atob(b64Data)
+  const byteArrays = []
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize)
+
+    const byteNumbers = new Array(slice.length)
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
+    }
+
+    const byteArray = new Uint8Array(byteNumbers)
+
+    byteArrays.push(byteArray)
+  }
+
+  return new Blob(byteArrays, { type: contentType || '' })
+}
+
 onBeforeMount(async () => {
   concepts.value = await getDepartments()
   conceptsFilter.value = concepts.value
@@ -516,3 +604,10 @@ onBeforeMount(async () => {
   await getEntryDetails()
 })
 </script>
+
+<style lang="scss">
+.width-input {
+  width: 100%;
+  max-width: 120px;
+}
+</style>

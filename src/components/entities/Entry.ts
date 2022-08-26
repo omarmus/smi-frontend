@@ -16,6 +16,9 @@ export interface Entry {
   state: string
   idExpense?: number
   totalExpense?: number
+  totalDeposited?: number
+  voucherDeposited?: number
+  dateDeposited?: string
 }
 
 export interface EntryDetail {
@@ -23,6 +26,7 @@ export interface EntryDetail {
   entry: Entry
   department?: Department
   user?: User
+  code: string
   type: string
   week: number
   date: Date

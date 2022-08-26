@@ -45,10 +45,13 @@ import { http } from 'boot/http'
 import { Result } from '../../../components/entities/Entity'
 import { Expense } from '../../../components/entities/Expense'
 import { months as monthsLiteral } from '../../../components/plugins/datetime'
+import { useStore } from '../../../store'
+
+const store = useStore()
 
 const year = ref(new Date().getFullYear())
 const months = ref<Expense>([])
-const idCompany = 9
+const idCompany = store.state.user?.user?.company.id as number
 const years = [
   { value: 2022, label: '2022' }
 ]

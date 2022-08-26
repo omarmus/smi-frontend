@@ -2,6 +2,8 @@ import { boot } from 'quasar/wrappers'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { storage } from './storage'
 import { message } from './message'
+import { useStore } from '../store'
+import { Response } from '../components/entities/Entity'
 
 const urlBackend = process.env.BACKEND
 
@@ -12,37 +14,44 @@ interface UserResponse {
   username: string
   email: string
   fullname: string
-  idCompany: number
+  company: {
+    id: number
+    name: string
+  }
   roles: [],
   menu: []
   permissions: []
-  token: string
+  token: string,
+  initial: boolean
 }
-interface ErrorResponse {
-  message: string
-}
+
 export default boot(({ app, router, store }) => {
   auth.login = (username?: string, password?: string) => {
     return axios.post(`${urlBackend as string}auth/login`, { username, password })
-      .then((response: AxiosResponse<UserResponse>) => {
-        if (response.data) {
+      .then((response: AxiosResponse<Response<UserResponse>>) => {
+        if (response.data?.data) {
+          const data = response.data.data
           const user = {
-            username: response.data.username,
-            email: response.data.email,
-            fullname: response.data.fullname,
-            idCompany: response.data.idCompany
+            username: data.username,
+            email: data.email,
+            fullname: data.fullname,
+            company: {
+              id: data.company.id,
+              name: data.company.name
+            }
           }
 
           storage.setUser(user)
-          storage.set('roles', response.data.roles)
-          storage.set('menu', response.data.menu)
-          storage.set('permissions', response.data.permissions)
-          storage.set('token', response.data.token)
+          storage.set('roles', data.roles)
+          storage.set('menu', data.menu)
+          storage.set('permissions', data.permissions)
+          storage.set('token', data.token)
+          storage.set('initial', data.initial)
 
           auth.initStore()
           return router.push('/')
         }
-      }).catch((error: Error | AxiosError<ErrorResponse>) => {
+      }).catch((error: Error | AxiosError<Response<any>>) => {
         if (axios.isAxiosError(error)) {
           message.error(error.response?.data?.message as string)
         } else {
@@ -51,23 +60,31 @@ export default boot(({ app, router, store }) => {
       })
   }
   auth.cleanStore = () => {
+    if (!store) {
+      store = useStore()
+    }
     storage.removeUser()
     storage.remove('roles')
     storage.remove('menu')
-    storage.remove('permisos')
+    storage.remove('permissions')
     storage.remove('token')
-    storage.remove('create')
-    store.commit('global/setUser', {})
-    store.commit('global/setRoles', [])
-    store.commit('global/setMenu', [])
-    store.commit('global/setPermisos', [])
+    storage.remove('initial')
+    // store.commit('global/setOpen', false)
+    store.commit('user/setUser', {})
+    store.commit('user/setRoles', [])
+    store.commit('user/setMenu', [])
+    store.commit('user/setPermissions', [])
     return router.push('/login')
   }
   auth.initStore = () => {
-    store.commit('global/setUser', storage.getUser())
-    store.commit('global/setRoles', storage.get('roles'))
-    store.commit('global/setMenu', storage.get('menu'))
-    store.commit('global/setPermisos', storage.get('permisos'))
+    if (!store) {
+      store = useStore()
+    }
+    store.commit('user/setUser', storage.getUser())
+    store.commit('user/setRoles', storage.get('roles'))
+    store.commit('user/setMenu', storage.get('menu'))
+    store.commit('user/setPermissions', storage.get('permissions'))
+    store.commit('global/setInitial', storage.get('initial'))
   }
 
   auth.logout = () => {

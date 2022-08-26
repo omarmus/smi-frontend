@@ -1,7 +1,6 @@
 <template>
   <q-layout view="lHh lpR lFf">
     <q-header
-      bordered
       class="q-header-main">
       <q-toolbar>
         <q-btn
@@ -14,16 +13,24 @@
           @click="toggleLeftDrawer"
         />
         <!-- <q-icon name="church" /> -->
-        <span class="title-smi">Sistema SMI</span>
+        <!-- <span class="title-smi">Sistema SMI</span> -->
         <q-space />
       </q-toolbar>
     </q-header>
-    <q-drawer
+    <!-- <q-drawer
       class="sidebar"
-      v-model="leftDrawerOpen"
+      v-model="$store.state.global.open"
       side="left"
       overlay
-      behavior="mobile">
+      behavior="mobile"> -->
+    <q-drawer
+      show-if-above
+      v-model="leftDrawerOpen"
+      side="left"
+      bordered
+      :width="270"
+      class="sidebar"
+    >
       <Menu />
     </q-drawer>
     <q-page-container>
@@ -41,14 +48,14 @@
 import { ref } from 'vue'
 import Menu from '../components/layout/Menu'
 
-const leftDrawerOpen = ref(true)
+const leftDrawerOpen = ref(false)
 
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
 
-<style lang="scss">
+<style lang="scss">+
 .title-smi {
   font-size: 1.3rem;
   font-weight: bold;

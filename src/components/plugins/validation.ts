@@ -26,7 +26,11 @@ export default {
     return re.test(String(v)) || !v || 'Solo se permiten numeros enteros.'
   },
   decimal: (v: string) => {
-    const re = /^\d{0,2}(.\d{0,2}){0,1}$/g
-    return re.test(String(v)) || !v || 'Solo se permiten numeros decimales.'
+    const re = /^\d*\.?\d*$/g
+    return re.test(String(v)) || !v || 'Use el punto (.) para los decimales.'
   }
+}
+
+export function validateDecimal (valor: string) {
+  return /^\d*\.?\d*$/.test(valor)
 }

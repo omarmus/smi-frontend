@@ -2,15 +2,15 @@
   <q-scroll-area class="fit">
     <div class="layout-menu">
       <h1>
-        <q-icon name="church" class="warning-light" size="32px" /> Sistema SMI
-        <q-btn dense flat round icon="close" class="text-white" size="lg" @click="leftDrawerOpen = false" />
+        <q-icon name="church" class="warning-light" size="32px" /> Secretaría & Tesorería
+        <!-- <q-btn dense flat round icon="close" class="text-white" size="lg" @click="leftDrawerClose" /> -->
       </h1>
     </div>
     <div class="personal q-ma-md">
-      <q-avatar size="48px" color="white">OG</q-avatar>
+      <q-avatar size="48px" color="white">{{ $store.state.user?.user?.username?.substring(0, 2).toUpperCase() }}</q-avatar>
       <div class="personal-datos">
-        <div class="personal-name">Omar Gutiérrez Condori</div>
-        <div class="personal-company">Iglesia La Fortuna</div>
+        <div class="personal-name">{{ $store.state.user?.user?.fullname }}</div>
+        <div class="personal-company">{{ $store.state.user?.user?.company?.name }}</div>
       </div>
     </div>
     <q-separator />
@@ -40,37 +40,6 @@
     <q-separator />
     <q-list padding class="menu-list">
       <q-item
-        @click="$router.push('/internacional')" :active="$route.path === '/internacional'" clickable v-ripple>
-        <q-item-section avatar class="layout-menu-icon">
-          <q-icon name="favorite" class="color-texto" />
-        </q-item-section>
-
-        <q-item-section>
-          Mis favoritos
-        </q-item-section>
-      </q-item>
-
-      <q-item
-        @click="$router.push('/jovenes')" :active="$route.path === '/jovenes'" clickable v-ripple>
-        <q-item-section avatar class="layout-menu-icon">
-          <q-icon name="share" class="color-texto" />
-        </q-item-section>
-
-        <q-item-section>
-          Compartir
-        </q-item-section>
-      </q-item>
-      <q-item
-        @click="$router.push('/jovenes')" :active="$route.path === '/jovenes'" clickable v-ripple>
-        <q-item-section avatar class="layout-menu-icon">
-          <q-icon name="download" class="color-texto" />
-        </q-item-section>
-
-        <q-item-section>
-          Descargar
-        </q-item-section>
-      </q-item>
-      <q-item
         @click="darkModeChange" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
           <q-icon name="dark_mode" class="color-texto" />
@@ -80,6 +49,14 @@
           {{ darkMode ? `Desactivar modo oscuro` : `Activar modo oscuro` }}
         </q-item-section>
       </q-item>
+      <q-item
+        @click="logout" clickable v-ripple>
+        <q-item-section avatar class="layout-menu-icon">
+          <q-icon name="logout" class="color-texto" />
+        </q-item-section>
+
+        <q-item-section>Salir de sistema</q-item-section>
+      </q-item>
     </q-list>
   </q-scroll-area>
 </template>
@@ -87,6 +64,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { auth } from 'boot/auth'
+// import { useStore } from '../../store'
+
+// const store = useStore()
+
+// function leftDrawerClose () {
+//   store.commit('global/setOpen', false)
+// }
 
 const $q = useQuasar()
 const darkMode = ref($q.dark.isActive)
@@ -94,6 +79,10 @@ const darkMode = ref($q.dark.isActive)
 function darkModeChange () {
   darkMode.value = !darkMode.value
   $q.dark.set(!$q.dark.isActive)
+}
+
+function logout () {
+  auth.logout('store')
 }
 </script>
 
@@ -104,17 +93,20 @@ function darkModeChange () {
 }
 .personal-datos {
   padding-left: 15px;
-  display: inline-block;
 }
 .personal-name {
   font-weight: bolder;
-  font-size: 1rem;
+  font-size: .95rem;
+  line-height: 1.2rem;
 }
 .personal-company  {
   color: $texto;
-  font-size: .9rem;
+  font-size: .8rem;
 }
 .personal {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+
   & > .q-avatar {
     vertical-align: top;
     color: $primary;
@@ -124,7 +116,8 @@ function darkModeChange () {
 .layout-menu {
   h1 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
+    letter-spacing: -.05rem;
     line-height: 50px;
     font-weight: bolder;
     padding: 0 15px;
@@ -143,8 +136,8 @@ function darkModeChange () {
 }
 .card-menu-item {
   border-color: $texto;
-  font-size: 14px;
-  line-height: 1rem;
+  font-size: .95rem;
+  line-height: .95rem;
   padding: 6px;
   height: 72px;
 
@@ -153,7 +146,7 @@ function darkModeChange () {
   }
 }
 .menu-list {
-  font-size: 16px;
+  font-size: .95rem;
 
   .layout-menu-icon {
     padding: 0;

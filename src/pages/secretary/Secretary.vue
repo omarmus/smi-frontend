@@ -9,7 +9,7 @@
       Secretaría
     </h2>
     <div class="row">
-      <div class="col-xs-6 col-sm-3 q-pr-sm">
+      <div class="col-xs-6 col-sm-3 q-pr-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -21,7 +21,7 @@
           class="full-width btn-block"
         />
       </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm">
+      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -33,7 +33,7 @@
           class="full-width btn-block"
         />
       </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm">
+      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
         <q-btn
           flat
           color="secondary"

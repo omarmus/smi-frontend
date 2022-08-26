@@ -4,6 +4,7 @@ import axios, { AxiosInstance, Method, AxiosRequestConfig, AxiosError, AxiosResp
 import { storage } from './storage'
 import { message } from './message'
 import { auth } from './auth'
+import { Response } from '../components/entities/Entity'
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -20,10 +21,6 @@ const messages: Record<string, string> = {
 
 const http: Record<string, any> = {}
 let headers: Record<string, string> = {}
-
-interface ErrorResponse {
-  message: string
-}
 
 export default boot(({ app, router }) => {
   const _http = (method: Method, url: string, data: unknown, loading = true, headersCustom: Record<string, string> = {}) => {
@@ -50,10 +47,15 @@ export default boot(({ app, router }) => {
       }
 
       axios(config)
-        .then((response: AxiosResponse) => {
-          resolve(response.data)
+        .then((response: AxiosResponse<Response<any>>) => {
+          if (response.data?.code === -1) {
+            message.error(response.data.message)
+            reject(response.data.message)
+          } else {
+            resolve(response.data?.data || response.data)
+          }
         })
-        .catch(async (error: Error | AxiosError<ErrorResponse>) => {
+        .catch(async (error: Error | AxiosError<Response<any>>) => {
           if (axios.isAxiosError(error)) {
             if (error.response?.status === 403) {
               return router.push('/404')
@@ -121,4 +123,4 @@ export default boot(({ app, router }) => {
   app.config.globalProperties.$axios = axios
 })
 
-export { axios, http }
+export { axios, http, urlBase }

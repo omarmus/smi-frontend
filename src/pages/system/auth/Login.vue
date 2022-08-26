@@ -2,7 +2,8 @@
   <div class="login">
     <div class="login-left">
       <div class="login-logo">
-        <h1>IMS System</h1>
+        <div class="login-logo-smi"></div>
+        <h1 class="login-logo-title">Secretaría & Tesorería</h1>
       </div>
     </div>
     <div class="login-right">
@@ -14,6 +15,7 @@
             label="Nombre de usuario"
             v-model="username"
             filled
+            autofocus
             :rules="[v => !!v || 'El campo es requerido']" />
           <q-input
             label="Contraseña"
@@ -93,13 +95,55 @@ const login = () => {
 .login-logo {
   position: relative;
   z-index: 1;
+  height: 100%;
+}
+.login-logo-title {
+  position: absolute;
+  bottom: 60px;
+  left: 40px;
+  right: 20px;
+  font-weight: bold;
+  font-size: 3rem;
+  margin: 0;
+  line-height: 2.8rem;
+  color: white;
+}
+.login-logo-smi {
+  display: inline-block;
+  background-image: url(../../../assets/images/logo-smi.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  height: 120px;
+  width: 120px;
+  margin: 20px 0 0 20px;
+}
+@media (max-width: $breakpoint-xs-max) {
+  .login {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .login-left {
+    min-height: 200px;
 
-  h1 {
-    font-weight: bold;
-    font-size: 1.8rem;
-    margin: 30px;
-    line-height: 2.2rem;
-    color: white;
+    .login-logo-title {
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      font-size: 2rem;
+      line-height: 2rem;
+    }
+  }
+  .login-form {
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+  .login-logo-smi {
+    position: absolute;
+    right: 10px;
+    top: -5px;
+    height: 90px;
+    width: 90px;
   }
 }
 </style>
