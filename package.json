@@ -2,7 +2,7 @@
   "name": "smi-frontend",
   "version": "0.0.1",
   "private": true,
-  "description": "Frontend del sistema SMI",
+  "description": "Sistema de Secretaría y Tesorería SMI - Bolivia",
   "author": "Omar Gutiérrez Condori <omargc.mus@gmail.com>",
   "scripts": {
     "build": "quasar build",
@@ -52,5 +52,5 @@
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   },
-  "productName": "Secretaría & Tesorería SMI"
+  "productName": "Secretaría &amp; Tesorería SMI"
 }

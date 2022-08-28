@@ -63,7 +63,7 @@
               <div
                 v-for="(item, index) of props.filters"
                 :key="index"
-                class="col-3">
+                class="col-xs-12 col-sm-4 col-md-3">
                 <q-select
                   v-if="item.type === 'select'"
                   v-model="filter[item.name]"
