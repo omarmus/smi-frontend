@@ -321,6 +321,7 @@ import { User } from '../../../components/entities/User'
 import { months, getWeeks } from '../../../components/plugins/datetime'
 import { useStore } from '../../../store'
 import validation from '../../../components/plugins/validation'
+import { createPdf } from '../../../components/plugins/util'
 
 const store = useStore()
 
@@ -365,10 +366,12 @@ const getEntry = async () => {
   const item = weeks.find(item => item.week === parseInt(week)) as { day: number }
   day.value = item.day
 }
+
 const getEntryDetails = async () => {
   const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}&week=${week as string}`) as Result<EntryDetail>
   entriesDetails.value = items.rows
 }
+
 const getDepartments = async () => {
   const items = await http.get('departments?order=id') as Result<Department>
   return items.rows.map(item => ({
@@ -378,6 +381,7 @@ const getDepartments = async () => {
     group: item.group
   }))
 }
+
 const getUsers = async (query: string) => {
   let url = 'users?order=fullname'
   if (query) {
@@ -393,6 +397,7 @@ const getUsers = async (query: string) => {
     type: item.type?.toLowerCase()
   }))
 }
+
 const createValue = async (val: string, done: () => void) => {
   if (val.length > 3 && typeUser.value) {
     const user = await http.post('users/new', {
@@ -404,6 +409,7 @@ const createValue = async (val: string, done: () => void) => {
     name.value = { value: user.id, label: user.person.fullname }
   }
 }
+
 const enterEventPerson = (type: string) => {
   typeUser.value = type
   const element = document.querySelector('#entry-person input')
@@ -411,6 +417,7 @@ const enterEventPerson = (type: string) => {
     bubbles: true, cancelable: true, keyCode: 13
   }))
 }
+
 const filterFn = (val: string, update: unknown) => {
   update(async () => {
     if (val === '') {
@@ -420,6 +427,7 @@ const filterFn = (val: string, update: unknown) => {
     }
   })
 }
+
 const filterDepartment = (val: string, update: unknown) => {
   update(() => {
     if (val === '') {
@@ -492,6 +500,7 @@ const cleanEntryDetail = async () => {
     formRender.value = true
   })
 }
+
 const editEntryDetails = async (id: number) => {
   const item = await http.get(`entriesdetails/${id}`) as EntryDetail
   type.value = item.type
@@ -508,6 +517,7 @@ const editEntryDetails = async (id: number) => {
     item.id_department = concept.value.value
   }
 }
+
 const removeEntryDetails = (id: number) => {
   Confirm('¿Desea eliminar el registro?', async () => {
     await http.delete(`entriesdetails/${id}`)
@@ -566,31 +576,7 @@ const updateCode = async (item: EntryDetail) => {
 const generatePdf = async (idEntryDetail?: number) => {
   const url = idEntryDetail ? `entries/pdf/detail/${idEntryDetail as string}` : `entries/pdf/details/${entry.value.id as string}`
   const pdf = await http.get(url) as string
-  const link = document.createElement('a')
-  link.href = window.URL.createObjectURL(b64toBlob(pdf, 'application/pdf'))
-  link.setAttribute('download', `invoice-${Date.now()}.pdf`)
-  document.body.appendChild(link)
-  link.click()
-}
-
-const b64toBlob = (b64Data, contentType: string, sliceSize = 512) => {
-  const byteCharacters = atob(b64Data)
-  const byteArrays = []
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    const slice = byteCharacters.slice(offset, offset + sliceSize)
-
-    const byteNumbers = new Array(slice.length)
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i)
-    }
-
-    const byteArray = new Uint8Array(byteNumbers)
-
-    byteArrays.push(byteArray)
-  }
-
-  return new Blob(byteArrays, { type: contentType || '' })
+  createPdf(pdf, `invoice-${Date.now()}.pdf`)
 }
 
 onBeforeMount(async () => {

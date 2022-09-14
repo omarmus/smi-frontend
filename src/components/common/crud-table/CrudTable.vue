@@ -18,8 +18,10 @@
         <slot
           name="buttons"
           :open="openModal"
+          :getSelected="getSelected"
           :update="updateList"></slot>
         <q-btn
+          class="q-ml-none q-mr-xs"
           v-if="props.filters?.length > 0 && props.openFilter === false"
           @click="toggleFilter">
           <q-icon
@@ -29,12 +31,74 @@
           <q-tooltip>{{ enableFilter ? 'Cerrar filtros' : 'Abrir filtros' }}</q-tooltip>
         </q-btn>
         <q-btn
+          class="q-ml-none q-mr-xs"
           @click="updateList">
           <q-icon center name="refresh" color="secondary" />
           <q-tooltip>Actualizar página</q-tooltip>
         </q-btn>
         <slot name="buttons-end"></slot>
       </q-toolbar>
+      <template v-if="enableFilter">
+        <div class="q-pl-md full-width q-crud-filter">
+          <q-icon name="search" size="md" class="icon-search" />
+          <div class="row q-col-gutter-xs no-padding full-width">
+            <div
+              v-for="(item, index) of props.filters"
+              :key="index"
+              class="col-xs-12 col-sm-4 col-md-3">
+              <q-select
+                v-if="item.type === 'select'"
+                v-model="filter[item.name]"
+                :options="item.options"
+                :label="item.label"
+                behavior="menu"
+                clearable
+                filled
+                dense
+                emit-value
+                map-options
+                :autofocus="index === 0" />
+              <q-checkbox
+                v-if="item.type === 'checkbox'"
+                v-model="filter[item.name]"
+                :label="item.label"
+                filled
+                dense
+                :autofocus="index === 0" />
+              <q-input
+                v-if="item.type === 'input'"
+                v-model="filter[item.name]"
+                :label="item.label"
+                clearable
+                filled
+                dense
+                :autofocus="index === 0"
+                debounce="500" />
+              <q-input
+                v-if="item.type === 'date'"
+                v-model="filter[item.name]"
+                :label="item.label"
+                clearable
+                filled
+                dense>
+                <template v-slot:append :props="item">
+                  <q-icon name="event" class="cursor-pointer"></q-icon>
+                  <q-popup-proxy
+                    :ref="item.name"
+                    transition-show="scale"
+                    transition-hide="scale">
+                    <q-date
+                      v-model="filter[item.name]"
+                      color="primary"
+                      mask="YYYY-MM-DD"
+                      @input="(evt) => ocultarPopup(evt, item.name)" />
+                  </q-popup-proxy>
+                </template>
+              </q-input>
+            </div>
+          </div>
+        </div>
+      </template>
       <q-table
         v-model:pagination="pagination"
         v-model:selected="selected"
@@ -54,67 +118,19 @@
         @request="onRequest"
         row-key="id"
         binary-state-sort
+        :selected-rows-label="getSelectedString"
+        :selection="props.selection ? 'multiple' : 'none'"
       >
-        <template
-          v-slot:top v-if="enableFilter">
-          <div class="q-pl-md full-width q-crud-filter">
-            <q-icon name="search" size="md" class="icon-search" />
-            <div class="row q-col-gutter-xs no-padding full-width">
-              <div
-                v-for="(item, index) of props.filters"
-                :key="index"
-                class="col-xs-12 col-sm-4 col-md-3">
-                <q-select
-                  v-if="item.type === 'select'"
-                  v-model="filter[item.name]"
-                  :options="item.options"
-                  :label="item.label"
-                  behavior="menu"
-                  clearable
-                  filled
-                  dense
-                  emit-value
-                  map-options
-                  :autofocus="index === 0" />
-                <q-checkbox
-                  v-if="item.type === 'checkbox'"
-                  v-model="filter[item.name]"
-                  :label="item.label"
-                  filled
-                  dense
-                  :autofocus="index === 0" />
-                <q-input
-                  v-if="item.type === 'input'"
-                  v-model="filter[item.name]"
-                  :label="item.label"
-                  clearable
-                  filled
-                  dense
-                  :autofocus="index === 0"
-                  debounce="500" />
-                <q-input
-                  v-if="item.type === 'date'"
-                  v-model="filter[item.name]"
-                  :label="item.label"
-                  clearable
-                  filled
-                  dense>
-                  <template v-slot:append :props="item">
-                    <q-icon name="event" class="cursor-pointer"></q-icon>
-                    <q-popup-proxy
-                      :ref="item.name"
-                      transition-show="scale"
-                      transition-hide="scale">
-                      <q-date
-                        v-model="filter[item.name]"
-                        color="primary"
-                        mask="YYYY-MM-DD"
-                        @input="(evt) => ocultarPopup(evt, item.name)" />
-                    </q-popup-proxy>
-                  </template>
-                </q-input>
-              </div>
-            </div>
+        <template v-slot:top>
+          <div v-if="selected.length" class="q-gutter-xs">
+            <strong>Seleccionado{{ selected.length > 1 ? 's' : '' }}:</strong>
+            <q-chip
+              v-for="item in selected"
+              :key="item.id"
+              removable
+              @remove="deleteSelected(item)">
+              {{ getLabelSelected(item) }}
+            </q-chip>
           </div>
         </template>
         <template v-slot:body="props">
@@ -122,14 +138,16 @@
             :row="props.row"
             :open="openModal"
             :update="updateList"
+            :selected="props.selected"
+            :setSelected="setSelected"
             name="row" />
         </template>
         <template v-slot:item="props">
           <slot
             :row="props.row"
-            :selected="props.selected"
             :open="openModal"
             :update="updateList"
+            :selected="props.selected"
             name="item" />
         </template>
       </q-table>
@@ -148,8 +166,10 @@ interface Props {
   filters?: []
   grid?: boolean
   order?: string
-  url: string,
+  url: string
   openFilter: boolean
+  selection?: boolean
+  labelSelection?: string
 }
 
 interface Pagination {
@@ -172,7 +192,12 @@ const pagination = ref<Pagination>({
   rowsNumber: 0,
   'rows-per-page-label': 'Páginas'
 })
-const selected = ref([])
+
+interface SelectedItem {
+  id: number
+}
+
+const selected = ref<SelectedItem[]>([])
 const loading = ref<boolean>(false)
 const modal = ref(false)
 const filter = ref<Record<string, string>>({})
@@ -181,6 +206,49 @@ const enableFilter = ref<boolean>(!!props.openFilter)
 const toggleFilter = () => {
   enableFilter.value = !enableFilter.value
   filter.value = {}
+}
+
+const setSelected = (props: { checked: boolean, row: { id: number } }) => {
+  const search = selected.value.find((element: { id: number }) => element.id === props.row.id)
+  if (!search) {
+    selected.value.push(props.row)
+  } else {
+    selected.value = selected.value.filter((element: { id: number }) => element.id !== props.row.id)
+  }
+  props.checked = !props.checked
+}
+
+const getSelected = () => {
+  return selected.value
+}
+
+const deleteSelected = (item: SelectedItem) => {
+  selected.value = selected.value.filter((element: { id: number }) => element.id !== item.id)
+}
+
+const getLabelSelected = (item: SelectedItem) => {
+  const value = getValue(props.labelSelection, item)
+  return value || item.id
+}
+
+const getValue = (valuePath: string, datos: any) => {
+  const path = valuePath.split('.')
+  let value = {}
+  if (path.length) {
+    if (!datos[path[0]]) { // eslint-disable-line
+      return null
+    }
+    value = datos[path[0]] // eslint-disable-line
+    for (let i = 1; i < path.length; i++) {
+      if (!value[path[i]]) { // eslint-disable-line
+        return null
+      }
+      value = value[path[i]] // eslint-disable-line
+    }
+    return value
+  }
+
+  return null
 }
 
 function getPaginationLabel (firstRowIndex: number, endRowIndex: number, totalRowsNumber: number) {
@@ -229,6 +297,10 @@ const updateList = async () => {
   await onRequest({ pagination: pagination.value })
 }
 
+const getSelectedString = () => {
+  return selected.value.length === 0 ? '' : `${selected.value.length} registro${selected.value.length > 1 ? 's' : ''} seleccionado de ${rows.value.length}`
+}
+
 watch(() => JSON.parse(JSON.stringify(filter.value)) as Record<string, string>, async () => {
   await onRequest({ pagination: pagination.value })
 })
@@ -246,30 +318,6 @@ onMounted(async () => {
     background: transparent;
   }
 
-  .q-crud-filter {
-    position: relative;
-    background: #EBF0F2;
-    padding: 5px 5px 5px 7px;
-
-    &::before {
-      content: '';
-      border-radius: 10px 0 0 10px;
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: -22px;
-      background: #EBF0F2;
-      width: 30px;
-    }
-
-    .icon-search {
-      position: absolute;
-      top: 50%;
-      left: -20px;
-      transform: translateY(-50%);
-    }
-  }
-
   .icon-search {
     color: $texto;
     margin-top: 4px;
@@ -277,6 +325,38 @@ onMounted(async () => {
 
   .col-grow {
     width: 250px;
+  }
+
+  .crud-table-selected {
+    padding-right: 0;
+    width: 50px;
+
+    & + td {
+      padding-left: 0;
+    }
+  }
+}
+.q-crud-filter {
+  position: relative;
+  background: #EBF0F2;
+  padding: 5px 5px 5px 33px;
+
+  &::before {
+    content: '';
+    border-radius: 10px 0 0 10px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 4px;
+    background: #EBF0F2;
+    width: 30px;
+  }
+
+  .icon-search {
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%);
   }
 }
 </style>

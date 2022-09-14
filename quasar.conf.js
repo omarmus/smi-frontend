@@ -156,9 +156,9 @@ module.exports = configure(function (ctx) {
       },
 
       manifest: {
-        name: 'Secretaría & Tesorería SMI',
-        short_name: 'Secretaría & Tesorería SMI',
-        description: 'Sistema de Secretaría & Tesorería SMI - Bolivia',
+        name: 'Secretaría y Tesorería SMI',
+        short_name: 'Secretaría y Tesorería SMI',
+        description: 'Sistema de Secretaría y Tesorería SMI - Bolivia',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',

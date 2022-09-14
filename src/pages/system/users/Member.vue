@@ -12,13 +12,37 @@
       :columns="columns"
       :filters="filters"
       :open-filter="true"
-      :url="url">
+      :url="url"
+      :selection="selected"
+      label-selection="person.fullname">
       <template v-slot:buttons="props">
         <q-btn
+          class="q-ml-none q-mr-xs"
           icon="add"
+          no-caps
           color="primary"
           @click="openModal(props.open)"
-        > Agregar
+        >
+          Agregar
+          <q-tooltip>Agregar registro</q-tooltip>
+        </q-btn>
+        <q-btn
+          class="q-ml-none q-mr-xs"
+          icon="print"
+          no-caps
+          @click="print(props.getSelected())"
+        >
+          Imprimir
+          <q-tooltip>Imprimir Ficha</q-tooltip>
+        </q-btn>
+        <q-btn
+          class="q-ml-none q-mr-xs"
+          icon="print"
+          no-caps
+          @click="printAll"
+        >
+          Imprimir todo
+          <q-tooltip>Imprimir todas las fichas</q-tooltip>
         </q-btn>
       </template>
       <template v-slot:form="props">
@@ -389,7 +413,6 @@
                   </div>
                 </div>
               </q-tab-panel>
-
               <q-tab-panel name="cargos">
                 <div class="text-h6 text-warning q-mb-md">Cargos ocupados en la Iglesia</div>
                 <div class="row q-col-gutter-sm">
@@ -452,6 +475,9 @@
       </template>
       <template v-slot:row="props">
         <q-tr>
+          <q-td v-if="selected" class="crud-table-selected">
+            <q-checkbox v-model="props.selected" @click="props.setSelected(props)" />
+          </q-td>
           <q-td auto-width>
             <q-btn
               class="q-ma-xs"
@@ -459,21 +485,36 @@
               flat
               round
               @click="props.row.expand = !props.row.expand"
-              :icon="props.row.expand ? 'remove_circle' : 'add_circle'" />
+              :icon="props.row.expand ? 'remove_circle' : 'add_circle'">
+              <q-tooltip>{{ props.row.expand ? 'Ocultar información' : 'Mostrar información' }}</q-tooltip>
+            </q-btn>
             <q-btn
               class="q-ma-xs"
               flat
               round
               color="secondary"
               icon="edit"
-              @click="openModal(props.open, props.row.id)" />
+              @click="openModal(props.open, props.row.id)">
+              <q-tooltip>Editar registro</q-tooltip>
+            </q-btn>
+            <q-btn
+              class="q-ma-xs"
+              flat
+              round
+              color="secondary"
+              icon="photo_camera"
+              @click="openAddPhoto(props.row)">
+              <q-tooltip>Agregar foto</q-tooltip>
+            </q-btn>
             <q-btn
               class="q-ma-xs"
               flat
               round
               color="negative"
               icon="delete"
-              @click="deleteItem(props.update, `${url}/${props.row.id}`)" />
+              @click="deleteItem(props.update, `${url}/${props.row.id}`)">
+              <q-tooltip>Eliminar registro</q-tooltip>
+            </q-btn>
             <q-toggle
               v-model="props.row.state"
               color="primary"
@@ -520,11 +561,14 @@
         </q-tr>
       </template>
     </CrudTable>
+    <q-dialog v-model="dialogMemberPhoto" persistent transition-show="scale" transition-hide="scale">
+      <MemberPhoto :id="idUser" />
+    </q-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
 import { Company } from '../../../components/entities/Company'
@@ -535,6 +579,7 @@ import { getCountries } from '../../../components/plugins/countries'
 import { deleteItem, changeState } from '../../../components/plugins/crud'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
 import MemberInfo from './MemberInfo.vue'
+import MemberPhoto from './MemberPhoto.vue'
 import validation from '../../../components/plugins/validation'
 import {
   originOptions,
@@ -545,6 +590,7 @@ import {
   memberStateOptions,
   memberTypeOptions
 } from '../../../components/plugins/params'
+import { createPdf } from '../../../components/plugins/util'
 
 const url = 'users'
 
@@ -638,11 +684,14 @@ const tab = ref('personal')
 const nationalities = getCountries()
 const nationalitiesFilter = ref(nationalities)
 const user = ref<User>()
+const idUser = ref<number>()
 const companies = ref<Company[]>()
 const companiesFilter = ref<Company[]>()
 const disablePassword = ref<boolean>(false)
 const myForm = ref(null)
-const viewPassword = ref<boolean>(false)
+const viewPassword = ref<boolean>(true)
+const dialogMemberPhoto = ref<boolean>(false)
+const selected = ref<boolean>(true)
 
 const openModal = async (open: () => void, id?: number) => {
   tab.value = 'personal'
@@ -654,6 +703,7 @@ const openModal = async (open: () => void, id?: number) => {
     user.value.person.acceptanceLocalDate = format(user.value.person.acceptanceLocalDate as string)
     user.value.person.dischargeDate = format(user.value.person.dischargeDate as string)
   } else {
+    viewPassword.value = false
     user.value = {
       username: '',
       person: {
@@ -710,6 +760,28 @@ const save = async (crud: { update: () => void, close: () => void }) => {
   }
   crud.update()
   crud.close()
+}
+
+const print = async (items: User[]) => {
+  if (items.length === 0) {
+    return message.warning('Debe seleccionar por lo menos registro para imprimir.')
+  }
+  const pdf = await http.post('users/print', { ids: items.map(item => item.id) }) as string
+  createPdf(pdf, `kardex-${Date.now()}.pdf`)
+}
+
+const printAll = async () => {
+  const pdf = await http.post('users/print', { ids: [] }) as string
+  createPdf(pdf, `kardex-${Date.now()}.pdf`)
+}
+
+const openAddPhoto = (item: User) => {
+  dialogMemberPhoto.value = false
+  idUser.value = 0
+  void nextTick(() => {
+    dialogMemberPhoto.value = true
+    idUser.value = item.id
+  })
 }
 
 const now = new Date()

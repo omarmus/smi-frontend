@@ -1,10 +1,10 @@
 <template>
   <div class="member-info" v-if="user">
     <div class="row q-col-gutter-x-sm">
-      <div class="col-xs-12 col-sm-6">
-        <h2 class="member-info-title">Datos Personales</h2>
+      <div class="col-xs-12 col-sm-6 member-info-relative">
+        <h2 class="member-info-title-main">{{ user.person.fullname }}</h2>
+        <h3 class="member-info-title">Datos Personales</h3>
         <ul class="member-info-list">
-          <li><strong>Nombre completo:</strong> {{ user.person.fullname }}</li>
           <li><strong>Primer apellido:</strong> {{ user.person.lastName }}</li>
           <li><strong>Segundo apellido:</strong> {{ user.person.secondLastName }}</li>
           <li><strong>Nombre(s):</strong> {{ user.person.firstName }}</li>
@@ -20,9 +20,12 @@
           <li><strong>Nacionalidad:</strong> {{ user.person.nationality }}</li>
           <li><strong>Dirección:</strong> {{ user.person.address }}</li>
         </ul>
+        <figure v-if="user.person.photo" class="member-info-photo">
+          <img :src="`${urlBase.replace(/\/api\//g, '')}/files/users/${user.person.photo}`" :alt="user.person.firstName">
+        </figure>
       </div>
       <div class="col-xs-12 col-sm-6">
-        <h2 class="member-info-title">Afiliación</h2>
+        <h3 class="member-info-title">Afiliación</h3>
         <ul class="member-info-list">
           <li><strong>Procedencia religiosa:</strong> {{ user.person.origin }}</li>
           <li><strong>Fecha de bautismo:</strong> {{ format(user.person.christeningDate) }}</li>
@@ -58,11 +61,11 @@
             />
           </li>
         </ul>
-        <h2 class="member-info-title">Cargos ocupados</h2>
+        <h3 class="member-info-title">Cargos ocupados</h3>
         <ul class="member-info-list">
           <li><strong>Cargo:</strong> {{ user.person.position || 'NINGUNO' }}</li>
         </ul>
-        <h2 class="member-info-title">Datos de usuario</h2>
+        <h3 class="member-info-title">Datos de usuario</h3>
         <ul class="member-info-list">
           <li><strong>Nombre de usuario:</strong> {{ user.username }}</li>
           <li><strong>Correo electrónico:</strong> {{ user.email }}</li>
@@ -85,7 +88,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { http } from 'boot/http'
+import { http, urlBase } from 'boot/http'
 import { User } from '../../../components/entities/User'
 import { format } from '../../../components/plugins/datetime'
 
@@ -142,11 +145,35 @@ onMounted(async () => {
   font-weight: 600;
   color: $warning;
 }
+.member-info-title-main {
+  font-size: 2rem;
+  line-height: 2rem;
+  font-weight: bold;
+  color: $primary;
+}
 .member-info-list {
   margin: 0 0 10px;
   padding: 0;
   list-style: none;
   color: $secondary;
   white-space: normal;
+}
+.member-info-photo {
+  width: 100%;
+  max-width: 120px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  right: 30px;
+
+  img {
+    width: 100%;
+    border-radius: 50%;
+  }
+}
+.member-info-relative {
+  position: relative;
 }
 </style>
