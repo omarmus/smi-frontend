@@ -15,28 +15,32 @@
     </div>
     <div class="col-xs-12">
       <q-toolbar inset class="q-gutter-md q-px-md q-pb-md">
-        <slot
-          name="buttons"
-          :open="openModal"
-          :getSelected="getSelected"
-          :update="updateList"></slot>
-        <q-btn
-          class="q-ml-none q-mr-xs"
-          v-if="props.filters?.length > 0 && props.openFilter === false"
-          @click="toggleFilter">
-          <q-icon
-            center
-            :name="enableFilter ? 'close' : 'search'"
-            color="secondary" />
-          <q-tooltip>{{ enableFilter ? 'Cerrar filtros' : 'Abrir filtros' }}</q-tooltip>
-        </q-btn>
-        <q-btn
-          class="q-ml-none q-mr-xs"
-          @click="updateList">
-          <q-icon center name="refresh" color="secondary" />
-          <q-tooltip>Actualizar página</q-tooltip>
-        </q-btn>
-        <slot name="buttons-end"></slot>
+        <div class="col-xs-12 col-md-8">
+          <slot
+            name="buttons"
+            :open="openModal"
+            :getSelected="getSelected"
+            :update="updateList"></slot>
+          <q-btn
+            class="q-ml-none q-mr-xs"
+            v-if="props.filters?.length > 0 && props.openFilter === false"
+            @click="toggleFilter">
+            <q-icon
+              center
+              :name="enableFilter ? 'close' : 'search'"
+              color="secondary" />
+            <q-tooltip>{{ enableFilter ? 'Cerrar filtros' : 'Abrir filtros' }}</q-tooltip>
+          </q-btn>
+          <q-btn
+            class="q-ml-none q-mr-xs"
+            @click="updateList">
+            <q-icon center name="refresh" color="secondary" />
+            <q-tooltip>Actualizar página</q-tooltip>
+          </q-btn>
+        </div>
+        <div class="col-xs-12 col-md-4 text-right">
+          <slot name="buttons-end"></slot>
+        </div>
       </q-toolbar>
       <template v-if="enableFilter">
         <div class="q-pl-md full-width q-crud-filter">
@@ -167,7 +171,7 @@ interface Props {
   grid?: boolean
   order?: string
   url: string
-  openFilter: boolean
+  openFilter?: boolean
   selection?: boolean
   labelSelection?: string
 }
@@ -185,8 +189,8 @@ const props = defineProps<Props>()
 
 const rows = ref([])
 const pagination = ref<Pagination>({
-  sortBy: props.order || 'user.id',
-  descending: true,
+  sortBy: props.order ? props.order.replace('-', '') : null,
+  descending: props?.order?.indexOf('-') !== -1,
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 0,
@@ -327,6 +331,23 @@ onMounted(async () => {
     width: 250px;
   }
 
+  .crud-table-checkbox {
+    .q-checkbox {
+      display: none;
+      padding: 0;
+      width: 30px;
+    }
+
+    &:hover, &.active {
+      .q-checkbox {
+        display: block;
+      }
+    }
+    &.active {
+      background: lighten($primary, 72%);
+    }
+  }
+
   .crud-table-selected {
     padding-right: 0;
     width: 50px;
@@ -336,6 +357,21 @@ onMounted(async () => {
     }
   }
 }
+// .q-table {
+//   thead {
+//     & > tr {
+//       .q-checkbox {
+//         visibility: hidden;
+//       }
+
+//       &:hover, &.active {
+//         .q-checkbox {
+//           visibility: visible;
+//         }
+//       }
+//     }
+//   }
+// }
 .q-crud-filter {
   position: relative;
   background: #EBF0F2;

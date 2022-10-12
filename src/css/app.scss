@@ -247,6 +247,11 @@ body.body--dark {
   max-width: 960px !important;
 }
 
+.modal-sm {
+  width: 100%;
+  max-width: 420px !important;
+}
+
 .alert {
   border-radius: 4px;
   border: 1px solid lighten($primary, 65%);
@@ -366,6 +371,12 @@ body.body--dark {
       position: inherit;
       // display: inline-block;
       margin: 0 8px;
+    }
+  }
+
+  .row {
+    & > .card-button {
+      max-width: 100%;
     }
   }
 }

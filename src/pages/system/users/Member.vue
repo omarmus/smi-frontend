@@ -26,24 +26,25 @@
           Agregar
           <q-tooltip>Agregar registro</q-tooltip>
         </q-btn>
-        <q-btn
-          class="q-ml-none q-mr-xs"
+        <q-btn-dropdown
           icon="print"
           no-caps
-          @click="print(props.getSelected())"
-        >
-          Imprimir
-          <q-tooltip>Imprimir Ficha</q-tooltip>
-        </q-btn>
-        <q-btn
+          label="Imprimir"
           class="q-ml-none q-mr-xs"
-          icon="print"
-          no-caps
-          @click="printAll"
-        >
-          Imprimir todo
-          <q-tooltip>Imprimir todas las fichas</q-tooltip>
-        </q-btn>
+          padding="6px 7px 6px 9px">
+          <q-list>
+            <q-item clickable v-close-popup @click="print(props.getSelected())">
+              <q-item-section>
+                <q-item-label>Imprimir seleccionados</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="printAll">
+              <q-item-section>
+                <q-item-label>Imprimir todo</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </template>
       <template v-slot:form="props">
         <q-card class="modal-lg">
@@ -474,7 +475,7 @@
         </q-card>
       </template>
       <template v-slot:row="props">
-        <q-tr>
+        <q-tr class="crud-table-checkbox" :class="{ active: props.selected }">
           <q-td v-if="selected" class="crud-table-selected">
             <q-checkbox v-model="props.selected" @click="props.setSelected(props)" />
           </q-td>
@@ -488,39 +489,45 @@
               :icon="props.row.expand ? 'remove_circle' : 'add_circle'">
               <q-tooltip>{{ props.row.expand ? 'Ocultar información' : 'Mostrar información' }}</q-tooltip>
             </q-btn>
-            <q-btn
-              class="q-ma-xs"
-              flat
-              round
-              color="secondary"
-              icon="edit"
-              @click="openModal(props.open, props.row.id)">
-              <q-tooltip>Editar registro</q-tooltip>
-            </q-btn>
-            <q-btn
-              class="q-ma-xs"
-              flat
-              round
-              color="secondary"
-              icon="photo_camera"
-              @click="openAddPhoto(props.row)">
-              <q-tooltip>Agregar foto</q-tooltip>
-            </q-btn>
-            <q-btn
-              class="q-ma-xs"
-              flat
-              round
-              color="negative"
-              icon="delete"
-              @click="deleteItem(props.update, `${url}/${props.row.id}`)">
-              <q-tooltip>Eliminar registro</q-tooltip>
-            </q-btn>
             <q-toggle
               v-model="props.row.state"
               color="primary"
               false-value="INACTIVE"
               true-value="ACTIVE"
               @click="changeState(props.update, props.row, `${url}/${props.row.id}`)" />
+            <q-btn-dropdown
+              color="primary"
+              dropdown-icon="more_vert"
+              flat
+              rounded>
+              <q-list>
+                <q-item clickable v-close-popup @click="openAddPhoto(props.row)">
+                  <q-item-section avatar>
+                    <q-icon name="photo_camera" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Agregar foto</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="openModal(props.open, props.row.id)">
+                  <q-item-section avatar>
+                    <q-icon name="edit" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Editar registro</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="deleteItem(props.update, `${url}/${props.row.id}`)">
+                  <q-item-section avatar>
+                    <q-icon name="delete" color="negative" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Eliminar registro</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <q-tooltip>Más opciones</q-tooltip>
+            </q-btn-dropdown>
           </q-td>
           <q-td>{{ props.row.person?.fullname }}</q-td>
           <!-- <q-td>{{ props.row.username }}</q-td> -->
@@ -562,7 +569,7 @@
       </template>
     </CrudTable>
     <q-dialog v-model="dialogMemberPhoto" persistent transition-show="scale" transition-hide="scale">
-      <MemberPhoto :id="idUser" />
+      <MemberPhoto v-if="dialogMemberPhoto" :id="idUser" />
     </q-dialog>
   </div>
 </template>
@@ -764,7 +771,7 @@ const save = async (crud: { update: () => void, close: () => void }) => {
 
 const print = async (items: User[]) => {
   if (items.length === 0) {
-    return message.warning('Debe seleccionar por lo menos registro para imprimir.')
+    return message.warning('Debe seleccionar por lo menos un registro para poder imprimir.')
   }
   const pdf = await http.post('users/print', { ids: items.map(item => item.id) }) as string
   createPdf(pdf, `kardex-${Date.now()}.pdf`)

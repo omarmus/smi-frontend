@@ -8,3 +8,8 @@ export interface Response<T> {
   code: number
   message: string
 }
+
+export interface Option {
+  value: number
+  label: string
+}

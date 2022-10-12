@@ -85,7 +85,6 @@
                 </q-item>
               </template>
             </q-select>
-
           </div>
           <div class="col-xs-12">
             <q-select
@@ -270,6 +269,7 @@
                 </td>
                 <td class="text-left" v-if="entry.state === 'CLOSED'">
                   <span class="text-texto">{{ item.observations }}</span>
+                  <span class="treasury-observation" v-if="item.department">{{ item.department.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }}</span>
                   <ul class="treasury-list-concepts" v-if="item.concepts?.length">
                     <li
                       v-for="(concept, index) in item.concepts"

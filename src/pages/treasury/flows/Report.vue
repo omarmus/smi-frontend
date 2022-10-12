@@ -257,6 +257,15 @@
         </div>
       </q-tab-panel>
     </q-tab-panels>
+    <div
+      class="text-right q-pt-md q-gutter-xs">
+      <q-btn
+        label="Ver flujo de caja"
+        no-caps
+        icon="account_balance"
+        class="btn-close-month"
+        @click="$router.push('/treasury/flows/general')" />
+    </div>
   </div>
 </template>
 

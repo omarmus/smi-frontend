@@ -8,7 +8,7 @@
         @click="$router.push('/treasury')" />
         Flujo de caja - <span class="text-warning">Iglesia local</span>
         <!-- <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span> -->
-        <span class="subtitle">Total: {{ total.total || 0 }} Bs.</span>
+        <span class="subtitle">Total: {{ (total.total || 0 ).toFixed(2) }} Bs.</span>
       </h2>
     <div class="row q-col-gutter-sm">
       <div class="col-xs-12 col-sm-4">

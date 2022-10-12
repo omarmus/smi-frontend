@@ -10,7 +10,7 @@
       <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span>
     </h2>
     <div class="row">
-      <div class="col-xs-6 col-sm-3 q-pr-sm card-button">
+      <div class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -24,7 +24,7 @@
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
       </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
+      <div class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -34,13 +34,27 @@
           class="full-width btn-block">
           <strong class="q-pb-sm">Gastos</strong>
           <span class="btn-block-detail"><strong>Total:</strong> <span class="text-primary">{{ totalExpenses }} Bs.</span></span>
-          <q-icon name="money_off" />
+          <q-icon name="payments" />
+          <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
+        </q-btn>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          no-caps
+          @click="$router.push(`/treasury/transactions/${entryId}/${expenseId}`)"
+          class="full-width btn-block">
+          <strong class="q-pb-sm">Transacciones</strong>
+          <span class="btn-block-detail"><strong>Bancarias</strong></span>
+          <q-icon name="point_of_sale" />
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
       </div>
       <div
         v-if="entry.state === 'CLOSED'"
-        class="col-xs-6 col-sm-3 q-pl-sm card-button">
+        class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -56,7 +70,7 @@
       </div>
     </div>
     <div
-      class="text-right q-pt-sm q-gutter-xs">
+      class="text-right q-pt-md q-gutter-xs">
       <q-btn
         label="Cambiar mes"
         no-caps

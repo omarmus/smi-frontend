@@ -26,7 +26,9 @@ const routes: RouteRecordRaw[] = [
       { path: 'expense/:expenseId', component: () => import('pages/treasury/expenses/Expense.vue') },
       { path: 'flows', component: () => import('pages/treasury/flows/Flows.vue') },
       { path: 'flows/initial', component: () => import('pages/treasury/flows/Initial.vue') },
-      { path: 'flows/general', component: () => import('pages/treasury/flows/General.vue') }
+      { path: 'flows/general', component: () => import('pages/treasury/flows/General.vue') },
+      { path: 'accounts', component: () => import('pages/treasury/transactions/Accounts.vue') },
+      { path: 'transactions/:entryId/:expenseId', component: () => import('pages/treasury/transactions/Transactions.vue') }
     ]
   },
   {

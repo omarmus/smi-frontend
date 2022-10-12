@@ -34,7 +34,7 @@
         v-if="expense"
         label="Ver gastos del mes"
         no-caps
-        icon="money_off"
+        icon="payments"
         padding="10px 20px"
         class="btn-close-month"
         @click="$router.push(`/treasury/expense/${expense.id}`)" />

@@ -35,7 +35,7 @@
           :disable="entries?.count === 0"
         />
       </div>
-      <!-- <div class="col-xs-6 col-sm-3">
+      <div class="col-xs-6 col-sm-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -43,10 +43,10 @@
           icon="account_balance_wallet"
           label="Cuentas bancarias"
           no-caps
-          @click="$router.push('/treasury/flows')"
+          @click="$router.push('/treasury/accounts')"
           class="full-width btn-block"
         />
-      </div> -->
+      </div>
     </div>
   </div>
 </template>
@@ -88,6 +88,3 @@ onBeforeMount(async () => {
   entries.value = await http.get(`entries/year/${year}/${idCompany}`) as Result<Entry>
 })
 </script>
-
-<style lang="scss">
-</style>
