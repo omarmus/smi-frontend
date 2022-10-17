@@ -72,7 +72,7 @@
     <div
       class="text-right q-pt-md q-gutter-xs">
       <q-btn
-        label="Cambiar mes"
+        label="Ver otro mes"
         no-caps
         icon="calendar_month"
         @click="$router.push('/treasury/months')" />

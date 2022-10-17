@@ -72,7 +72,7 @@
           >
             <q-tab name="personal" icon="person" label="Datos personales" />
             <q-tab name="afiliacion" icon="manage_accounts" label="Datos de afiliación" />
-            <q-tab name="cargos" icon="badge" label="Cargos" />
+            <q-tab name="cargos" icon="badge" label="Cargos" v-if="user.id" />
             <q-tab name="usuario" icon="contact_page" label="Datos de usuario" />
           </q-tabs>
           <q-separator />
@@ -414,16 +414,9 @@
                   </div>
                 </div>
               </q-tab-panel>
-              <q-tab-panel name="cargos">
-                <div class="text-h6 text-warning q-mb-md">Cargos ocupados en la Iglesia</div>
-                <div class="row q-col-gutter-sm">
-                  <div class="col-xs-12 col-md-4">
-                    <q-input
-                      filled
-                      label="Cargo actual"
-                      v-model="user.person.position" />
-                  </div>
-                </div>
+              <q-tab-panel name="cargos" v-if="user.id">
+                <div class="text-h6 text-warning q-pb-md">Cargos ocupados en la Iglesia</div>
+                <Positions :user="user" v-if="user" />
               </q-tab-panel>
               <q-tab-panel name="usuario">
                 <div class="text-h6 text-warning">Datos de usuario</div>
@@ -502,7 +495,7 @@
               rounded>
               <q-list>
                 <q-item clickable v-close-popup @click="openAddPhoto(props.row)">
-                  <q-item-section avatar>
+                  <q-item-section avatar class="datatable-menu-item">
                     <q-icon name="photo_camera" />
                   </q-item-section>
                   <q-item-section>
@@ -510,19 +503,27 @@
                   </q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="openModal(props.open, props.row.id)">
-                  <q-item-section avatar>
+                  <q-item-section avatar class="datatable-menu-item">
                     <q-icon name="edit" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Editar registro</q-item-label>
+                    <q-item-label>Editar</q-item-label>
                   </q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="deleteItem(props.update, `${url}/${props.row.id}`)">
-                  <q-item-section avatar>
-                    <q-icon name="delete" color="negative" />
+                  <q-item-section avatar class="datatable-menu-item">
+                    <q-icon name="delete" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Eliminar registro</q-item-label>
+                    <q-item-label>Eliminar</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="print([props.row])">
+                  <q-item-section avatar class="datatable-menu-item">
+                    <q-icon name="print" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Imprimir</q-item-label>
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -587,6 +588,7 @@ import { deleteItem, changeState } from '../../../components/plugins/crud'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
 import MemberInfo from './MemberInfo.vue'
 import MemberPhoto from './MemberPhoto.vue'
+import Positions from './Positions.vue'
 import validation from '../../../components/plugins/validation'
 import {
   originOptions,

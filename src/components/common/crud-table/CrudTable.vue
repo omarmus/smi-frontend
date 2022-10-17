@@ -14,7 +14,10 @@
         :update="updateList"></slot>
     </div>
     <div class="col-xs-12">
-      <q-toolbar inset class="q-gutter-md q-px-md q-pb-md">
+      <q-toolbar
+        inset
+        class="q-gutter-md q-px-md q-pb-md"
+        v-if="props.buttonsHidden === false">
         <div class="col-xs-12 col-md-8">
           <slot
             name="buttons"
@@ -174,6 +177,7 @@ interface Props {
   openFilter?: boolean
   selection?: boolean
   labelSelection?: string
+  buttonsHidden?: boolean
 }
 
 interface Pagination {

@@ -24,3 +24,12 @@ export const normalize = (date: string) => {
   }
   return [date.split('/')[2], date.split('/')[1], date.split('/')[0]].join('-')
 }
+
+export const getYears = (add = 0) => {
+  const year = (new Date().getUTCFullYear()) + add
+  const years = []
+  for (let y = year; y >= 2021; y--) {
+    years.push(y)
+  }
+  return years
+}
