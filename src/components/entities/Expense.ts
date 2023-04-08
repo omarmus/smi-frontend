@@ -22,4 +22,5 @@ export interface ExpenseDetail {
   expense: Expense
   department?: Department
   idDepartment: number
+  type?: string
 }

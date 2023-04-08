@@ -20,4 +20,7 @@ export interface User {
   state?: string
   person?: Person
   company?: Company
+  association?: Company
+  idAssociation?: number
+  idUnion?: number
 }

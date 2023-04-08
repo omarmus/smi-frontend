@@ -51,7 +51,7 @@
           <q-toolbar class="q-pa-md">
             <q-icon name="people" size="md" />
             <q-toolbar-title>
-              {{ user.id ? 'Editar' : 'Agregar' }} miembro
+              {{ user.id ? `Editar datos de ${user.person?.firstName}` : 'Agregar nuevo' }}
             </q-toolbar-title>
             <q-btn
               flat
@@ -246,6 +246,7 @@
                       :rules="[validation.required]"
                       use-input
                       input-debounce="0"
+                      :disable="!isAdmin"
                       @filter="filterCompaniesFn" />
                   </div>
                   <div class="col-xs-12 col-md-4">
@@ -455,6 +456,22 @@
                       v-model="user.email"
                       :rules="[validation.email]" />
                   </div>
+                  <div
+                    class="col-xs-12 col-md-4"
+                    v-if="isAdmin">
+                    <q-select
+                      filled
+                      label="Rol"
+                      v-model="user.roles"
+                      :options="roles"
+                      :rules="[validation.required]"
+                      multiple
+                      use-chips
+                      option-value="id"
+                      option-label="name"
+                      emit-value
+                      map-options />
+                  </div>
                 </div>
               </q-tab-panel>
             </q-tab-panels>
@@ -483,6 +500,7 @@
               <q-tooltip>{{ props.row.expand ? 'Ocultar información' : 'Mostrar información' }}</q-tooltip>
             </q-btn>
             <q-toggle
+              v-if="isAdmin"
               v-model="props.row.state"
               color="primary"
               false-value="INACTIVE"
@@ -492,16 +510,9 @@
               color="primary"
               dropdown-icon="more_vert"
               flat
-              rounded>
-              <q-list>
-                <q-item clickable v-close-popup @click="openAddPhoto(props.row)">
-                  <q-item-section avatar class="datatable-menu-item">
-                    <q-icon name="photo_camera" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>Agregar foto</q-item-label>
-                  </q-item-section>
-                </q-item>
+              rounded
+              >
+              <q-list dense class="q-py-sm">
                 <q-item clickable v-close-popup @click="openModal(props.open, props.row.id)">
                   <q-item-section avatar class="datatable-menu-item">
                     <q-icon name="edit" />
@@ -510,12 +521,20 @@
                     <q-item-label>Editar</q-item-label>
                   </q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup @click="deleteItem(props.update, `${url}/${props.row.id}`)">
+                <q-item clickable v-close-popup @click="openModal(props.open, props.row.id, 'cargos')">
                   <q-item-section avatar class="datatable-menu-item">
-                    <q-icon name="delete" />
+                    <q-icon name="work" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Eliminar</q-item-label>
+                    <q-item-label>Ver cargos</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup @click="openAddPhoto(props.row)">
+                  <q-item-section avatar class="datatable-menu-item">
+                    <q-icon name="photo_camera" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ props.row.person?.photo ? 'Modificar' : 'Agregar' }} foto</q-item-label>
                   </q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="print([props.row])">
@@ -526,14 +545,21 @@
                     <q-item-label>Imprimir</q-item-label>
                   </q-item-section>
                 </q-item>
+                <q-item clickable v-close-popup @click="deleteItem(props.update, `${url}/${props.row.id}`)">
+                  <q-item-section avatar class="datatable-menu-item">
+                    <q-icon name="delete" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Eliminar</q-item-label>
+                  </q-item-section>
+                </q-item>
               </q-list>
-              <q-tooltip>Más opciones</q-tooltip>
             </q-btn-dropdown>
           </q-td>
           <q-td>{{ props.row.person?.fullname }}</q-td>
           <!-- <q-td>{{ props.row.username }}</q-td> -->
-          <!-- <q-td>{{ props.row.email }}</q-td> -->
-          <q-td>{{ props.row.company?.name }}</q-td>
+          <q-td v-if="isAdmin">{{ props.row.company?.name }}</q-td>
+          <q-td v-else>{{ format(props.row.person.birthday) }}</q-td>
           <q-td class="text-left">
             <q-chip
               square
@@ -579,10 +605,12 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
+import { useStore } from '../../../store'
 import { Company } from '../../../components/entities/Company'
 import { User } from '../../../components/entities/User'
 import { Result } from '../../../components/entities/Entity'
 import { format, normalize } from '../../../components/plugins/datetime'
+import { Role, RoleSlug } from '../../../components/entities/Permission'
 import { getCountries } from '../../../components/plugins/countries'
 import { deleteItem, changeState } from '../../../components/plugins/crud'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
@@ -602,6 +630,9 @@ import {
 import { createPdf } from '../../../components/plugins/util'
 
 const url = 'users'
+const store = useStore()
+
+const isAdmin = ![RoleSlug.SECRETARY, RoleSlug.TREASURER, RoleSlug.WORKER].includes(store.state.user.role.slug)
 
 const columns = [
   { label: 'Acciones', align: 'center' },
@@ -609,7 +640,7 @@ const columns = [
   { label: 'Nombre completo', align: 'left', name: 'person.fullname', sortable: true },
   // { label: 'Nombre de usuario', align: 'left', name: 'user.username', sortable: true },
   // { label: 'Correo electrónico', name: 'user.email', sortable: true },
-  { label: 'Iglesia', align: 'left', name: 'company.id', sortable: true },
+  { label: (isAdmin ? 'Iglesia' : 'Fecha de nacimiento'), align: 'left', name: (isAdmin ? 'company.id' : 'person.birthday'), sortable: true },
   { label: 'Tipo/estado de membresia', align: 'left', name: 'user.type', sortable: true },
   { label: 'Estado del usuario', align: 'right', name: 'user.state', sortable: true }
 ]
@@ -675,6 +706,10 @@ const filters = ref([
   }
 ])
 
+if (!isAdmin) {
+  filters.value.shift()
+}
+
 const labels = {
   MEMBER: { color: 'positive', textColor: 'white', label: 'MIEMBRO' },
   SYMPATHIZER: { color: 'info', textColor: 'white', label: 'MIEMBRO E. SABÁTICA' },
@@ -695,6 +730,7 @@ const nationalitiesFilter = ref(nationalities)
 const user = ref<User>()
 const idUser = ref<number>()
 const companies = ref<Company[]>()
+const roles = ref<Role[]>()
 const companiesFilter = ref<Company[]>()
 const disablePassword = ref<boolean>(false)
 const myForm = ref(null)
@@ -702,8 +738,8 @@ const viewPassword = ref<boolean>(true)
 const dialogMemberPhoto = ref<boolean>(false)
 const selected = ref<boolean>(true)
 
-const openModal = async (open: () => void, id?: number) => {
-  tab.value = 'personal'
+const openModal = async (open: () => void, id?: number, tabDefault = 'personal') => {
+  tab.value = tabDefault
   if (id) {
     user.value = await http.get(`${url}/${id}`) as User
     user.value.person.birthday = format(user.value.person.birthday as string)
@@ -726,6 +762,9 @@ const openModal = async (open: () => void, id?: number) => {
       company: {
         name: ''
       }
+    }
+    if ([RoleSlug.SECRETARY, RoleSlug.TREASURER, RoleSlug.WORKER].includes(store.state.user.role.slug)) {
+      user.value.company.id = store.state.user.user.company.id
     }
   }
   open()
@@ -753,7 +792,8 @@ const save = async (crud: { update: () => void, close: () => void }) => {
     }, 300)
     return
   }
-  user.value.person.fullname = `${user.value.person.firstName} ${user.value.person.lastName} ${user.value.person.secondLastName as string}`
+  user.value.id_company = user.value.company.id
+  user.value.person.fullname = `${user.value.person.firstName} ${user.value.person.lastName} ${user.value.person.secondLastName ? user.value.person.secondLastName : ''}`
   user.value.person.birthday = normalize(user.value.person.birthday as string)
   user.value.person.christeningDate = normalize(user.value.person.christeningDate as string)
   user.value.person.acceptanceDate = normalize(user.value.person.acceptanceDate as string)
@@ -800,19 +840,25 @@ const validateDateOptions = (date) => {
 }
 
 const next = () => {
-  const tabsNext: Record<string, string> = {
+  const tabsNext: Record<string, string> = user.value?.id ? {
     personal: 'afiliacion',
     afiliacion: 'cargos',
     cargos: 'usuario'
+  } : {
+    personal: 'afiliacion',
+    afiliacion: 'usuario'
   }
   tab.value = tabsNext[tab.value]
 }
 
 const previous = () => {
-  const tabsNext: Record<string, string> = {
+  const tabsNext: Record<string, string> = user.value?.id ? {
     afiliacion: 'personal',
     cargos: 'afiliacion',
     usuario: 'cargos'
+  } : {
+    afiliacion: 'personal',
+    usuario: 'afiliacion'
   }
   tab.value = tabsNext[tab.value]
 }
@@ -853,6 +899,10 @@ onMounted(async () => {
   const items = await http.get('companies') as Result<Company>
   companies.value = items.rows.filter(item => ['CHURCH', 'GROUP'].includes(item.type))
   companiesFilter.value = items.rows.filter(item => ['CHURCH', 'GROUP'].includes(item.type))
-  filters.value[0].options = companies.value.map((item: Company) => ({ label: item.name, value: item.id, type: item.type }))
+  if (![RoleSlug.SECRETARY, RoleSlug.TREASURER, RoleSlug.WORKER].includes(store.state.user.role.slug)) {
+    filters.value[0].options = companies.value.map((item: Company) => ({ label: item.name, value: item.id, type: item.type }))
+  }
+
+  roles.value = (await http.get('roles') as Result<Role>).rows
 })
 </script>

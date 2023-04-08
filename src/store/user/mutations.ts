@@ -1,6 +1,7 @@
 import { MutationTree } from 'vuex'
-import { UserStateInterface, Menu, Permission, Role } from './state'
+import { UserStateInterface, Menu } from './state'
 import { User } from '../../components/entities/User'
+import { Permission, Role } from 'src/components/entities/Permission'
 
 const mutation: MutationTree<UserStateInterface> = {
   setUser (state, user: User) {
@@ -8,6 +9,9 @@ const mutation: MutationTree<UserStateInterface> = {
   },
   setRoles (state, roles: Role[]) {
     state.roles = roles
+  },
+  setRole (state, role: Role) {
+    state.role = role
   },
   setMenu (state, menu: Menu[]) {
     state.menu = menu

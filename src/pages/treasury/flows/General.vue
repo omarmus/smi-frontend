@@ -8,7 +8,7 @@
         @click="$router.push('/treasury')" />
         Flujo de caja - <span class="text-warning">Iglesia local</span>
         <!-- <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span> -->
-        <span class="subtitle">Total: {{ (total.total || 0 ).toFixed(2) }} Bs.</span>
+        <span class="subtitle">Total: {{ (total.total || 0 ).toFixed(2) }} {{ $store.state.user?.user.company.money }}</span>
       </h2>
     <div class="row q-col-gutter-sm">
       <div class="col-xs-12 col-sm-4">
@@ -16,7 +16,9 @@
           filled
           v-model="type"
           :options="types"
-          label="Tipo" />
+          label="Tipo"
+          map-options
+          emit-value />
       </div>
       <div class="col-xs-12 col-sm-4">
         <q-select
@@ -24,7 +26,9 @@
           v-model="year"
           :options="years"
           label="Gestión"
-          :disable="type.value === 'GENERAL' || type.value === 'INITIAL'" />
+          :disable="type === 'GENERAL' || type === 'INITIAL'"
+          map-options
+          emit-value />
       </div>
       <div class="col-xs-12 col-sm-4">
         <q-select
@@ -32,13 +36,15 @@
           v-model="month"
           :options="months"
           label="Mes"
-          :disable="type.value === 'GENERAL' || type.value === 'YEAR' || type.value === 'INITIAL'" />
+          :disable="type === 'GENERAL' || type === 'YEAR' || type === 'INITIAL'"
+          map-options
+          emit-value />
       </div>
     </div>
     <div
-      v-if="flows.length && (type.value === 'GENERAL' || type.value === 'INITIAL')"
+      v-if="flows.length && (type === 'GENERAL' || type === 'INITIAL')"
       class="row flow-items q-col-gutter-x-lg q-pt-md">
-      <h3 class="flow-title col-12">Flujo de caja {{ type.value === 'GENERAL' ? 'General' : 'Inicial' }}</h3>
+      <h3 class="flow-title col-12">Flujo de caja {{ type === 'GENERAL' ? 'General' : 'Inicial' }}</h3>
       <div
         class="col-xs-12 col-sm-6"
         v-for="item in flows"
@@ -51,7 +57,7 @@
               class="text-right"
               dense
               placeholder="0"
-              suffix="Bs.">
+              :suffix="$store.state.user?.user.company.money">
               <template v-slot:control>
                 <div class="self-center full-width no-outline" tabindex="0">{{ Number(item.total).toFixed(2) }}</div>
               </template>
@@ -61,14 +67,15 @@
       </div>
     </div>
     <div
-      v-if="type.value === 'MONTH'"
+      v-if="type === 'MONTH'"
       class="row flow-navitagor">
       <q-btn
         label="Anterior"
         flat
         icon="chevron_left"
         @click="prevMonth" />
-      <strong>{{ monthsLiteral[month.value - 1].toUpperCase() }}</strong>
+      <strong v-if="month > 0">{{ monthsLiteral[month - 1].toUpperCase() }}</strong>
+      <!-- <strong>{{ month?.label?.toUpperCase() }}</strong> -->
       <q-btn
         label="Siguiente"
         flat
@@ -76,9 +83,9 @@
         @click="nextMonth" />
     </div>
     <div
-      v-if="flows.length && type.value === 'MONTH'"
+      v-if="flows.length && type === 'MONTH'"
       class="row tithe-column">
-      <h3 class="flow-title col-12">Flujo de caja {{ monthsLiteral[month.value - 1] }}</h3>
+      <h3 class="flow-title col-12">Flujo de caja {{ monthsLiteral[month - 1] }}</h3>
       <div class="q-table-simple q-table__container q-table--horizontal-separator column no-wrap q-table--dense q-table--no-wrap col-12">
         <table class="q-table treasury-table-data">
           <thead>
@@ -182,7 +189,7 @@
         </table>
       </div>
     </div>
-    <div v-else-if="flows.length === 0 && type.value === 'MONTH'" class="q-pa-sm text-primary">No existe datos para el mes de <strong>{{ monthsLiteral[month.value - 1] }}</strong>.</div>
+    <div v-else-if="flows.length === 0 && type === 'MONTH'" class="q-pa-sm text-primary">No existe datos para el mes de <strong>{{ monthsLiteral[month - 1] }}</strong>.</div>
   </div>
 </template>
 
@@ -190,29 +197,31 @@
 import { ref, onBeforeMount, computed, watch } from 'vue'
 import { http } from 'boot/http'
 import { Result } from '../../../components/entities/Entity'
-import { months as monthsLiteral } from '../../../components/plugins/datetime'
+import { months as monthsLiteral, getYears } from '../../../components/plugins/datetime'
 import { Flow } from '../../../components/entities/Flow'
+import { Entry } from '../../../components/entities/Entry'
 import { useStore } from '../../../store'
 
 const store = useStore()
 
 const idCompany = store.state.user?.user?.company.id as number
 
-const now = new Date()
-let previousYear = now.getFullYear()
-let previousMonth = now.getMonth() - 1
-if (previousMonth < 0) {
-  previousMonth = 11
-  previousYear--
+const getCurrentFlow = async () => {
+  const url = `entries?id_company=${idCompany}&state=ACTIVE`
+  const items = await http.get(url) as Result<Entry>
+  if (items.count > 0) {
+    month.value = items.rows[0].month === 1 ? 12 : items.rows[0].month - 1
+    year.value = items.rows[0].month === 1 ? (items.rows[0].year - 1) : items.rows[0].year
+  }
 }
-const year = ref({ value: previousYear, label: previousYear })
-const type = ref({ value: 'MONTH', label: 'MENSUAL' })
-const month = ref<{ value: number, label: string }>({ value: previousMonth + 1, label: monthsLiteral[previousMonth] })
+
+const previousMonth = ref<number>(0)
+const year = ref<number>(0)
+const type = ref<string>('MONTH')
+const month = ref<number>(0)
 
 const months = monthsLiteral.map((item, index) => ({ value: index + 1, label: item }))
-const years = [
-  { value: 2022, label: '2022' }
-]
+const years = getYears()
 
 const types = [
   { value: 'GENERAL', label: 'GENERAL' },
@@ -224,41 +233,41 @@ const types = [
 const flows = ref<[Flow]>([])
 
 const getFlows = async () => {
-  if (type.value.value === 'GENERAL') {
-    const url = `expenses/report/${type.value.value}?id_company=${idCompany}`
+  if (type.value === 'GENERAL') {
+    const url = `expenses/report/${type.value as string}?id_company=${idCompany}`
     const items = await http.get(url) as Result<Flow>
     flows.value = items.rows
-  } else if (type.value.value === 'MONTH') {
-    const url = `expenses/report/${type.value.value}?id_company=${idCompany}&year=${year.value.value}&month=${month.value.value}`
+  } else if (type.value === 'MONTH') {
+    const url = `expenses/report/${type.value as string}?id_company=${idCompany}&year=${year.value as string}&month=${month.value as string}`
     const items = await http.get(url) as Result<Flow>
     flows.value = items.rows
   } else {
-    const url = `flows?id_company=${idCompany}&type=${type.value.value}`
+    const url = `flows?id_company=${idCompany}&type=${type.value}`
     const items = await http.get(url) as Result<Flow>
     flows.value = items.rows
   }
 }
 
 const nextMonth = () => {
-  let yearNext = year.value.value
-  let monthNext = month.value.value + 1
+  let yearNext = year.value
+  let monthNext = month.value + 1
   if (monthNext > 12) {
     yearNext++
     monthNext = 1
   }
-  month.value = { value: monthNext, label: monthsLiteral[monthNext - 1] }
-  year.value = { value: yearNext, label: yearNext as string }
+  month.value = monthNext
+  year.value = yearNext
 }
 
 const prevMonth = () => {
-  let yearPrev = year.value.value
-  let monthPrev = month.value.value - 1
-  if (monthPrev < 0) {
+  let yearPrev = year.value
+  let monthPrev = month.value - 1
+  if (monthPrev === 0) {
     yearPrev--
     monthPrev = 12
   }
-  month.value = { value: monthPrev, label: monthsLiteral[monthPrev - 1] }
-  year.value = { value: yearPrev, label: yearPrev as string }
+  month.value = monthPrev
+  year.value = yearPrev
 }
 
 const total = computed(() => {
@@ -284,29 +293,22 @@ const total = computed(() => {
 })
 
 const monthPrev = computed(() => {
-  if (month.value.value - 2 < 0) {
+  if (month.value - 2 < 0) {
     return 11
   }
-  return month.value.value - 2
+  return month.value - 2
 })
 
-watch(type, async () => (await getFlows(0)))
-watch(year, async () => (await getFlows(0)))
-watch(month, async () => (await getFlows(0)))
+watch(type, async () => (await getFlows()))
+watch(year, async () => (await getFlows()))
+watch(month, async () => (await getFlows()))
 
 onBeforeMount(async () => {
-  await getFlows(0)
+  await getCurrentFlow()
 })
 </script>
 
 <style lang="scss">
-.flow-title {
-  margin: 15px 0 10px;
-  text-align: center;
-  font-size: 1.4em;
-  font-weight: bold;
-  color: $primary;
-}
 .flow-navitagor {
   display: flex;
   justify-content: space-between;

@@ -8,7 +8,7 @@
         @click="$router.push(`/treasury/entryexpense/${entry.id}/${$route.params.expenseId}`)" />
       Gastos - {{ months[expense.month - 1] }}
       <span class="text-warning" v-if="expense.state === 'CLOSED'"> CERRADO</span>
-      <span class="subtitle">Total: {{ totalExpenses }} Bs.</span>
+      <span class="subtitle">Total: {{ totalExpenses }} {{ $store.state.user?.user.company.money }}</span>
     </h2>
     <div class="row">
       <div class="col-xs-12 col-sm-5" v-if="expense.state !== 'CLOSED'">
@@ -17,6 +17,24 @@
           @submit="saveDetail"
           @reset="cleanExpenseDetail"
           class="q-gutter-md">
+          <div class="col-xs-12">
+            <q-btn-group spread outline>
+              <q-btn
+                :outline="type !== 'LOCAL'"
+                padding="12px"
+                color="primary"
+                label="Iglesia local"
+                @click="type = 'LOCAL'"
+                no-caps />
+              <q-btn
+                :outline="type !== 'GLOBAL'"
+                padding="10px"
+                color="primary"
+                label="Asociación"
+                @click="type = 'GLOBAL'"
+                no-caps />
+            </q-btn-group>
+          </div>
           <div class="col-xs-12">
             <q-select
               filled
@@ -34,7 +52,7 @@
                   <q-item-section class="treasury-department-item">
                     <q-item-label>{{ scope.opt.label }}</q-item-label>
                     <q-item-label caption>{{ scope.opt.type }}</q-item-label>
-                    <!-- <span class="treasury-department-total">{{ scope.opt.total }} Bs.</span> -->
+                    <!-- <span class="treasury-department-total">{{ scope.opt.total }} {{ $store.state.user?.user.company.money }}</span> -->
                   </q-item-section>
                 </q-item>
               </template>
@@ -95,7 +113,7 @@
           <div class="col-xs-12">
             <q-input
               filled
-              label="Proveedor"
+              label="Proveedor o responsable"
               v-model="form.supplier" />
           </div>
           <div class="col-xs-12">
@@ -150,7 +168,7 @@
                 </td>
                 <td class="text-left">
                   {{ item.concept }}
-                  <strong class="treasury-departament">{{ item.department.name }}</strong>
+                  <strong class="treasury-departament">{{ item.department.name }} - <em>{{ item.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }}</em></strong>
                   <em>Registrado el {{ format(item.date) }}</em>
                 </td>
                 <td class="text-left" v-if="expense.state === 'CLOSED'">
@@ -180,14 +198,6 @@
             padding="10px 20px"
             class="btn-close-month"
             @click="$router.push(`/treasury/week/${entry.id}`)" />
-          <!-- <q-btn
-            :label="expense.state === 'CLOSED' ? 'Generar informe' : 'Generar informe y Cerrar el mes'"
-            no-caps
-            color="primary"
-            icon="print"
-            padding="10px 20px"
-            class="btn-close-month"
-            @click="closeMonth" /> -->
         </div>
       </div>
     </div>
@@ -195,7 +205,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onBeforeMount, computed, nextTick } from 'vue'
+import { ref, onBeforeMount, computed, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { http } from 'boot/http'
 import { Confirm } from 'boot/modal'
@@ -221,6 +231,7 @@ const departments = ref([])
 const flows = ref<Flow[]>([])
 const departmentsFilter = ref([])
 const formRender = ref<boolean>(true)
+const type = ref<string>('LOCAL')
 const form = ref<ExpenseDetail>({
   id: null,
   date: null,
@@ -245,8 +256,8 @@ const getExpense = async () => {
 }
 
 const getDepartments = async () => {
-  const items = await http.get('departments?order=id&type=LOCAL') as Result<Department>
-  return items.rows.map(item => ({
+  const items = await http.get(`departments?order=id&type=${type.value}`) as Result<Department>
+  departments.value = items.rows.map(item => ({
     value: item.id,
     type: (item.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local'),
     label: item.name,
@@ -254,6 +265,10 @@ const getDepartments = async () => {
     total: flows.value.find(flow => flow.department.id === item.id)?.total || 0
   }))
 }
+
+watch(type, async () => {
+  await getDepartments()
+})
 
 const getFlows = async () => {
   const items = await http.get(`flows?id_company=${idCompany}&type=GENERAL`) as Result<Flow>
@@ -276,6 +291,7 @@ const saveDetail = async () => {
   form.value.id_expense = expense.value.id
   form.value.document_type = form.value.documentType.value as string
   form.value.id_department = form.value.idDepartment.value as number
+  form.value.type = type.value
 
   if (form.value.id) {
     await http.put(`expensesdetails/${form.value.id}`, form.value)
@@ -290,6 +306,7 @@ const editExpenseDetails = async (id: number) => {
   form.value = await http.get(`expensesdetails/${id}`) as ExpenseDetail
   form.value.idDepartment = { value: form.value.department.id, label: form.value.department.name }
   form.value.documentType = { value: form.value.document_type, label: form.value.document_type }
+  type.value = form.value.type
 }
 const removeExpenseDetails = (id: number) => {
   Confirm('¿Desea eliminar el registro?', async () => {
@@ -339,7 +356,7 @@ const totalExpenses = computed(() => {
 
 onBeforeMount(async () => {
   await getFlows()
-  departments.value = await getDepartments()
+  await getDepartments()
   await getExpense()
   await getExpenseDetails()
   await getEntry()

@@ -102,6 +102,8 @@ module.exports = {
     'vue/no-useless-template-attributes': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error"]
   },
 
   'extends': [

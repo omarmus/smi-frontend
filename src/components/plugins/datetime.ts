@@ -1,9 +1,17 @@
 export const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+export const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+export interface Week {
+  day: number
+  label: string
+  week: number
+  total: number
+}
 
 export const getWeeks = (year: number, month: number) => {
   const daysLastOfMonth = new Date(year, month, 0).getDate()
   const firstOfMonth = new Date(year, month - 1, 1)
-  const weeks = []
+  const weeks: Week[] = []
   for (let i = 6 - firstOfMonth.getDay(), count = 1; i < daysLastOfMonth; i += 7, count++) {
     weeks.push({ day: i + 1, label: `Sábado ${i + 1}`, week: count, total: 0 })
   }
@@ -28,7 +36,7 @@ export const normalize = (date: string) => {
 export const getYears = (add = 0) => {
   const year = (new Date().getUTCFullYear()) + add
   const years = []
-  for (let y = year; y >= 2021; y--) {
+  for (let y = year; y >= 2022; y--) {
     years.push(y)
   }
   return years

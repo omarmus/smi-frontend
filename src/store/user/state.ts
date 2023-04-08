@@ -1,13 +1,8 @@
+import { Permission, Role } from 'src/components/entities/Permission'
 import { User } from '../../components/entities/User'
 
 export interface Menu {
   label: string
-}
-export interface Permission {
-  idRol: number
-}
-export interface Role {
-  name: string
 }
 
 export interface UserStateInterface {
@@ -15,6 +10,7 @@ export interface UserStateInterface {
   menu: Menu[],
   permissions: Permission[],
   roles: Role[],
+  role: Role,
 }
 
 function state (): UserStateInterface {
@@ -24,7 +20,12 @@ function state (): UserStateInterface {
     },
     menu: [],
     permissions: [],
-    roles: []
+    roles: [],
+    role: {
+      name: '',
+      slug: '',
+      state: ''
+    }
   }
 }
 

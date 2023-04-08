@@ -26,7 +26,7 @@
       <div class="alert alert-info"><strong>Importante.-</strong> Use el punto <strong>.</strong> como separador decimal para los centavos en todo el sistema. <em>Ejemplo: 132.5</em></div>
       <div class="text-right">
         <q-chip square color="warning" text-color="white">
-          <strong>Total: {{ total }} Bs.</strong>
+          <strong>Total: {{ total }} {{ $store.state.user?.user.company.money }}</strong>
         </q-chip>
       </div>
       <div class="row flow-items q-col-gutter-x-lg q-pt-md">
@@ -42,7 +42,7 @@
                 class="text-right"
                 dense
                 placeholder="0.0"
-                suffix="Bs."
+                :suffix="$store.state.user?.user.company.money"
                 v-model="item.total"
                 :disable="initial"
                 :rules="[validation.decimal]" />

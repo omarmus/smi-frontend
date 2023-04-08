@@ -1,4 +1,4 @@
-<template>
+7<template>
   <q-scroll-area class="fit">
     <div class="layout-menu">
       <h1>
@@ -14,9 +14,23 @@
       </div>
     </div>
     <q-separator />
+    <q-select
+      v-if="roles?.length > 1"
+      square standout
+      color="teal"
+      label="Rol seleccionado"
+      v-model="role"
+      :options="roles"
+      option-value="id"
+      option-label="name"
+      emit-value
+      map-options
+      dark />
+    <q-separator />
     <q-list padding class="menu-list">
       <q-item
-        @click="$router.push('/secretary')" :active="$route.path === '/internacional'" clickable v-ripple>
+        v-if="['TREASURER'].indexOf($store.state.user.role?.slug) === -1"
+        @click="$router.push('/secretary')" :active="$route.path.indexOf('/secretary') !== -1" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
           <q-icon name="edit_note" class="color-texto" />
         </q-item-section>
@@ -27,7 +41,8 @@
       </q-item>
 
       <q-item
-        @click="$router.push('/treasury')" :active="$route.path === '/jovenes'" clickable v-ripple>
+        v-if="['SECRETARY'].indexOf($store.state.user?.role?.slug) === -1"
+        @click="$router.push('/treasury')" :active="$route.path.indexOf('/treasury') !== -1" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
           <q-icon name="monetization_on" class="color-texto" />
         </q-item-section>
@@ -61,13 +76,18 @@
   </q-scroll-area>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { auth } from 'boot/auth'
-// import { useStore } from '../../store'
+import { auth, UserResponse } from 'boot/auth'
+import { http } from 'boot/http'
+import { storage } from 'boot/storage'
+import { useRouter } from 'vue-router'
+import { Role } from '../entities/Permission'
+import { useStore } from '../../store'
 
-// const store = useStore()
+const store = useStore()
+const router = useRouter()
 
 // function leftDrawerClose () {
 //   store.commit('global/setOpen', false)
@@ -75,6 +95,9 @@ import { auth } from 'boot/auth'
 
 const $q = useQuasar()
 const darkMode = ref($q.dark.isActive)
+
+const role = ref<Role>()
+const roles = ref<Role[]>()
 
 function darkModeChange () {
   darkMode.value = !darkMode.value
@@ -84,6 +107,23 @@ function darkModeChange () {
 function logout () {
   auth.logout('store')
 }
+
+watch(role, async () => {
+  if (typeof role.value === 'number') {
+    const data = await http.get(`auth/token/${role.value as string}`) as UserResponse
+    storage.set('role', data.role)
+    storage.set('menu', data.menu)
+    storage.set('permissions', data.permissions)
+    storage.set('token', data.token)
+    auth.initStore()
+    return router.push('/')
+  }
+})
+
+onMounted(() => {
+  roles.value = store.state.user.roles
+  role.value = store.state.user.role
+})
 </script>
 
 <style lang="scss">
@@ -156,7 +196,12 @@ function logout () {
   .q-item {
     min-height: 40px;
 
-    &:hover, &.active, &:hover .color-texto {
+    &:hover,
+    &.active,
+    &:hover
+    .color-texto,
+    &.q-router-link--active,
+    &.q-router-link--active .color-texto {
       font-weight: bolder;
       color: $warning-light;
     }

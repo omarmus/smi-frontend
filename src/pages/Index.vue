@@ -1,7 +1,9 @@
 <template>
   <div class="container">
     <div class="row">
-      <div class="col-xs-6 col-sm-3 q-pr-sm card-button">
+      <div
+        v-if="['TREASURER'].indexOf($store.state.user.role?.slug) === -1"
+        class="col-xs-6 col-sm-3 q-pr-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -12,7 +14,9 @@
           @click="$router.push('/secretary')"
           class="full-width btn-block" />
       </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
+      <div
+        v-if="['SECRETARY'].indexOf($store.state.user?.role?.slug) === -1"
+        class="col-xs-6 col-sm-3 q-pl-sm card-button">
         <q-btn
           flat
           color="secondary"

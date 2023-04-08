@@ -52,7 +52,7 @@
             <div
               v-for="(item, index) of props.filters"
               :key="index"
-              class="col-xs-12 col-sm-4 col-md-3">
+              :class="props.colsFilter || 'col-xs-12 col-sm-4 col-md-3'">
               <q-select
                 v-if="item.type === 'select'"
                 v-model="filter[item.name]"
@@ -80,7 +80,8 @@
                 filled
                 dense
                 :autofocus="index === 0"
-                debounce="500" />
+                debounce="500"
+                :width="item.width" />
               <q-input
                 v-if="item.type === 'date'"
                 v-model="filter[item.name]"
@@ -167,17 +168,25 @@ import { ref, onMounted, nextTick, watch } from 'vue'
 import { http } from 'boot/http'
 import { Result } from '../../entities/Entity'
 
+export interface Filter {
+  label?: string,
+  name: string,
+  type: string,
+  options?: [],
+  value?: string
+}
 interface Props {
   title?: string
   columns: []
-  filters?: []
+  filters?: Filter[]
   grid?: boolean
   order?: string
   url: string
   openFilter?: boolean
   selection?: boolean
   labelSelection?: string
-  buttonsHidden?: boolean
+  buttonsHidden?: boolean,
+  colsFilter?: string
 }
 
 interface Pagination {
@@ -309,11 +318,21 @@ const getSelectedString = () => {
   return selected.value.length === 0 ? '' : `${selected.value.length} registro${selected.value.length > 1 ? 's' : ''} seleccionado de ${rows.value.length}`
 }
 
+const setValuesFilter = () => {
+  props.filters.forEach(item => {
+    if (item.value) {
+      filter.value[item.name] = item.value
+    }
+  })
+}
+
 watch(() => JSON.parse(JSON.stringify(filter.value)) as Record<string, string>, async () => {
   await onRequest({ pagination: pagination.value })
 })
 
 onMounted(async () => {
+  setValuesFilter()
+  console.log(filter.value)
   await onRequest({ pagination: pagination.value })
 })
 </script>

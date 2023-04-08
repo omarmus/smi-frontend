@@ -5,10 +5,10 @@
         icon="arrow_back"
         round
         flat
-        @click="$router.push(`/treasury/entryexpense/${$route.params.entryId}/${expense.id}`)" />
+        @click="$router.push(`/treasury/entryexpense/${$route.params.entryId}/${$route.params.expenseId}`)" />
       Ingresos {{ months[entry.month - 1] }} - Diezmos y ofrendas
       <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span>
-      <span class="subtitle">Total: {{ total.toFixed(2) }} Bs.</span></h2>
+      <span class="subtitle">Total: {{ total.toFixed(2) }} {{ $store.state.user?.user.company.money }}</span></h2>
     <div class="row treasury-row">
       <div
         class="col-xs-6 col-sm-3 q-pa-sm card-button"
@@ -24,20 +24,20 @@
           :class="getClass(item)"
           :disable="getDisable(item)">
           <strong>{{ item.label }}</strong>
-          <span class="btn-block-detail">{{ item.total }} Bs.</span>
+          <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span>
           <q-icon name="calendar_month" />
         </q-btn>
       </div>
     </div>
     <div class="text-right q-pt-xs q-gutter-xs">
       <q-btn
-        v-if="expense"
+        v-if="$route.params.expenseId"
         label="Ver gastos del mes"
         no-caps
         icon="payments"
         padding="10px 20px"
         class="btn-close-month"
-        @click="$router.push(`/treasury/expense/${expense.id}`)" />
+        @click="$router.push(`/treasury/expense/${$route.params.expenseId}`)" />
       <!-- <q-btn
         :label="entry.state === 'CLOSED' ? 'Generar informe' : 'Generar informe y Cerrar el mes'"
         no-caps
@@ -57,14 +57,8 @@ import { http } from 'boot/http'
 import { Entry, EntryDetail } from '../../../components/entities/Entry'
 import { Result } from '../../../components/entities/Entity'
 import { months, getWeeks } from '../../../components/plugins/datetime'
-import { Expense } from '../../../components/entities/Expense'
-import { useStore } from '../../../store'
-
-const store = useStore()
-const idCompany = store.state.user?.user?.company.id as number
 
 const entry = ref<Entry>()
-const expense = ref<Expense>()
 const weeks = ref([])
 const day = new Date().getDate()
 const month = new Date().getMonth() + 1
@@ -103,15 +97,7 @@ const getEntry = async () => {
   })
 }
 
-const getExpense = async () => {
-  const expenses = await http.get(`expenses?year=${entry.value.year}&month=${entry.value.month}&id_company=${idCompany}`) as Result<Expense>
-  if (expenses.count) {
-    expense.value = expenses.rows[0]
-  }
-}
-
 onBeforeMount(async () => {
   await getEntry()
-  await getExpense()
 })
 </script>

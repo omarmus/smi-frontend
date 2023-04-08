@@ -30,7 +30,7 @@
           :class="item.state.toLowerCase()"
           :disable="item.state === 'PENDING'">
           <strong>{{ monthsLiteral[item.month - 1] }}</strong>
-          <span class="btn-block-detail">{{ item.total }} Bs.</span>
+          <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span>
           <q-icon name="calendar_month" />
           <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" />
         </q-btn>

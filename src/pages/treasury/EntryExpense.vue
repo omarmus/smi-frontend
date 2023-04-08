@@ -6,7 +6,7 @@
         round
         flat
         @click="$router.push('/treasury')" />
-      Ingresos y Gastos de {{ months[entry.month - 1] }}
+      Ingresos y Gastos de {{ months[entry.month - 1] }} {{ entry.year }}
       <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span>
     </h2>
     <div class="row">
@@ -16,10 +16,10 @@
           color="secondary"
           padding="lg"
           no-caps
-          @click="$router.push(`/treasury/week/${$route.params.entryId}`)"
+          @click="$router.push(`/treasury/week/${$route.params.entryId}/${$route.params.expenseId}`)"
           class="full-width btn-block">
           <strong class="q-pb-sm">Ingresos</strong>
-          <span class="btn-block-detail"><strong>Total:</strong> <span class="text-primary">{{ totalEntries }} Bs.</span></span>
+          <span class="btn-block-detail"><strong>Total:</strong> <span class="text-primary">{{ totalEntries }} {{ $store.state.user?.user.company.money }}</span></span>
           <q-icon name="attach_money" />
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
@@ -33,7 +33,7 @@
           @click="$router.push(`/treasury/expense/${$route.params.expenseId}`)"
           class="full-width btn-block">
           <strong class="q-pb-sm">Gastos</strong>
-          <span class="btn-block-detail"><strong>Total:</strong> <span class="text-primary">{{ totalExpenses }} Bs.</span></span>
+          <span class="btn-block-detail"><strong>Total:</strong> <span class="text-primary">{{ totalExpenses }} {{ $store.state.user?.user.company.money }}</span></span>
           <q-icon name="payments" />
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
@@ -72,7 +72,7 @@
     <div
       class="text-right q-pt-md q-gutter-xs">
       <q-btn
-        label="Ver otro mes"
+        label="Cambiar mes"
         no-caps
         icon="calendar_month"
         @click="$router.push('/treasury/months')" />

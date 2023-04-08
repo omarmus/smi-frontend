@@ -1,9 +1,9 @@
 <template>
   <CrudTable
     :columns="columns"
-    :url="url"
+    :url="`positionsuser?id_user=${props.user.id}`"
     :buttonsHidden="true"
-    order="-positionuser.id">
+    order="-positionuser.begin">
     <template v-slot:formInline="props">
       <q-form @submit="save(props)" ref="myForm">
         <div class="row">
@@ -51,31 +51,33 @@
                     <q-item v-bind="scope.itemProps">
                       <q-item-section>
                         <q-item-label>{{ scope.opt.description }}</q-item-label>
-                        <q-item-label caption>{{ scope.opt.level === 'CHURCH' ? 'Iglesia local' : 'Asociación' }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.type === 'OFFICIAL' ? 'Oficial' : 'Ministerio' }} - {{ scope.opt.level === 'CHURCH' ? 'Iglesia local' : 'Asociación' }}</q-item-label>
                       </q-item-section>
                     </q-item>
                   </template>
                 </q-select>
               </div>
               <div class="col-xs-12 col-sm-2">
-                <q-select
+                <q-input
                   v-model="positionUser.begin"
-                  :options="getYears()"
                   filled
                   dense
                   label="Desde"
+                  mask="####"
+                  hint="AAAA"
                   :rules="[validation.required]"
-                  ></q-select>
+                />
               </div>
               <div class="col-xs-12 col-sm-2">
-                <q-select
+                <q-input
                   v-model="positionUser.end"
-                  :options="getYears(3)"
                   filled
                   dense
                   label="Hasta"
-                  :rules="[validation.required]"
-                  ></q-select>
+                  mask="####"
+                  hint="AAAA"
+                  :rules="[]"
+                />
               </div>
             </div>
             <div class="row">
@@ -118,17 +120,17 @@
           <span class="text-grey-7">{{ labels[props.row.position?.type].label }}</span>
         </q-td>
         <q-td>{{ props.row.company?.name }}</q-td>
-        <q-td>{{ props.row.begin === props.row.end ? props.row.begin : `${props.row.begin} - ${props.row.end}` }}</q-td>
+        <q-td>{{ props.row.begin === props.row.end ? props.row.begin : `${props.row.begin} - ${props.row.end || 'Actualidad'}` }}</q-td>
         <q-td>{{ props.row.remuneration ? 'SI' : 'NO' }}</q-td>
         <q-td>{{ props.row.fulltime ? 'SI' : 'NO' }}</q-td>
-        <q-td class="text-right">
+        <!-- <q-td class="text-right">
           <q-chip
             square
             dense
             :color="labels[props.row.state].color"
             :text-color="labels[props.row.state].textColor"
             :label="labels[props.row.state].label" />
-        </q-td>
+        </q-td> -->
       </q-tr>
     </template>
   </CrudTable>
@@ -138,14 +140,16 @@
 import { ref, onMounted } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
+import { useStore } from '../../../store'
 import { User } from '../../../components/entities/User'
 import { Position, PositionUser } from '../../../components/entities/Position'
 import { Result } from '../../../components/entities/Entity'
 import { Company } from '../../../components/entities/Company'
-import { getYears } from '../../../components/plugins/datetime'
 import validation from '../../../components/plugins/validation'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
 import { deleteItem } from '../../../components/plugins/crud'
+
+const store = useStore()
 
 const columns = [
   { label: 'Eliminar', align: 'center' },
@@ -153,8 +157,8 @@ const columns = [
   { label: 'Lugar', align: 'left', name: 'company.name', sortable: true },
   { label: 'Gestión', align: 'left', name: 'positionuser.begin', sortable: true },
   { label: 'Remunerado', align: 'left', name: 'positionuser.remuneration', sortable: true },
-  { label: 'Tiempo completo', align: 'left', name: 'positionuser.fulltime', sortable: true },
-  { label: 'Estado', align: 'right', name: 'positionuser.state', sortable: true }
+  { label: 'Trabajo tiempo completo', align: 'left', name: 'positionuser.fulltime', sortable: true }
+  // { label: 'Estado', align: 'right', name: 'positionuser.state', sortable: true }
 ]
 
 const levels = [
@@ -183,16 +187,15 @@ const positions = ref<Position[]>([])
 const positionUser = ref<PositionUser>({})
 const level = ref<string>()
 const companies = ref<Company[]>()
-const url = `positionsuser?id_user=${props.user.id as string}`
 
 const getPositions = async () => {
-  const items = await http.get('positions') as Result<Position>
+  const items = await http.get(`positions?id_company=${(store.state.user.user.company.id_association) as number}`) as Result<Position>
   positions.value = items.rows
 }
 
 const openEdit = async (id?: number) => {
   if (id) {
-    positionUser.value = await http.get(`${url}/${id}`) as PositionUser
+    positionUser.value = await http.get(`positionsuser/${id}`) as PositionUser
   } else {
     positionUser.value = {
       remuneration: false,
@@ -204,13 +207,13 @@ const openEdit = async (id?: number) => {
 const save = async (crud: { update: () => void, close: () => void }) => {
   positionUser.value.id_user = props.user.id
   if (level.value !== 'CHURCH') {
-    positionUser.value.id_company = 1
+    positionUser.value.id_company = store.state.user.user.company.id_association as number
   }
   if (positionUser.value?.id) {
-    await http.put(`${url}/${positionUser.value.id}`, positionUser.value)
+    await http.put(`positionsuser/${positionUser.value.id}`, positionUser.value)
     message.success('¡Cargo actualizado!')
   } else {
-    await http.post(url, positionUser.value)
+    await http.post('positionsuser', positionUser.value)
     message.success('¡Cargo creado!')
   }
   crud.update()

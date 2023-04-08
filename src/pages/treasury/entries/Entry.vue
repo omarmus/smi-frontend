@@ -47,7 +47,7 @@
               :input-debounce="300"
               @new-value="createValue"
               :options="users"
-              @filter="filterFn"
+              @filter="filterUsers"
               lazy-rules
               :rules="[ val => !!val || 'Seleccione a una persona']"
             >
@@ -55,7 +55,10 @@
                 <q-item v-bind="scope.itemProps">
                   <q-item-section>
                     <q-item-label>{{ scope.opt.label }}</q-item-label>
-                    <q-item-label caption><strong class="text-secondary">{{ memberType[scope.opt.type] }}</strong> - {{ scope.opt.church }}</q-item-label>
+                    <q-item-label caption>
+                      <strong class="text-secondary">{{ scope.opt.association ? scope.opt.association : memberType[scope.opt.type] }} - </strong>
+                      {{ scope.opt.church }}
+                    </q-item-label>
                   </q-item-section>
                 </q-item>
               </template>
@@ -69,7 +72,7 @@
                   <q-item-section>
                     <q-btn
                       color="secondary"
-                      label="Agregar como simpatizante"
+                      label="Agregar como miembro de escuela sabática"
                       no-caps
                       @click="enterEventPerson('SYMPATHIZER')" />
                   </q-item-section>
@@ -81,6 +84,15 @@
                       label="Agregar como visita"
                       no-caps
                       @click="enterEventPerson('VISIT')" />
+                  </q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section>
+                    <q-btn
+                      color="warning"
+                      label="Buscar en otra Asociación"
+                      no-caps
+                      @click="enterEventPerson('SEARCH')" />
                   </q-item-section>
                 </q-item>
               </template>
@@ -108,13 +120,23 @@
               </template>
             </q-select>
           </div>
-          <div class="col-xs-12">
-            <q-input
-              filled
-              label="Valor"
-              v-model="value"
-              lazy-rules
-              :rules="[validation.decimal, validation.required]" />
+          <div class="row">
+            <div class="col-xs-6 q-pr-xs">
+              <q-input
+                filled
+                label="Valor"
+                v-model="value"
+                lazy-rules
+                :rules="[validation.decimal, validation.required]" />
+            </div>
+            <div class="col-xs-6">
+              <q-select
+                filled
+                label="Fecha"
+                v-model="date"
+                :options="dates"
+                :rules="[ val => !!val || 'Seleccione el concepto']" />
+            </div>
           </div>
           <div class="col-xs-12">
             <q-input
@@ -165,8 +187,9 @@
                     </td>
                     <td class="text-left">
                       {{ item.concept.label }}
-                      <span class="treasury-observation">{{ item.concept.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }}</span>
-                      <span class="treasury-observation" v-if="item.observation"> / {{ item.observation }}</span>
+                      <div class="treasury-observation">
+                        {{ item.concept.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }} <span v-if="item.observation"> / {{ item.observation }}</span>
+                      </div>
                     </td>
                     <td class="text-right">{{ item.value }}</td>
                   </tr>
@@ -248,6 +271,7 @@
                     dense
                     standout
                     debounce="500"
+                    :disable="entry.state === 'CLOSED'"
                     @keyup="updateCode(item)" />
                 </td>
                 <td class="text-left">
@@ -255,7 +279,7 @@
                   <strong class="text-primary" v-else>{{ item.department.name }}</strong>
                   <span class="treasury-observation" v-if="entry.state !== 'CLOSED'">
                     <strong v-if="item.type !== 'MEMBER'">{{ item.department.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }}</strong>
-                    {{ item.observations ? ` / ${item.observations}` : '' }}
+                    <span v-if="item.type !== 'MEMBER'"> - <q-icon name="today" /> {{ format(item.date) }}</span> {{ item.observations ? ` / ${item.observations}` : '' }}
                   </span>
                   <div class="q-ml-sm q-mt-xs">
                     <ul class="treasury-list-concepts" v-if="item.concepts?.length && entry.state !== 'CLOSED'">
@@ -268,13 +292,16 @@
                   </div>
                 </td>
                 <td class="text-left" v-if="entry.state === 'CLOSED'">
-                  <span class="text-texto">{{ item.observations }}</span>
                   <span class="treasury-observation" v-if="item.department">{{ item.department.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }}</span>
+                  <span class="text-texto">{{ item.observations }}</span>
+                  <div v-if="item.type !== 'MEMBER'"><q-icon name="today" /> {{ format(item.date) }}</div>
                   <ul class="treasury-list-concepts" v-if="item.concepts?.length">
                     <li
                       v-for="(concept, index) in item.concepts"
-                      :key="index">
-                      <strong>{{ concept.concept.label }}: </strong>{{ concept.value }} / {{ concept.concept.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }} <span v-if="concept.observation"> - {{ concept.observation }}</span>
+                      :key="index"
+                      :class="{ 'treasury-line-bottom': item.concepts?.length > 1 && index !== item.concepts?.length - 1 }">
+                      <span class="treasury-observation">{{ concept.concept.type === 'LOCAL' ? 'Iglesia local' : 'Asociación' }}</span>
+                      <strong>{{ concept.concept.label }}: </strong>{{ concept.value }} <span v-if="concept.observation"> - {{ concept.observation }}</span>
                     </li>
                   </ul>
                 </td>
@@ -305,6 +332,13 @@
         </div>
       </div>
     </div>
+    <q-dialog v-model="dialogUserSearch" persistent transition-show="scale" transition-hide="scale">
+      <UserSearch
+        v-if="dialogUserSearch"
+        :value="valueSearch"
+        :done="doneSearch"
+        v-model:name="name" />
+    </q-dialog>
   </div>
 </template>
 
@@ -313,15 +347,15 @@ import { ref, onBeforeMount, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { http } from 'boot/http'
 import { Confirm } from 'boot/modal'
-import { storage } from 'boot/storage'
 import { Result } from '../../../components/entities/Entity'
 import { Concept, EntryDetail, Entry } from '../../../components/entities/Entry'
-import { Department } from '../../../components/entities/Department'
+import { Department, DepartmentOption } from '../../../components/entities/Department'
 import { User } from '../../../components/entities/User'
-import { months, getWeeks } from '../../../components/plugins/datetime'
+import { months, days, getWeeks, format, normalize } from '../../../components/plugins/datetime'
 import { useStore } from '../../../store'
 import validation from '../../../components/plugins/validation'
 import { createPdf } from '../../../components/plugins/util'
+import UserSearch from './UserSearch.vue'
 
 const store = useStore()
 
@@ -331,19 +365,26 @@ const memberType = {
   visit: 'Visita'
 }
 
+interface Option {
+  value: string
+  label: string
+}
+
 // data entry detail
 const idEntryDetail = ref<number | null>(null)
 const type = ref<string>('MEMBER')
 const name = ref<{ label: string, value: number }>()
 const concept = ref<{ label: string, value: number, type: string }>()
 const value = ref<number>()
+const date = ref<Option>()
+const dates = ref<Option[]>([])
 const observation = ref<string>()
 
 const users = ref([])
 const typeUser = ref<string>()
 const usersChurch = ref([])
-const concepts = ref([])
-const conceptsFilter = ref([])
+const concepts = ref<DepartmentOption[]>([])
+const conceptsFilter = ref<DepartmentOption[]>([])
 const conceptsItems = ref<[Concept]>([])
 const index = ref<number>(-1)
 const entriesDetails = ref<[EntryDetail]>([])
@@ -351,20 +392,30 @@ const entry = ref<Entry>()
 const day = ref<number>()
 const formRender = ref<boolean>(true)
 const myForm = ref(null)
+const dialogUserSearch = ref<boolean>(false)
+const valueSearch = ref<string>('')
+const doneSearch = ref(() => undefined)
+const updateFilter = ref()
 
 const route = useRoute()
 const { entryId, week } = route.params
-
-const data = {}
-storage.set('entry', data)
 
 const idCompany = store.state.user?.user?.company.id as number
 
 const getEntry = async () => {
   entry.value = await http.get(`entries/${parseInt(entryId)}`) as Entry
   const weeks = getWeeks(entry.value.year, entry.value.month)
-  const item = weeks.find(item => item.week === parseInt(week)) as { day: number }
+  const item = weeks.find(item => item.week === parseInt(week))
   day.value = item.day
+  for (let i = 0; i < 7; i++) {
+    const currentDate = new Date(`${entry.value.year}-${entry.value.month}-${day.value as string} 00:00:00`)
+    const daySub = new Date(currentDate.setDate(currentDate.getDate() - i))
+    dates.value.push({
+      value: normalize(format(daySub.toString())),
+      label: `${days[daySub.getDay()]} ${daySub.getDate()}`
+    })
+  }
+  date.value = dates.value[0]
 }
 
 const getEntryDetails = async () => {
@@ -372,7 +423,7 @@ const getEntryDetails = async () => {
   entriesDetails.value = items.rows
 }
 
-const getDepartments = async () => {
+const getDepartments: DepartmentOption[] = async () => {
   const items = await http.get('departments?order=id') as Result<Department>
   return items.rows.map(item => ({
     value: item.id,
@@ -382,10 +433,14 @@ const getDepartments = async () => {
   }))
 }
 
-const getUsers = async (query: string) => {
+const getUsers = async (query: string, association?: boolean) => {
   let url = 'users?order=fullname'
   if (query) {
-    url += `&fullname=${query}`
+    if (association) {
+      url += `&fullname=${query}&all_association=true`
+    } else {
+      url += `&fullname=${query}&all_churchs=true`
+    }
   } else {
     url += `&id_company=${idCompany}`
   }
@@ -394,19 +449,29 @@ const getUsers = async (query: string) => {
     value: item.id,
     label: `${item.person.fullname as string}`,
     church: `${item.company.name}`,
+    association: association ? item.association?.name as string : null,
     type: item.type?.toLowerCase()
   }))
 }
 
 const createValue = async (val: string, done: () => void) => {
-  if (val.length > 3 && typeUser.value) {
-    const user = await http.post('users/new', {
-      type: typeUser.value,
-      fullname: val,
-      id_company: idCompany
-    }) as User
-    done(val, 'add-unique')
-    name.value = { value: user.id, label: user.person.fullname }
+  if (typeUser.value !== 'SEARCH') {
+    if (val.length > 3 && typeUser.value) {
+      const user = await http.post('users/new', {
+        type: typeUser.value,
+        fullname: val,
+        id_company: idCompany
+      }) as User
+      done(val, 'add-unique')
+      name.value = { value: user.id, label: user.person.fullname }
+    }
+  } else {
+    dialogUserSearch.value = false
+    void nextTick(() => {
+      valueSearch.value = val
+      doneSearch.value = done
+      dialogUserSearch.value = true
+    })
   }
 }
 
@@ -418,7 +483,8 @@ const enterEventPerson = (type: string) => {
   }))
 }
 
-const filterFn = (val: string, update: unknown) => {
+const filterUsers = (val: string, update: unknown) => {
+  updateFilter.value = update
   update(async () => {
     if (val === '') {
       users.value = usersChurch.value
@@ -428,10 +494,11 @@ const filterFn = (val: string, update: unknown) => {
   })
 }
 
+const groupsChurch = ['PERSONAL']
 const filterDepartment = (val: string, update: unknown) => {
   update(() => {
     if (val === '') {
-      conceptsFilter.value = type.value === 'MEMBER' ? concepts.value : concepts.value.filter((item: { group: string }) => item.group === 'CHURCH')
+      conceptsFilter.value = type.value === 'MEMBER' ? concepts.value : concepts.value.filter(item => !groupsChurch.includes(item.group))
     } else {
       const needle = val.toLowerCase()
       conceptsFilter.value = concepts.value.filter((item: { label: string }) => item.label.toLowerCase().indexOf(needle) > -1)
@@ -451,7 +518,7 @@ const saveDetail = async () => {
     concepts: conceptsItems.value,
     type: type.value,
     id_entry: entry.value.id,
-    date: `${entry.value.year}-${entry.value.month}-${day.value as string}`,
+    date: date.value.value,
     week: week as number
   }
   if (type.value === 'MEMBER') {
@@ -462,12 +529,14 @@ const saveDetail = async () => {
     item.value = value.value
     item.id_department = concept.value.value
   }
-  if (type.value !== 'MEMBER' && !idEntryDetail.value && [12, 25].includes(item.id_department)) {
+  const idDepartmentLocal = concepts.value.find(item => item.group === 'YOUNG' && item.type === 'LOCAL').value
+  const idDepartmentGlobal = concepts.value.find(item => item.group === 'YOUNG' && item.type === 'GLOBAL').value
+  if (type.value !== 'MEMBER' && !idEntryDetail.value && [idDepartmentLocal, idDepartmentGlobal].includes(item.id_department)) {
     Confirm('¿Desea dividir la ofrenda de jóvenes para la Asociación e Iglesia local?', async () => {
       item.value = Number(item.value) / 2
-      item.id_department = 25
+      item.id_department = idDepartmentLocal
       await http.post('entriesdetails', item)
-      item.id_department = 12
+      item.id_department = idDepartmentGlobal
       await http.post('entriesdetails', item)
       await getEntryDetails()
     }, async () => {
@@ -498,6 +567,7 @@ const cleanEntryDetail = async () => {
     conceptsItems.value = []
     name.value = null
     formRender.value = true
+    date.value = dates.value[0]
   })
 }
 
@@ -513,6 +583,7 @@ const editEntryDetails = async (id: number) => {
   } else {
     observation.value = item.observation
     value.value = item.value
+    date.value = dates.value.find(d => d.value === normalize(format(item.date)))
     concept.value = { value: item.department.id, label: item.department.name, type: item.department.type }
     item.id_department = concept.value.value
   }
@@ -543,9 +614,11 @@ const addConcept = () => {
 }
 const editConcept = (id: number) => {
   const item = conceptsItems.value[id]
+  console.log(item)
   concept.value = item.concept
   observation.value = item.observation
   value.value = item.value
+  date.value = dates.value[0]
   index.value = id
 }
 const removeConcept = (index: number) => {
@@ -574,13 +647,13 @@ const updateCode = async (item: EntryDetail) => {
 }
 
 const generatePdf = async (idEntryDetail?: number) => {
-  const url = idEntryDetail ? `entries/pdf/detail/${idEntryDetail as string}` : `entries/pdf/details/${entry.value.id as string}`
+  const url = idEntryDetail ? `entries/pdf/detail/${idEntryDetail as string}` : `entries/pdf/details/${entry.value.id as string}/${week as string}`
   const pdf = await http.get(url) as string
   createPdf(pdf, `invoice-${Date.now()}.pdf`)
 }
 
 onBeforeMount(async () => {
-  concepts.value = await getDepartments()
+  concepts.value = await getDepartments() as DepartmentOption[]
   conceptsFilter.value = concepts.value
 
   usersChurch.value = await getUsers()
@@ -595,5 +668,8 @@ onBeforeMount(async () => {
 .width-input {
   width: 100%;
   max-width: 120px;
+}
+.treasury-line-bottom {
+  border-bottom: 1px solid #ddd;
 }
 </style>

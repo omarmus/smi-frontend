@@ -9,7 +9,9 @@
       Tesorería
     </h2>
     <div class="row q-gutter-sm">
-      <div class="col-xs-6 col-sm-3 card-button">
+      <div
+        v-if="$store.state.user?.permissions?.includes('entry:read')"
+        class="col-xs-6 col-sm-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -22,7 +24,9 @@
           :disable="entries?.count === 0"
         />
       </div>
-      <div class="col-xs-6 col-sm-3 card-button">
+      <div
+        v-if="$store.state.user?.permissions?.includes('balance:read')"
+        class="col-xs-6 col-sm-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -35,7 +39,9 @@
           :disable="entries?.count === 0"
         />
       </div>
-      <div class="col-xs-6 col-sm-3 card-button">
+      <div
+        v-if="$store.state.user?.permissions?.includes('account:read')"
+        class="col-xs-6 col-sm-3 card-button">
         <q-btn
           flat
           color="secondary"

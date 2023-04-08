@@ -22,7 +22,7 @@
         </figure>
         <q-file
           v-model="file"
-          :label="user?.person?.photo ? 'Selecciona una nueva imagen' : 'Seleccione una imagen'"
+          :label="user?.person?.photo ? 'Selecciona una nueva foto' : 'Seleccione una foto'"
           filled>
           <template v-slot:prepend>
             <q-icon name="photo_camera" @click.stop.prevent />

@@ -56,12 +56,12 @@
         </q-toolbar>
         <q-form @submit="save" ref="myForm">
           <q-card-section class="q-col-gutter-sm">
-            <q-input
+            <!-- <q-input
               v-model="account.name"
               label="Nombre para identificar la cuenta"
               filled
               autofocus
-              :rules="[v => !!v || 'El campo es requerido']" />
+              :rules="[v => !!v || 'El campo es requerido']" /> -->
             <q-select
               filled
               v-model="account.bank"
@@ -104,14 +104,18 @@
 import { ref, onBeforeMount } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
+import { storage } from 'boot/storage'
 import { Result } from '../../../components/entities/Entity'
 import { Account } from '../../../components/entities/Transaction'
 import { useStore } from '../../../store'
 import { deleteItem } from '../../../components/plugins/crud'
 
 const currencies = [
-  { value: 'BOB', label: 'Bolivianos (BOB)' },
-  { value: 'USD', label: 'Dólares (USD)' }
+  { value: 'ARS', label: 'Peso Argentino (ARS)' },
+  { value: 'BOB', label: 'Boliviano (BOB)' },
+  { value: 'COP', label: 'Peso Colombiano (COP)' },
+  { value: 'GTQ', label: 'Quetzal (GTQ)' },
+  { value: 'USD', label: 'Dólar (USD)' }
 ]
 
 const store = useStore()
@@ -150,7 +154,9 @@ const openDialog = async (id?: number) => {
   if (id) {
     account.value = await http.get(`accounts/${id}`) as Account
   } else {
-    account.value = {}
+    account.value = {
+      name: `Cuenta #${accounts.value.length + 1}`
+    }
   }
   dialog.value = true
 }
@@ -180,5 +186,9 @@ const getBanks = async (query: string) => {
 
 onBeforeMount(async () => {
   await getAccounts()
+  if (storage.exist('create')) {
+    storage.remove('create')
+    void openDialog()
+  }
 })
 </script>

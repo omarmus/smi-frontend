@@ -27,12 +27,12 @@
       <div class="col-xs-12 col-sm-6">
         <h3 class="member-info-title">Afiliación</h3>
         <ul class="member-info-list">
-          <li><strong>Procedencia religiosa:</strong> {{ user.person.origin }}</li>
+          <li><strong>Iglesia donde pertenece:</strong> <strong class="text-warning">{{ user.company.name }}</strong></li>
           <li><strong>Fecha de bautismo:</strong> {{ format(user.person.christeningDate) }}</li>
           <li><strong>Bautizado por:</strong> {{ user.person.baptismPastor }}</li>
           <li><strong>Fecha de aceptación:</strong> {{ format(user.person.acceptanceDate) }}</li>
           <li><strong>Fecha de aceptación en la iglesia local:</strong> {{ format(user.person.acceptanceLocalDate) }}</li>
-          <li><strong>Iglesia donde pertenece:</strong> {{ user.company.name }}</li>
+          <li><strong>Procedencia religiosa:</strong> {{ user.person.origin }}</li>
           <li>
             <strong>Tipo de membresía:</strong>
             <q-chip
@@ -61,14 +61,21 @@
             />
           </li>
         </ul>
-        <h3 class="member-info-title">Cargos ocupados</h3>
+        <h3
+          class="member-info-title"
+          v-if="positions.length">Cargos ocupados</h3>
         <ul class="member-info-list">
-          <li><strong>Cargo:</strong> {{ user.person.position || 'NINGUNO' }}</li>
+          <li
+            v-for="item in positions"
+            :key="item.id">
+            <strong>- {{ item.position.description }}</strong> <em>{{ item.company.name }}</em>, {{ item.begin }} - {{ item.end || 'Actualidad' }}
+          </li>
         </ul>
         <h3 class="member-info-title">Datos de usuario</h3>
         <ul class="member-info-list">
           <li><strong>Nombre de usuario:</strong> {{ user.username }}</li>
           <li><strong>Correo electrónico:</strong> {{ user.email }}</li>
+          <li><strong>Rol{{ user.roles.length > 1 ? 'es' : '' }} asignado{{ user.roles.length > 1 ? 's' : '' }}:</strong> {{ user.roles.map(item => item.name).join(', ') }}</li>
           <li>
             <strong>Estado del usuario:</strong>
             <q-chip
@@ -90,6 +97,8 @@
 import { ref, onMounted } from 'vue'
 import { http, urlBase } from 'boot/http'
 import { User } from '../../../components/entities/User'
+import { PositionUser } from '../../../components/entities/PositionUser'
+import { Result } from '../../../components/entities/Entity'
 import { format } from '../../../components/plugins/datetime'
 
 const labels = {
@@ -121,10 +130,12 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const user = ref()
+const user = ref<User>()
+const positions = ref<PositionUser[]>()
 
 onMounted(async () => {
   user.value = await http.get(`users/${props.id}`) as User
+  positions.value = (await http.get(`positionsuser?id_user=${props.id}&order=-positionuser.begin`) as Result<User>).rows
 })
 </script>
 

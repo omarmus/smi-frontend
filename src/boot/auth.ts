@@ -4,6 +4,8 @@ import { storage } from './storage'
 import { message } from './message'
 import { useStore } from '../store'
 import { Response } from '../components/entities/Entity'
+import { Role } from 'src/components/entities/Permission'
+import { Company } from 'src/components/entities/Company'
 
 const urlBackend = process.env.BACKEND
 
@@ -14,11 +16,9 @@ interface UserResponse {
   username: string
   email: string
   fullname: string
-  company: {
-    id: number
-    name: string
-  }
-  roles: [],
+  company: Company
+  roles: Role[],
+  role: Role,
   menu: []
   permissions: []
   token: string,
@@ -27,7 +27,7 @@ interface UserResponse {
 
 export default boot(({ app, router, store }) => {
   auth.login = (username?: string, password?: string) => {
-    return axios.post(`${urlBackend as string}auth/login`, { username, password })
+    return axios.post(`${urlBackend as string}api/auth/login`, { username, password })
       .then((response: AxiosResponse<Response<UserResponse>>) => {
         if (response.data?.data) {
           const data = response.data.data
@@ -37,12 +37,16 @@ export default boot(({ app, router, store }) => {
             fullname: data.fullname,
             company: {
               id: data.company.id,
-              name: data.company.name
+              name: data.company.name,
+              id_association: data.company.idAssociation,
+              id_union: data.company.idUnion,
+              money: data.company.money
             }
           }
 
           storage.setUser(user)
           storage.set('roles', data.roles)
+          storage.set('role', data.role)
           storage.set('menu', data.menu)
           storage.set('permissions', data.permissions)
           storage.set('token', data.token)
@@ -65,6 +69,7 @@ export default boot(({ app, router, store }) => {
     }
     storage.removeUser()
     storage.remove('roles')
+    storage.remove('role')
     storage.remove('menu')
     storage.remove('permissions')
     storage.remove('token')
@@ -72,6 +77,7 @@ export default boot(({ app, router, store }) => {
     // store.commit('global/setOpen', false)
     store.commit('user/setUser', {})
     store.commit('user/setRoles', [])
+    store.commit('user/setRole', {})
     store.commit('user/setMenu', [])
     store.commit('user/setPermissions', [])
     return router.push('/login')
@@ -82,6 +88,7 @@ export default boot(({ app, router, store }) => {
     }
     store.commit('user/setUser', storage.getUser())
     store.commit('user/setRoles', storage.get('roles'))
+    store.commit('user/setRole', storage.get('role'))
     store.commit('user/setMenu', storage.get('menu'))
     store.commit('user/setPermissions', storage.get('permissions'))
     store.commit('global/setInitial', storage.get('initial'))
@@ -94,4 +101,4 @@ export default boot(({ app, router, store }) => {
   app.config.globalProperties.$auth = auth
 })
 
-export { auth }
+export { auth, UserResponse }

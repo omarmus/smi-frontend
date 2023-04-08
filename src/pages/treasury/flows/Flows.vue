@@ -19,7 +19,7 @@
           @click="$router.push('/treasury/flows/general')"
           class="full-width btn-block">
           <strong>General</strong>
-          <!-- <span class="btn-block-detail">{{ item.total }} Bs.</span> -->
+          <!-- <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span> -->
           <q-icon name="account_balance" />
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
@@ -34,7 +34,7 @@
           @click="$router.push('/treasury/flows/initial')"
           class="full-width btn-block">
           <strong>Inicial</strong>
-          <!-- <span class="btn-block-detail">{{ item.total }} Bs.</span> -->
+          <!-- <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span> -->
           <q-icon name="account_balance" />
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>

@@ -33,7 +33,7 @@
           :class="item.state.toLowerCase()"
           :disable="item.state === 'PENDING'">
           <strong>{{ monthsLiteral[item.month - 1] }}</strong>
-          <span class="btn-block-detail">{{ item.total }} Bs.</span>
+          <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span>
           <q-icon name="calendar_month" />
           <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" />
         </q-btn>
@@ -55,9 +55,11 @@ const store = useStore()
 const year = ref(new Date().getFullYear())
 const months = ref<Entry>([])
 const idCompany = store.state.user?.user?.company.id as number
-const years = [
-  { value: 2022, label: '2022' }
-]
+
+const years = []
+for (let i = 2022; i <= year.value; i++) {
+  years.push({ value: i, label: `${i}` })
+}
 
 const getEntriesYear = async () => {
   const items = await http.get(`entries/year/${year.value}/${idCompany}`) as Result<Entry>

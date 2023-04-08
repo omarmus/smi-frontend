@@ -9,7 +9,9 @@
       Secretaría
     </h2>
     <div class="row">
-      <div class="col-xs-6 col-sm-3 q-pr-sm card-button">
+      <!-- <div
+        v-if="$store.state.user?.permissions?.includes('company:read')"
+        class="col-xs-6 col-sm-3 q-pr-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -20,8 +22,10 @@
           @click="$router.push('/secretary/churchs')"
           class="full-width btn-block"
         />
-      </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
+      </div> -->
+      <div
+        v-if="$store.state.user?.permissions?.includes('user:read')"
+        class="col-xs-6 col-sm-3 q-pl-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -33,7 +37,9 @@
           class="full-width btn-block"
         />
       </div>
-      <div class="col-xs-6 col-sm-3 q-pl-sm card-button">
+      <!-- <div
+        v-if="$store.state.user?.permissions?.includes('department:read')"
+        class="col-xs-6 col-sm-3 q-pl-sm card-button">
         <q-btn
           flat
           color="secondary"
@@ -44,7 +50,7 @@
           @click="$router.push('/secretary/departments')"
           class="full-width btn-block"
         />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

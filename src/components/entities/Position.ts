@@ -13,6 +13,7 @@ export interface PositionUser {
   remuneration: boolean
   fulltime: boolean
   state: string
+  position: Position
   // id_company: number
   // id_user: number
   // id_position: number

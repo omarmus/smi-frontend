@@ -20,7 +20,8 @@
       :options="accounts"
       :rules="[validation.required]"
       emit-value
-      map-options>
+      map-options
+      v-if="render">
       <template v-slot:option="scope">
         <q-item v-bind="scope.itemProps">
           <q-item-section>
@@ -32,6 +33,11 @@
         </q-item>
       </template>
     </q-select>
+    <div
+      class="alert alert-info"
+      v-else>
+      No tiene cuentas bancarias asociadas, puede agregarlas <a @click="redirectAccounts" href="javascript:void(0)">aquí</a>.
+    </div>
     <CrudTable
       :columns="columns"
       :filters="filters"
@@ -55,7 +61,7 @@
           square
           color="positive"
           text-color="white"
-          :label="`TOTAL SALDO: ${total}`"
+          :label="`TOTAL SALDO: ${total} ${$store.state.user?.user.company.money}`"
         />
       </template>
       <template v-slot:form="props">
@@ -136,7 +142,7 @@
       </template>
       <template v-slot:row="props">
         <q-tr :class="{ 'selected': props.row.interest }">
-          <q-td>{{ props.row.date }}</q-td>
+          <q-td>{{ format(props.row.date) }}</q-td>
           <q-td>{{ props.row.description }}</q-td>
           <q-td class="text-right">{{ props.row.type === 'EXPENSE' ? '-' : '' }}{{ props.row.amount }}</q-td>
           <q-td class="text-right">{{ props.row.balance }}</q-td>
@@ -159,7 +165,8 @@
 import { ref, watch, nextTick, onBeforeMount } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
-import { useRoute } from 'vue-router'
+import { storage } from 'boot/storage'
+import { useRoute, useRouter } from 'vue-router'
 import { Result } from '../../../components/entities/Entity'
 import { Transaction, Account } from '../../../components/entities/Transaction'
 import { useStore } from '../../../store'
@@ -168,6 +175,7 @@ import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
 import validation from '../../../components/plugins/validation'
 
 const route = useRoute()
+const router = useRouter()
 const { entryId } = route.params
 const store = useStore()
 
@@ -209,11 +217,11 @@ const openModal = async (open: () => void, id?: number) => {
 }
 
 const save = async (crud: { update: () => void, close: () => void }) => {
-  transaction.value.birthday = normalize(transaction.value.birthday as string)
   if (transaction.value.type === 'EXPENSE') {
     transaction.value.interest = false
   }
   transaction.value.id_account = idAccount
+  transaction.value.date = normalize(transaction.value.date as string)
   if (transaction.value?.id) {
     await http.put(`${url}/${transaction.value.id}`, transaction.value)
     message.success('¡Transacción actualizada!')
@@ -224,6 +232,7 @@ const save = async (crud: { update: () => void, close: () => void }) => {
   }
   crud.update()
   crud.close()
+  await getTotalBalance(idAccount.value)
 }
 
 const getAccounts = async () => {
@@ -248,6 +257,11 @@ const getTotalBalance = async (idAccount: number) => {
   total.value = lastTransaction.balance
 }
 
+const redirectAccounts = () => {
+  storage.set('create', true)
+  void router.push('/treasury/accounts')
+}
+
 watch(idAccount, async (val: number) => {
   render.value = false
   urlFilter.value = `${url}&id_account=${val}`
@@ -257,6 +271,9 @@ watch(idAccount, async (val: number) => {
 
 onBeforeMount(async () => {
   await getAccounts()
+  if (idAccount.value) {
+    await getTotalBalance(idAccount.value)
+  }
 })
 </script>
 
