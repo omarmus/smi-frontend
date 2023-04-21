@@ -13,8 +13,8 @@ module.exports = {
       '.vue'
     ],
     parser: '@typescript-eslint/parser',
-    project: '/Users/omarmus/Projects/reform/smi-frontend/tsconfig.json',
-    tsconfigRootDir: '/Users/omarmus/Projects/reform/smi-frontend',
+    project: 'tsconfig.json',
+    tsconfigRootDir: __dirname,
     ecmaVersion: 2020,
     sourceType: 'module'
   },
