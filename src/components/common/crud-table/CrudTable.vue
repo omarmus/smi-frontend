@@ -332,7 +332,6 @@ watch(() => JSON.parse(JSON.stringify(filter.value)) as Record<string, string>, 
 
 onMounted(async () => {
   setValuesFilter()
-  console.log(filter.value)
   await onRequest({ pagination: pagination.value })
 })
 </script>

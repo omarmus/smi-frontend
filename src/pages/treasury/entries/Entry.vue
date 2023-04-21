@@ -616,7 +616,6 @@ const addConcept = () => {
 }
 const editConcept = (id: number) => {
   const item = conceptsItems.value[id]
-  console.log(item)
   concept.value = item.concept
   observation.value = item.observation
   value.value = item.value
