@@ -5,7 +5,7 @@
         icon="arrow_back"
         round
         flat
-        @click="$router.push(`/treasury/week/${entry.id}`)" />
+        @click="$router.push(`/treasury/week/${entry.id}/${$route.params.expenseId}`)" />
       Diezmos y ofrendas - Sábado {{ day }} de {{ months[entry.month - 1] }}
     </h2>
     <div class="row">
@@ -121,7 +121,7 @@
             </q-select>
           </div>
           <div class="row">
-            <div class="col-xs-6 q-pr-xs">
+            <div class="col-xs-6 q-pr-xs" id="entry-value">
               <q-input
                 filled
                 label="Valor"
@@ -343,7 +343,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onBeforeMount, computed, nextTick } from 'vue'
+import { ref, onBeforeMount, computed, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { http } from 'boot/http'
 import { Confirm } from 'boot/modal'
@@ -419,7 +419,7 @@ const getEntry = async () => {
 }
 
 const getEntryDetails = async () => {
-  const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}&week=${week as string}`) as Result<EntryDetail>
+  const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}&week=${week as string}&order=-entry_detail.id`) as Result<EntryDetail>
   entriesDetails.value = items.rows
 }
 
@@ -494,7 +494,7 @@ const filterUsers = (val: string, update: unknown) => {
   })
 }
 
-const groupsChurch = ['PERSONAL']
+const groupsChurch = ['TITHES', 'SCOOP', 'SECOND', 'TITHE']
 const filterDepartment = (val: string, update: unknown) => {
   update(() => {
     if (val === '') {
@@ -535,11 +535,13 @@ const saveDetail = async () => {
     Confirm('¿Desea dividir la ofrenda de jóvenes para la Asociación e Iglesia local?', async () => {
       item.value = Number(item.value) / 2
       item.id_department = idDepartmentLocal
+      item.split = true
       await http.post('entriesdetails', item)
       item.id_department = idDepartmentGlobal
       await http.post('entriesdetails', item)
       await getEntryDetails()
     }, async () => {
+      item.split = false
       await http.post('entriesdetails', item)
       await getEntryDetails()
     }, 'Ofrenda de Jóvenes', 'Si', 'No')
@@ -651,6 +653,14 @@ const generatePdf = async (idEntryDetail?: number) => {
   const pdf = await http.get(url) as string
   createPdf(pdf, `invoice-${Date.now()}.pdf`)
 }
+
+watch(concept, (val: string) => {
+  if (val) {
+    void nextTick(() => {
+      document.querySelector('#entry-value input').focus()
+    })
+  }
+})
 
 onBeforeMount(async () => {
   concepts.value = await getDepartments() as DepartmentOption[]

@@ -92,9 +92,9 @@
             <tr>
               <th class="text-left"><strong>Departamento</strong></th>
               <th class="text-right text-secondary"><strong>Saldo {{ monthsLiteral[monthPrev] }}</strong></th>
+              <!-- <th class="text-right"><strong>Ingreso <q-icon name="add_circle_outline" /> </strong></th> -->
+              <!-- <th class="text-right"><strong>Diezmo Ingreso <q-icon name="remove_circle_outline" /></strong></th> -->
               <th class="text-right text-positive"><strong>Ingreso <q-icon name="add_circle_outline" /> </strong></th>
-              <th class="text-right text-negative"><strong>Diezmo Ingreso <q-icon name="remove_circle_outline" /></strong></th>
-              <th class="text-right text-positive"><strong>Total Ingreso <q-icon name="add_circle_outline" /> </strong></th>
               <th class="text-right text-negative"><strong>Gasto <q-icon name="remove_circle_outline" /></strong></th>
               <th class="text-right"><strong>Sub total</strong></th>
               <th class="text-right text-primary"><strong>Total</strong></th>
@@ -112,19 +112,19 @@
                   <span class="text-hidden">Saldo {{ monthsLiteral[previousMonth - 1] }}:</span> {{ Number(item.previous).toFixed(2) }}
                 </div>
               </td>
-              <td class="text-right text-positive">
+              <!-- <td class="text-right">
                 <div class="flow-row-table">
                   <span class="text-hidden">Ingreso <q-icon name="add_circle_outline" /> :</span> {{ Number(item.entry).toFixed(2) }}
                 </div>
               </td>
-              <td class="text-right text-negative">
+              <td class="text-right">
                 <div class="flow-row-table">
                   <span class="text-hidden">Diezmo Ingreso <q-icon name="remove_circle_outline" />:</span> {{ Number(item.tithe).toFixed(2) }}
                 </div>
-              </td>
+              </td> -->
               <td class="text-right text-positive">
                 <div class="flow-row-table">
-                  <span class="text-hidden">Total Ingreso <q-icon name="add_circle_outline" /> :</span> {{ Number(item.entryTotal).toFixed(2) }}
+                  <span class="text-hidden">Ingreso <q-icon name="add_circle_outline" /> :</span> {{ Number(item.entryTotal).toFixed(2) }}
                 </div>
               </td>
               <td class="text-right text-negative">
@@ -154,19 +154,19 @@
                   <span class="text-hidden">Saldo {{ monthsLiteral[previousMonth - 1] }}:</span> <strong>{{ Number(total.previous).toFixed(2) }}</strong>
                 </div>
               </td>
-              <td class="text-right text-positive">
+              <!-- <td class="text-right">
                 <div class="flow-row-table">
                   <span class="text-hidden">Ingreso <q-icon name="add_circle_outline" /> :</span> <strong>{{ Number(total.entry).toFixed(2) }}</strong>
                 </div>
               </td>
-              <td class="text-right text-negative">
+              <td class="text-right">
                 <div class="flow-row-table">
                   <span class="text-hidden">Diezmo Ingreso <q-icon name="remove_circle_outline" />:</span> <strong>{{ Number(total.tithe).toFixed(2) }}</strong>
                 </div>
-              </td>
+              </td> -->
               <td class="text-right text-positive">
                 <div class="flow-row-table">
-                  <span class="text-hidden">Total Ingreso <q-icon name="add_circle_outline" /> :</span> <strong>{{ Number(total.entryTotal).toFixed(2) }}</strong>
+                  <span class="text-hidden">Ingreso <q-icon name="add_circle_outline" /> :</span> <strong>{{ Number(total.entryTotal).toFixed(2) }}</strong>
                 </div>
               </td>
               <td class="text-right text-negative">

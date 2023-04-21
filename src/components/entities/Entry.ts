@@ -33,4 +33,5 @@ export interface EntryDetail {
   value: number
   observation: string
   concepts: [Concept]
+  split?: boolean
 }

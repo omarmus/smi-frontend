@@ -19,7 +19,7 @@
           color="secondary"
           padding="lg"
           no-caps
-          @click="$router.push(`/treasury/entry/${$route.params.entryId}/${item.week}`)"
+          @click="$router.push(`/treasury/entry/${$route.params.entryId}/${$route.params.expenseId}/${item.week}`)"
           class="full-width btn-block"
           :class="getClass(item)"
           :disable="getDisable(item)">

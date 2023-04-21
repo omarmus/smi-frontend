@@ -11,15 +11,30 @@
     </h2>
     <div class="alert alert-info">Para <strong>empezar</strong> a registrar la información de tesorería primero necesita seleccionar el <strong>MES</strong> en el que empezará a contabilizar los registros de tesorería en el sistema, es decir el <strong>siguiente mes</strong> del último libro de tesorería que llenó.</div>
     <div class="q-pb-md">
-      <q-select
-        v-model="month"
-        :options="months.map((item: string, index: number) => ({ value: index + 1, label: item.toUpperCase() }))"
-        label="Seleccione el mes"
-        emit-value
-        map-options
-        filled
-        :disable="initial"
-        :rules="[v => !!v || 'Debe seleccionar el mes para continuar']" />
+      <div class="row q-col-gutter-x-sm">
+        <div class="col-xs-12 col-md-8">
+          <q-select
+            v-model="month"
+            :options="months.map((item: string, index: number) => ({ value: index + 1, label: item.toUpperCase() }))"
+            label="Seleccione el mes"
+            emit-value
+            map-options
+            filled
+            :disable="initial"
+            :rules="[v => !!v || 'Debe seleccionar el mes para continuar']" />
+        </div>
+        <div class="col-xs-12 col-md-4">
+          <q-select
+            v-model="year"
+            :options="getYears(0, (new Date()).getFullYear() - 1)"
+            label="Seleccione el año"
+            emit-value
+            map-options
+            filled
+            :disable="initial"
+            :rules="[v => !!v || 'Debe seleccionar el año para continuar']" />
+        </div>
+      </div>
     </div>
     <template v-if="month">
       <div class="alert alert-info">Ahora debe <strong>llenar los montos de cada departamento</strong> de su iglesia local que tiene como saldo acumulado hasta <strong>{{ monthPrev }}</strong></div>
@@ -73,10 +88,10 @@ import { http } from 'boot/http'
 import { message } from 'boot/message'
 import { storage } from 'boot/storage'
 import { Confirm } from 'boot/modal'
-import { Result } from '../../../components/entities/Entity'
+import { Result, Option } from '../../../components/entities/Entity'
 import { Department } from '../../../components/entities/Department'
 import { Flow } from '../../../components/entities/Flow'
-import { months } from '../../../components/plugins/datetime'
+import { months, getYears } from '../../../components/plugins/datetime'
 import validation, { validateDecimal } from '../../../components/plugins/validation'
 
 const router = useRouter()
@@ -84,7 +99,8 @@ const store = useStore()
 
 const departments = ref<[Department]>([])
 const initial = ref<false>()
-const month = ref<{ value: number, label: string }>()
+const month = ref<Option>()
+const year = ref<Option>(new Date().getFullYear())
 const idCompany = store.state.user?.user?.company.id as number
 
 const getDepartments = async () => {
@@ -107,18 +123,19 @@ const getInitial = async () => {
   }
 }
 
-const save = () => {
+const save = (): void => {
   if (departments.value.reduce((total: number, item: Department) => total + (item.total || 0), 0) === 0) {
     return message.warning('Debe llenar por lo menos un monto de algún departamento para continuar')
   }
   if (!departments.value.reduce((valid: boolean, item: Department) => valid && (item.total ? validateDecimal(item.total) : true), true)) {
     return message.warning('- El formato del monto no es válido, use el punto decimal como separador de decimales,<br>- Tampoco puede usar las comas como separador de miles')
   }
-  Confirm('<p>Revise que los datos ingresados sean correctos, solo podrá configurar esta información una única vez.<p> ¿Deséa continuar?', async () => {
+  Confirm('<p>Revise que los datos ingresados sean correctos, solo podrá configurar esta información por única vez.<p> ¿Deséa continuar?', async () => {
     await http.post('flows/initial', {
       id_company: idCompany,
       departments: departments.value,
-      month: month.value
+      month: month.value,
+      year: year.value
     })
     message.success('Configuración guardada correctamente')
     storage.set('initial', false)

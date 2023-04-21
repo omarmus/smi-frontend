@@ -6,6 +6,7 @@ export interface Flow {
   year: number
   month: number
   total: number
+  netTotal?: number
   type: string
   typeTreasury: string
   state: string

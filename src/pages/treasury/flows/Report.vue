@@ -46,7 +46,7 @@
                   :key="item.id"
                   class="row justify-start">
                   <div class="col-8">{{ item.department.name }}</div>
-                  <div class="col-xs-4 col-sm-4 text-right">{{ (item.total * 0.9).toFixed(2) }} {{ $store.state.user?.user.company.money }}</div>
+                  <div class="col-xs-4 col-sm-4 text-right">{{ (item.netTotal * 1).toFixed(2) }} {{ $store.state.user?.user.company.money }}</div>
                 </div>
                 <div class="row justify-start">
                   <div class="col-xs-12 col-sm-12">
@@ -55,7 +55,7 @@
                 </div>
                 <div class="row justify-start">
                   <div class="col-8"><strong>Total:</strong></div>
-                  <div class="col-xs-4 col-sm-4 text-right"><strong>{{ (totalFlowExpense * 0.9).toFixed(2) }} {{ $store.state.user?.user.company.money }}</strong></div>
+                  <div class="col-xs-4 col-sm-4 text-right"><strong>{{ (totalFlowExpense * 1).toFixed(2) }} {{ $store.state.user?.user.company.money }}</strong></div>
                 </div>
               </div>
             </div>
@@ -479,7 +479,7 @@ const totalFlowEntryGlobal = computed(() => {
 const totalFlowExpense = computed(() => {
   let total = 0
   flowsEntriesLocal.value.forEach(item => {
-    total += Number(item.total)
+    total += Number(item.netTotal)
   })
   return total
 })

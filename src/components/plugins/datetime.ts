@@ -33,10 +33,10 @@ export const normalize = (date: string) => {
   return [date.split('/')[2], date.split('/')[1], date.split('/')[0]].join('-')
 }
 
-export const getYears = (add = 0) => {
+export const getYears = (add = 0, yearInitial = 2022) => {
   const year = (new Date().getUTCFullYear()) + add
   const years = []
-  for (let y = year; y >= 2022; y--) {
+  for (let y = year; y >= yearInitial; y--) {
     years.push(y)
   }
   return years
