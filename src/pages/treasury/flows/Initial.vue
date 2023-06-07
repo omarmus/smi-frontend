@@ -9,7 +9,7 @@
         Configuración Caja local - <span class="text-warning">{{ $store.state.user?.user?.company.name }}</span>
         <!-- <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span> -->
     </h2>
-    <div class="alert alert-info">Para <strong>empezar</strong> a registrar la información de tesorería primero necesita seleccionar el <strong>MES</strong> en el que empezará a contabilizar los registros de tesorería en el sistema, es decir el <strong>siguiente mes</strong> del último libro de tesorería que llenó.</div>
+    <div class="alert alert-info">Selecciona el <strong>mes</strong> en el que empezarás a contabilizar los registros de tesorería en el sistema.</div>
     <div class="q-pb-md">
       <div class="row q-col-gutter-x-sm">
         <div class="col-xs-12 col-md-8">
@@ -37,11 +37,11 @@
       </div>
     </div>
     <template v-if="month">
-      <div class="alert alert-info">Ahora debe <strong>llenar los montos de cada departamento</strong> de su iglesia local que tiene como saldo acumulado hasta <strong>{{ monthPrev }}</strong></div>
-      <div class="alert alert-info"><strong>Importante.-</strong> Use el punto <strong>.</strong> como separador decimal para los centavos en todo el sistema. <em>Ejemplo: 132.5</em></div>
+      <div class="alert alert-info">Llena los montos de cada departamento de tu iglesia local que tiene como saldo acumulado hasta el mes de <strong>{{ monthPrev }}</strong></div>
+      <div class="alert alert-warning"><strong>Importante.-</strong> Usa el <strong>punto decimal .</strong> como separador para los centavos en todo el sistema. <em>Ejemplo: 132.5</em></div>
       <div class="text-right">
         <q-chip square color="warning" text-color="white">
-          <strong>Total: {{ total }} {{ $store.state.user?.user.company.money }}</strong>
+          <strong>Total {{ monthPrev }}: {{ total }} {{ $store.state.user?.user.company.money }}</strong>
         </q-chip>
       </div>
       <div class="row flow-items q-col-gutter-x-lg q-pt-md">

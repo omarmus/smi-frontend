@@ -15,7 +15,7 @@ export default {
   required: (v: string) => !!v || 'El campo es requerido.',
   phone: (v: string) => {
     const re = /^[0-9]/
-    return (re.test(String(v).toLowerCase()) && v.length === 8) || !v || 'Introduzca un numero de celular válido.'
+    return (re.test(String(v).toLowerCase()) && v.length === 8) || !v || 'Introduzca un número de celular válido.'
   },
   alphabet: (v: string) => {
     const re = /^[a-zñÑáéíóú]/
@@ -23,7 +23,7 @@ export default {
   },
   number: (v: string) => {
     const re = /^\d+$/g
-    return re.test(String(v)) || !v || 'Solo se permiten numeros enteros.'
+    return re.test(String(v)) || !v || 'Solo se permiten números enteros.'
   },
   decimal: (v: string) => {
     const re = /^\d*\.?\d*$/g
