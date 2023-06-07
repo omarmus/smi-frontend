@@ -95,5 +95,6 @@ export const memberStateOptions = [
 export const memberTypeOptions = [
   { value: 'MEMBER', label: 'MIEMBRO' },
   { value: 'SYMPATHIZER', label: 'MIEMBRO DE ESCUELA SABÁTICA' },
-  { value: 'VISIT', label: 'VISITA' }
+  { value: 'VISIT', label: 'VISITA' },
+  { value: 'BAPTISMAL_CANDIDATE', label: 'CANDIDATO A BAUTIZMO' }
 ]
