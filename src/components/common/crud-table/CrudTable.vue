@@ -319,7 +319,7 @@ const getSelectedString = () => {
 }
 
 const setValuesFilter = () => {
-  props.filters.forEach(item => {
+  props.filters?.forEach(item => {
     if (item.value) {
       filter.value[item.name] = item.value
     }
