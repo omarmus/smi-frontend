@@ -9,8 +9,8 @@
       Ingresos y Gastos de {{ months[entry.month - 1] }} {{ entry.year }}
       <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span>
     </h2>
-    <div class="row">
-      <div class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
+    <div class="row q-col-gutter-md">
+      <div class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -24,7 +24,7 @@
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
       </div>
-      <div class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
+      <div class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -38,7 +38,7 @@
           <!-- <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" /> -->
         </q-btn>
       </div>
-      <div class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
+      <div class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -54,7 +54,7 @@
       </div>
       <div
         v-if="entry.state === 'CLOSED'"
-        class="col-xs-12 col-sm-6 col-md-3 q-pa-sm card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -75,6 +75,7 @@
         label="Cambiar mes"
         no-caps
         icon="calendar_month"
+        class="btn-close-month"
         @click="$router.push('/treasury/months')" />
       <q-btn
         v-if="entry.state !== 'CLOSED'"

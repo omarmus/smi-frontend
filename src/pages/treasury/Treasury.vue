@@ -8,10 +8,10 @@
         @click="$router.push('/')" />
       Tesorería
     </h2>
-    <div class="row q-gutter-sm">
+    <div class="row q-col-gutter-md">
       <div
         v-if="$store.state.user?.permissions?.includes('entry:read')"
-        class="col-xs-6 col-sm-3 card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -26,7 +26,7 @@
       </div>
       <div
         v-if="$store.state.user?.permissions?.includes('balance:read')"
-        class="col-xs-6 col-sm-3 card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -41,7 +41,7 @@
       </div>
       <div
         v-if="$store.state.user?.permissions?.includes('account:read')"
-        class="col-xs-6 col-sm-3 card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"

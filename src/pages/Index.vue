@@ -1,9 +1,9 @@
 <template>
   <div class="container">
-    <div class="row">
+    <div class="row q-col-gutter-md">
       <div
         v-if="['TREASURER'].indexOf($store.state.user.role?.slug) === -1"
-        class="col-xs-6 col-sm-3 q-pr-sm card-button">
+        class="col-xs-12 col-sm-6 col-sm-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -16,7 +16,7 @@
       </div>
       <div
         v-if="['SECRETARY'].indexOf($store.state.user?.role?.slug) === -1"
-        class="col-xs-6 col-sm-3 q-pl-sm card-button">
+        class="col-xs-12 col-sm-6 col-sm-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -42,6 +42,3 @@ const goTreasury = () => {
   return router.push(initial ? '/treasury/flows/initial' : '/treasury')
 }
 </script>
-
-<style lang="scss">
-</style>

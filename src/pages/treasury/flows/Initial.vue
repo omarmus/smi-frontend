@@ -6,7 +6,7 @@
         round
         flat
         @click="$router.push('/')" />
-        Configuración Caja local - <span class="text-warning">{{ $store.state.user?.user?.company.name }}</span>
+        Configuración inicial Caja local - <span class="text-warning">{{ $store.state.user?.user?.company.name }}</span>
         <!-- <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span> -->
     </h2>
     <div class="alert alert-info">Selecciona el <strong>mes</strong> en el que empezarás a contabilizar los registros de tesorería en el sistema.</div>

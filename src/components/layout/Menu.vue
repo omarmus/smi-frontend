@@ -54,16 +54,15 @@
     </q-list>
     <q-separator />
     <q-list padding class="menu-list">
-      <q-item
+      <!-- <q-item
         @click="darkModeChange" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
           <q-icon name="dark_mode" class="color-texto" />
         </q-item-section>
-
         <q-item-section>
           {{ darkMode ? `Desactivar modo oscuro` : `Activar modo oscuro` }}
         </q-item-section>
-      </q-item>
+      </q-item> -->
       <q-item
         @click="logout" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
@@ -78,7 +77,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useQuasar } from 'quasar'
+// import { useQuasar } from 'quasar'
 import { auth, UserResponse } from 'boot/auth'
 import { http } from 'boot/http'
 import { storage } from 'boot/storage'
@@ -93,16 +92,16 @@ const router = useRouter()
 //   store.commit('global/setOpen', false)
 // }
 
-const $q = useQuasar()
-const darkMode = ref($q.dark.isActive)
+// const $q = useQuasar()
+// const darkMode = ref($q.dark.isActive)
 
 const role = ref<Role>()
 const roles = ref<Role[]>()
 
-function darkModeChange () {
-  darkMode.value = !darkMode.value
-  $q.dark.set(!$q.dark.isActive)
-}
+// function darkModeChange () {
+//   darkMode.value = !darkMode.value
+//   $q.dark.set(!$q.dark.isActive)
+// }
 
 function logout () {
   auth.logout('store')

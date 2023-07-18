@@ -36,67 +36,83 @@
           </div>
           <div
             class="col-xs-12"
+            id="entry-person"
             v-if="type === 'MEMBER'">
-            <q-select
-              id="entry-person"
-              filled
-              v-model="name"
-              :placeholder="name ? '' : 'Escriba un nombre'"
-              use-input
-              use-chips
-              :input-debounce="300"
-              @new-value="createValue"
-              :options="users"
-              @filter="filterUsers"
-              lazy-rules
-              :rules="[ val => !!val || 'Seleccione a una persona']"
-            >
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
-                    <q-item-label caption>
-                      <strong class="text-secondary">{{ scope.opt.association ? scope.opt.association : memberType[scope.opt.type] }} - </strong>
-                      {{ scope.opt.church }}
-                    </q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template v-slot:no-option>
-                <q-item dense>
-                  <q-item-section>
+            <div class="popover-users">
+              <q-field
+                filled
+                v-model="name.label"
+                lazy-rules
+                :loading="loadingState"
+                :rules="[ val => !!val || 'Seleccione a una persona']"
+                @click.stop.prevent="popoverUsers = !popoverUsers">
+                <template v-slot:control>
+                  <input
+                    v-model="name.label"
+                    class="self-center full-width no-outline no-border bg-transparent"
+                    type="text"
+                    @input="filterByUsers"
+                    :placeholder="name?.label ? '' : 'Escriba un nombre'"
+                    @click="popoverUsers = !popoverUsers">
+                </template>
+
+                <template v-slot:append>
+                  <q-icon name="cancel" class="cursor-pointer" v-if="name?.label" @click="cleanUsers" />
+                  <q-icon name="arrow_drop_down" class="cursor-pointer" />
+                </template>
+              </q-field>
+              <div
+                ref="elementUser"
+                class="q-menu q-position-engine scroll q-menu--square"
+                v-show="popoverUsers">
+                <q-list v-if="users.length > 0">
+                  <q-item
+                    clickable
+                    v-ripple
+                    v-for="item in users"
+                    :key="item.value"
+                    @click="selectUser(item)">
+                    <q-item-section>
+                      <q-item-label>{{ item.label }}</q-item-label>
+                      <q-item-label caption>
+                        <strong class="text-secondary">{{ item.association ? item.association : memberType[item.type] }} - </strong>
+                        {{ item.church }}
+                      </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+                <q-list v-else>
+                  <div class="alert alert-info">
                     La persona que busca no está registrada
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-btn
-                      color="secondary"
-                      label="Agregar como miembro de escuela sabática"
-                      no-caps
-                      @click="enterEventPerson('SYMPATHIZER')" />
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-btn
-                      color="secondary"
-                      label="Agregar como visita"
-                      no-caps
-                      @click="enterEventPerson('VISIT')" />
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-btn
-                      color="warning"
-                      label="Buscar en otra Asociación"
-                      no-caps
-                      @click="enterEventPerson('SEARCH')" />
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
+                  </div>
+                  <q-item class="q-pt-none">
+                    <q-item-section>
+                      <q-btn
+                        color="secondary"
+                        label="Agregar como miembro de Escuela sabática"
+                        no-caps
+                        @click="saveUser(name.label, 'SYMPATHIZER')" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item>
+                    <q-item-section>
+                      <q-btn
+                        color="secondary"
+                        label="Agregar como visita"
+                        @click="saveUser(name.label, 'VISIT')" />
+                    </q-item-section>
+                  </q-item>
+                  <q-item>
+                    <q-item-section>
+                      <q-btn
+                        color="warning"
+                        label="Buscar en otra Asociación"
+                        @click="saveUser(name.label, 'SEARCH')" />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </div>
+            </div>
           </div>
           <div class="col-xs-12">
             <q-select
@@ -336,14 +352,14 @@
       <UserSearch
         v-if="dialogUserSearch"
         :value="valueSearch"
-        :done="doneSearch"
         v-model:name="name" />
     </q-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onBeforeMount, computed, nextTick, watch } from 'vue'
+import { ref, onBeforeMount, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
+import { debounce } from 'quasar'
 import { useRoute } from 'vue-router'
 import { http } from 'boot/http'
 import { Confirm } from 'boot/modal'
@@ -361,27 +377,30 @@ const store = useStore()
 
 const memberType = {
   member: 'Miembro',
-  sympathizer: 'Simpatizante',
+  sympathizer: 'Miembro Esc. sabática',
   visit: 'Visita'
 }
 
 interface Option {
   value: string
   label: string
+  church?: string
+  association?: string
+  type?: string
 }
 
 // data entry detail
 const idEntryDetail = ref<number | null>(null)
 const type = ref<string>('MEMBER')
-const name = ref<{ label: string, value: number }>()
-const concept = ref<{ label: string, value: number, type: string }>()
+const name = ref<Option>({ value: '', label: '' })
+const concept = ref<Option>()
 const value = ref<number>()
 const date = ref<Option>()
 const dates = ref<Option[]>([])
 const observation = ref<string>()
-
-const users = ref([])
-const typeUser = ref<string>()
+const popoverUsers = ref<boolean>(false)
+const loadingState = ref<boolean>(false)
+const users = ref<Option>([])
 const usersChurch = ref([])
 const concepts = ref<DepartmentOption[]>([])
 const conceptsFilter = ref<DepartmentOption[]>([])
@@ -394,8 +413,7 @@ const formRender = ref<boolean>(true)
 const myForm = ref(null)
 const dialogUserSearch = ref<boolean>(false)
 const valueSearch = ref<string>('')
-const doneSearch = ref(() => undefined)
-const updateFilter = ref()
+const elementUser = ref<HTMLDivElement>()
 
 const route = useRoute()
 const { entryId, week } = route.params
@@ -452,46 +470,6 @@ const getUsers = async (query: string, association?: boolean) => {
     association: association ? item.association?.name as string : null,
     type: item.type?.toLowerCase()
   }))
-}
-
-const createValue = async (val: string, done: () => void) => {
-  if (typeUser.value !== 'SEARCH') {
-    if (val.length > 3 && typeUser.value) {
-      const user = await http.post('users/new', {
-        type: typeUser.value,
-        fullname: val,
-        id_company: idCompany
-      }) as User
-      done(val, 'add-unique')
-      name.value = { value: user.id, label: user.person.fullname }
-    }
-  } else {
-    dialogUserSearch.value = false
-    void nextTick(() => {
-      valueSearch.value = val
-      doneSearch.value = done
-      dialogUserSearch.value = true
-    })
-  }
-}
-
-const enterEventPerson = (type: string) => {
-  typeUser.value = type
-  const element = document.querySelector('#entry-person input')
-  element.dispatchEvent(new KeyboardEvent('keydown', {
-    bubbles: true, cancelable: true, keyCode: 13
-  }))
-}
-
-const filterUsers = (val: string, update: unknown) => {
-  updateFilter.value = update
-  update(async () => {
-    if (val === '') {
-      users.value = usersChurch.value
-    } else {
-      users.value = await getUsers(val)
-    }
-  })
 }
 
 const groupsChurch = ['TITHES', 'SCOOP', 'SECOND', 'TITHE']
@@ -560,6 +538,7 @@ const saveDetail = async () => {
 const cleanEntryDetail = async () => {
   myForm.value.resetValidation() // eslint-disable-line
   formRender.value = false
+  users.value = usersChurch.value
   await nextTick(() => {
     idEntryDetail.value = null
     concept.value = null
@@ -567,7 +546,7 @@ const cleanEntryDetail = async () => {
     value.value = ''
     index.value = -1
     conceptsItems.value = []
-    name.value = null
+    name.value = { value: '', label: '' }
     formRender.value = true
     date.value = dates.value[0]
   })
@@ -661,6 +640,67 @@ watch(concept, (val: string) => {
   }
 })
 
+// select customize
+const filterByUsers = debounce(async () => {
+  if (name.value?.label === '') {
+    users.value = usersChurch.value
+    popoverUsers.value = true
+  } else {
+    loadingState.value = true
+    users.value = await getUsers(name.value.label)
+    void nextTick(() => {
+      loadingState.value = false
+      popoverUsers.value = true
+    })
+  }
+}, 400)
+
+const selectUser = (item: Option) => {
+  name.value = item
+  popoverUsers.value = false
+}
+
+const cleanUsers = () => {
+  name.value = { label: '', value: '' }
+  users.value = usersChurch.value
+  popoverUsers.value = false
+}
+
+const saveUser = async (val: string, type: string) => {
+  if (type !== 'SEARCH') {
+    if (val.length > 3 && type) {
+      const user = await http.post('users/new', {
+        type,
+        fullname: val,
+        id_company: idCompany
+      }) as User
+      name.value = { value: user.id, label: user.person.fullname }
+      popoverUsers.value = false
+    }
+  } else {
+    dialogUserSearch.value = false
+    void nextTick(() => {
+      valueSearch.value = val
+      dialogUserSearch.value = true
+      popoverUsers.value = false
+    })
+  }
+}
+
+const handleClickOutside = (e: Event) => {
+  if (elementUser.value && !elementUser.value.contains(e.target)) {
+    popoverUsers.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+})
+
 onBeforeMount(async () => {
   concepts.value = await getDepartments() as DepartmentOption[]
   conceptsFilter.value = concepts.value
@@ -671,6 +711,7 @@ onBeforeMount(async () => {
   await getEntry()
   await getEntryDetails()
 })
+
 </script>
 
 <style lang="scss">
@@ -680,5 +721,18 @@ onBeforeMount(async () => {
 }
 .treasury-line-bottom {
   border-bottom: 1px solid #ddd;
+}
+.popover-users {
+  position: relative;
+
+  .q-menu {
+    background-color: white;
+    position: absolute !important;
+    left: 0;
+    right: 0;
+    top: 56px;
+    visibility: visible;
+    z-index: 100;
+  }
 }
 </style>

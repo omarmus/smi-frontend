@@ -91,7 +91,7 @@
           <div class="col-xs-12">
             <q-input
               filled
-              label="Valor"
+              label="Monto"
               v-model="form.value"
               :rules="[validation.required, validation.decimal]" />
           </div>

@@ -28,7 +28,6 @@
     <q-tab-panels
       v-model="tab"
       animated
-      swipeable
       vertical
       transition-prev="jump-up"
       transition-next="jump-up"
@@ -89,10 +88,10 @@
       </q-tab-panel>
       <q-tab-panel name="expense">
         <div class="row">
-          <div class="col-sm-12 col-md-6">
+          <div class="col-xs-12 col-sm-12 col-md-6">
             <h3 class="text-primary flow-title">Gastos Iglesia local</h3>
             <div class="row">
-              <div class="col-xs-10">
+              <div class="col-xs-12 col-sm-10 col-md-10">
                 <div class="q-table-simple q-table__container q-table--horizontal-separator column no-wrap q-table--dense q-table--no-wrap">
                   <table class="q-table treasury-table-data">
                     <thead>

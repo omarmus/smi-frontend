@@ -15,7 +15,7 @@
         icon="close"
         v-close-popup />
     </q-toolbar>
-    <q-card-section>
+    <q-card-section class="search-user">
       <CrudTable
         v-if="render"
         :columns="columns"
@@ -61,8 +61,7 @@ import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
 import { User } from '../../../components/entities/User'
 
 interface Props {
-  value: string,
-  done: () => void
+  value: string
 }
 
 const emit = defineEmits(['name'])
@@ -94,7 +93,6 @@ const filters = ref([
 const render = ref<boolean>(false)
 
 const selected = (user: User) => {
-  props.done(user.person.fullname, 'add-unique')
   emit('update:name', { value: user.id, label: user.person.fullname })
 }
 
@@ -104,3 +102,16 @@ onMounted(() => {
   })
 })
 </script>
+
+<style lang="scss">
+.search-user {
+  .q-table__top {
+    padding: 3px;
+  }
+  .q-table {
+    thead {
+      display: none;
+    }
+  }
+}
+</style>
