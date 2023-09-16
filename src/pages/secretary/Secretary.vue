@@ -8,10 +8,10 @@
         @click="$router.push('/')" />
       Secretaría
     </h2>
-    <div class="row">
-      <!-- <div
+    <div class="row q-col-gutter-md">
+      <div
         v-if="$store.state.user?.permissions?.includes('company:read')"
-        class="col-xs-6 col-sm-3 q-pr-sm card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -22,10 +22,10 @@
           @click="$router.push('/secretary/churchs')"
           class="full-width btn-block"
         />
-      </div> -->
+      </div>
       <div
         v-if="$store.state.user?.permissions?.includes('user:read')"
-        class="col-xs-6 col-sm-3 q-pl-sm card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
@@ -39,7 +39,7 @@
       </div>
       <!-- <div
         v-if="$store.state.user?.permissions?.includes('department:read')"
-        class="col-xs-6 col-sm-3 q-pl-sm card-button">
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"

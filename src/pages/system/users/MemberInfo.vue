@@ -63,7 +63,7 @@
         </ul>
         <h3
           class="member-info-title"
-          v-if="positions.length">Cargos ocupados</h3>
+          v-if="positions && positions.length > 0">Cargos ocupados</h3>
         <ul class="member-info-list">
           <li
             v-for="item in positions"

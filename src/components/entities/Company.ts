@@ -1,3 +1,11 @@
+export interface Contact {
+  name: string
+  phone: string
+}
+export interface Info {
+  contacts: Contact[]
+}
+
 export interface Company {
   id?: number
   name: string
@@ -8,4 +16,6 @@ export interface Company {
   state?: string
   idAssociation?: number
   idUnion?: number
+  idCompany?: number
+  info?: Info
 }
