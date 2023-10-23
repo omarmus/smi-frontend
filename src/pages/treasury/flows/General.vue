@@ -5,11 +5,11 @@
         icon="arrow_back"
         round
         flat
-        @click="$router.push('/treasury')" />
+        @click="$router.push('/treasury/reports')" />
         Flujo de caja - <span class="text-warning">Iglesia local</span>
         <!-- <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span> -->
         <span class="subtitle">Total: {{ (total.total || 0 ).toFixed(2) }} {{ $store.state.user?.user.company.money }}</span>
-      </h2>
+    </h2>
     <div class="row q-col-gutter-sm">
       <div class="col-xs-12 col-sm-4">
         <q-select
@@ -109,7 +109,7 @@
               </td>
               <td class="text-right text-secondary">
                 <div class="flow-row-table">
-                  <span class="text-hidden">Saldo {{ monthsLiteral[previousMonth - 1] }}:</span> {{ Number(item.previous).toFixed(2) }}
+                  <span class="text-hidden">Saldo {{ monthsLiteral[monthPrev] }}:</span> {{ Number(item.previous).toFixed(2) }}
                 </div>
               </td>
               <!-- <td class="text-right">
@@ -139,7 +139,7 @@
               </td>
               <td class="text-right text-primary">
                 <div class="flow-row-table">
-                  <span class="text-hidden">Total:</span> <strong>{{ Number(item.total).toFixed(2) }}</strong>
+                  <span class="text-hidden">Total {{ monthsLiteral[month - 1] }}:</span> <strong>{{ Number(item.total).toFixed(2) }}</strong>
                 </div>
               </td>
             </tr>
@@ -151,7 +151,7 @@
               </td>
               <td class="text-right text-secondary">
                 <div class="flow-row-table">
-                  <span class="text-hidden">Saldo {{ monthsLiteral[previousMonth - 1] }}:</span> <strong>{{ Number(total.previous).toFixed(2) }}</strong>
+                  <span class="text-hidden">Saldo {{ monthsLiteral[monthPrev] }}:</span> <strong>{{ Number(total.previous).toFixed(2) }}</strong>
                 </div>
               </td>
               <!-- <td class="text-right">
@@ -181,7 +181,7 @@
               </td>
               <td class="text-right text-primary">
                 <div class="flow-row-table">
-                  <span class="text-hidden">Total:</span> <strong>{{ Number(total.total).toFixed(2) }}</strong>
+                  <span class="text-hidden">Total {{ monthsLiteral[month - 1] }}:</span> <strong>{{ Number(total.total).toFixed(2) }}</strong>
                 </div>
               </td>
             </tr>
@@ -215,7 +215,6 @@ const getCurrentFlow = async () => {
   }
 }
 
-const previousMonth = ref<number>(0)
 const year = ref<number>(0)
 const type = ref<string>('MONTH')
 const month = ref<number>(0)

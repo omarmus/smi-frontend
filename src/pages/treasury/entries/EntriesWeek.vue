@@ -24,7 +24,7 @@
           :class="getClass(item)"
           :disable="getDisable(item)">
           <strong>{{ item.label }}</strong>
-          <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span>
+          <span class="btn-block-detail">{{ item.total.toFixed(2) }} {{ $store.state.user?.user.company.money }}</span>
           <q-icon name="calendar_month" />
         </q-btn>
       </div>

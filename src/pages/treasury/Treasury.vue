@@ -25,21 +25,6 @@
         />
       </div>
       <div
-        v-if="$store.state.user?.permissions?.includes('balance:read')"
-        class="col-xs-12 col-sm-6 col-md-3 card-button">
-        <q-btn
-          flat
-          color="secondary"
-          padding="lg"
-          icon="account_balance"
-          label="Flujo de caja"
-          no-caps
-          @click="$router.push('/treasury/flows/general')"
-          class="full-width btn-block"
-          :disable="entries?.count === 0"
-        />
-      </div>
-      <div
         v-if="$store.state.user?.permissions?.includes('account:read')"
         class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
@@ -51,6 +36,21 @@
           no-caps
           @click="$router.push('/treasury/accounts')"
           class="full-width btn-block"
+        />
+      </div>
+      <div
+        v-if="$store.state.user?.permissions?.includes('balance:read')"
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          icon="analytics"
+          label="Reportes"
+          no-caps
+          @click="$router.push('/treasury/reports')"
+          class="full-width btn-block"
+          :disable="entries?.count === 0"
         />
       </div>
     </div>

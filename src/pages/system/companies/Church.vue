@@ -16,6 +16,7 @@
     >
       <template v-slot:buttons="props">
         <q-btn
+          v-if="$store.state.user?.permissions?.includes('company:create')"
           class="q-ml-none q-mr-xs"
           icon="add"
           no-caps
@@ -182,6 +183,7 @@
         <q-tr>
           <q-td>
             <q-btn
+              v-if="$store.state.user?.permissions?.includes('company:update')"
               flat
               round
               @click="openModal(props.open, props.row.id)"
@@ -189,7 +191,7 @@
               <q-tooltip>Editar registro</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="isAdmin || isSuperAdmin"
+              v-if="$store.state.user?.permissions?.includes('company:delete')"
               color="negative"
               flat
               round

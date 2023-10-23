@@ -113,12 +113,12 @@ const getEntry = async () => {
 
 const getEntryDetails = async () => {
   const items = await http.get(`entriesdetails?id_entry=${entry.value.id as string}`) as Result<EntryDetail>
-  totalEntries.value = items.rows.reduce((value, current) => value + Number(current.value), 0).toFixed(1)
+  totalEntries.value = items.rows.reduce((value, current) => value + Number(current.value), 0).toFixed(2)
 }
 
 const getExpenseDetails = async () => {
   const items = await http.get(`expensesdetails?id_expense=${expenseId as string}`) as Result<ExpenseDetail>
-  totalExpenses.value = items.rows.reduce((value, current) => value + Number(current.value), 0).toFixed(1)
+  totalExpenses.value = items.rows.reduce((value, current) => value + Number(current.value), 0).toFixed(2)
 }
 
 const closeMonth = () => {
