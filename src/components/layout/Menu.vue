@@ -196,6 +196,8 @@ const renderMenu = () => {
   roles.value = store.state.user.roles
   role.value = store.state.user.role
 
+  const initial = storage.get('initial')
+
   menu.value = []
 
   if (!['TREASURER'].includes(store.state.user.role?.slug)) {
@@ -239,13 +241,13 @@ const renderMenu = () => {
         label: 'Ingresos y Gastos'
       })
     }
-    if (store.state.user?.permissions?.includes('account:read')) {
+    if (store.state.user?.permissions?.includes('account:read') && !initial) {
       treasury.items?.push({
         path: '/treasury/accounts',
         label: 'Cuentas bancarias'
       })
     }
-    if (store.state.user?.permissions?.includes('balance:read')) {
+    if (store.state.user?.permissions?.includes('balance:read') && !initial) {
       treasury.items?.push({
         path: '/treasury/reports',
         label: 'Reportes'
