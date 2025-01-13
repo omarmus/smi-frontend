@@ -32,3 +32,48 @@ export function uuidv4 () {
     return v.toString(16)
   })
 }
+
+export function printHTML (id: string, title = 'Reporte') {
+  // Obtiene el contenido de la sección
+  const contenido = document.getElementById(id)?.outerHTML || ''
+
+  // Obtiene los estilos CSS de la página
+  const estilos = Array.from(document.styleSheets)
+    .map((styleSheet) => {
+      try {
+        return Array.from(styleSheet.cssRules)
+          .map((rule) => rule.cssText)
+          .join('\n')
+      } catch (e) {
+        return ''
+      }
+    })
+    .join('\n')
+
+  // Crea un documento temporal para imprimir
+  const ventanaImpresion = window.open('', '_blank')
+  if (ventanaImpresion) {
+    ventanaImpresion.document.open()
+    ventanaImpresion.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+        <style>${estilos}</style>
+      </head>
+      <body>
+        ${contenido}
+      </body>
+      </html>
+    `)
+    ventanaImpresion.document.close()
+
+    // Espera a que se cargue el contenido antes de imprimir
+    ventanaImpresion.onload = () => {
+      ventanaImpresion.print()
+      ventanaImpresion.close()
+    }
+  }
+}

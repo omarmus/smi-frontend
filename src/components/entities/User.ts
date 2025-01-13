@@ -16,6 +16,8 @@ export interface Person {
 export interface User {
   id?: number
   username: string
+  fullname?: string
+  photo?: string
   type?: string
   state?: string
   person?: Person

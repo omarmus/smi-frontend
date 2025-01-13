@@ -1,4 +1,5 @@
 export const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+export const monthsShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 export const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
 export interface Week {
@@ -33,7 +34,7 @@ export const normalize = (date: string) => {
   return [date.split('/')[2], date.split('/')[1], date.split('/')[0]].join('-')
 }
 
-export const getYears = (add = 0, yearInitial = 2022) => {
+export const getYears = (add = 0, yearInitial = 2023) => {
   const year = (new Date().getUTCFullYear()) + add
   const years = []
   for (let y = year; y >= yearInitial; y--) {

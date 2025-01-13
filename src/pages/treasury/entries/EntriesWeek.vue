@@ -24,7 +24,7 @@
           :class="getClass(item)"
           :disable="getDisable(item)">
           <strong>{{ item.label }}</strong>
-          <span class="btn-block-detail">{{ item.total }} {{ $store.state.user?.user.company.money }}</span>
+          <span class="btn-block-detail">{{ item.total.toFixed(2) }} {{ $store.state.user?.user.company.money }}</span>
           <q-icon name="calendar_month" />
         </q-btn>
       </div>
@@ -68,18 +68,18 @@ const route = useRoute()
 const { entryId } = route.params
 
 const getClass = (item: { day: number }) => {
-  if (entry.value.state === 'CLOSED' || entry.value.month !== month) {
+  if (entry.value?.state === 'CLOSED' || entry.value?.month !== month) {
     return ''
   }
-  return item.day >= (day - 7) && item.day < day ? 'active' : 'pending'
+  return (item.day >= (day - 7) && item.day < day) || item.day === day ? 'active' : 'pending'
 }
 
 // TODO: falta controlar que esté habilitado antes del sábado que le corresponde
 const getDisable = (item: { day: number }) => {
-  if (entry.value.state === 'CLOSED' || entry.value.month !== month) {
+  if (entry.value?.state === 'CLOSED' || entry.value?.month !== month) {
     return false
   }
-  return item.day >= day
+  return item.day > day + 1
 }
 
 const getEntry = async () => {

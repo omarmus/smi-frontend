@@ -21,10 +21,14 @@ const routes: RouteRecordRaw[] = [
       { path: 'entries', component: () => import('pages/treasury/entries/Entries.vue') },
       { path: 'week/:entryId/:expenseId', component: () => import('pages/treasury/entries/EntriesWeek.vue') },
       { path: 'entry/:entryId/:expenseId/:week', component: () => import('pages/treasury/entries/Entry.vue') },
+      { path: 'reports', component: () => import('pages/treasury/reports/Reports.vue') },
       { path: 'report/:entryId/:expenseId', component: () => import('pages/treasury/flows/Report.vue') },
+      { path: 'report/quarter', component: () => import('pages/treasury/reports/Quarter.vue') },
+      { path: 'report/quarter/:id', component: () => import('pages/treasury/reports/QuarterDetails.vue') },
+      { path: 'report/month', component: () => import('pages/treasury/reports/MonthReport.vue') },
+      { path: 'report/offerings', component: () => import('pages/treasury/reports/Offerings.vue') },
       { path: 'expenses', component: () => import('pages/treasury/expenses/Expenses.vue') },
       { path: 'expense/:expenseId', component: () => import('pages/treasury/expenses/Expense.vue') },
-      { path: 'flows', component: () => import('pages/treasury/flows/Flows.vue') },
       { path: 'flows/initial', component: () => import('pages/treasury/flows/Initial.vue') },
       { path: 'flows/general', component: () => import('pages/treasury/flows/General.vue') },
       { path: 'accounts', component: () => import('pages/treasury/transactions/Accounts.vue') },
@@ -37,7 +41,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', component: () => import('pages/secretary/Secretary.vue') },
       { path: 'members', component: () => import('pages/system/users/Member.vue') },
-      { path: 'churchs', component: () => import('pages/system/companies/Church.vue') }
+      { path: 'churchs', component: () => import('pages/system/companies/Church.vue') },
+      { path: 'departments', component: () => import('pages/secretary/departments/Departament.vue') }
     ]
   },
 

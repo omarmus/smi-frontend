@@ -15,30 +15,35 @@
         :options="years"
         label="Gestión" />
     </div>
-    <div class="alert alert-info">
-      Seleccione el mes que quiere ver/editar
-    </div>
-    <div class="row treasury-row">
-      <div
-        class="col-xs-6 col-sm-3 q-pa-sm"
-        v-for="item in months"
-        :key="item.month">
-        <q-btn
-          flat
-          color="secondary"
-          padding="lg"
-          no-caps
-          @click="$router.push(`/treasury/entryexpense/${item.id}/${item.idExpense}`)"
-          class="full-width btn-block"
-          :class="item.state.toLowerCase()"
-          :disable="item.state === 'PENDING'">
-          <strong class="q-pb-sm">{{ monthsLiteral[item.month - 1] }}</strong>
-          <span class="btn-block-detail"><strong>Ingresos:</strong> <span class="text-primary">{{ Number(item.total).toFixed(2) }} {{ $store.state.user?.user.company.money }}</span></span>
-          <span class="btn-block-detail"><strong>Gastos:</strong> <span class="text-primary">{{ Number(item.totalExpense).toFixed(2) }} {{ $store.state.user?.user.company.money }}</span></span>
-          <q-icon name="calendar_month" />
-          <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" />
-        </q-btn>
+    <template v-if="months?.length !== 0">
+      <div class="alert alert-info">
+        Seleccione el mes que quiere ver/editar
       </div>
+      <div class="row treasury-row">
+        <div
+          class="col-xs-6 col-sm-3 q-pa-sm"
+          v-for="item in months"
+          :key="item.month">
+          <q-btn
+            flat
+            color="secondary"
+            padding="lg"
+            no-caps
+            @click="$router.push(`/treasury/entryexpense/${item.id}/${item.idExpense}`)"
+            class="full-width btn-block"
+            :class="item.state.toLowerCase()"
+            :disable="item.state === 'PENDING'">
+            <strong class="q-pb-sm">{{ monthsLiteral[item.month - 1] }}</strong>
+            <span class="btn-block-detail"><strong>Ingresos:</strong> <span class="text-primary">{{ Number(item.total).toFixed(2) }} {{ $store.state.user?.user?.company?.money }}</span></span>
+            <span class="btn-block-detail"><strong>Gastos:</strong> <span class="text-primary">{{ Number(item.totalExpense).toFixed(2) }} {{ $store.state.user?.user?.company?.money }}</span></span>
+            <q-icon name="calendar_month" />
+            <q-icon name="check_circle" color="positive" size="sm" v-if="item.state === 'CLOSED'" class="treasury-check" />
+          </q-btn>
+        </div>
+      </div>
+    </template>
+    <div class="alert alert-info" v-if="months?.length === 0">
+      No existe datos para el año {{ year }}, seleccione otra gestión.
     </div>
   </div>
 </template>
@@ -58,12 +63,12 @@ const router = useRouter()
 
 const year = ref(new Date().getFullYear())
 const months = ref<Entry[]>()
-const idCompany = store.state.user?.user?.company.id as number
+const idCompany = store.state.user?.user?.company?.id as number
 const years = getYears()
 
 const getEntriesAndExpensesYear = async () => {
-  const entries = await http.get(`entries/year/${year.value}/${idCompany}`) as Result<Entry>
-  const expenses = await http.get(`expenses/year/${year.value}/${idCompany}`) as Result<Expense>
+  const entries = await http.get(`entries?year=${year.value}&id_company=${idCompany}&order=month`) as Result<Entry>
+  const expenses = await http.get(`expenses?year=${year.value}&id_company=${idCompany}&order=month`) as Result<Expense>
   months.value = entries.rows.map((entry: Entry, index: number) => {
     entry.idExpense = expenses.rows[index].id
     entry.totalExpense = expenses.rows[index].total
@@ -72,8 +77,8 @@ const getEntriesAndExpensesYear = async () => {
 }
 
 const goBack = () => {
-  const item = months.value.find(item => item.state === 'ACTIVE')
-  return router.push(item ? `/treasury/entryexpense/${item.id as string}/${item.idExpense as string}` : '/treasury')
+  const item = months.value?.find(item => item.state === 'ACTIVE')
+  return router.push(item ? `/treasury/entryexpense/${String(item.id)}/${String(item.idExpense)}` : '/treasury')
 }
 
 watch(year, async () => {

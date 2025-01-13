@@ -33,7 +33,7 @@
           class="q-ml-none q-mr-xs"
           padding="6px 7px 6px 9px">
           <q-list>
-            <q-item clickable v-close-popup @click="print(props.getSelected())">
+            <q-item clickable v-close-popup @click.prevent="print(props.getSelected())">
               <q-item-section>
                 <q-item-label>Imprimir seleccionados</q-item-label>
               </q-item-section>
@@ -463,7 +463,7 @@
                       filled
                       label="Rol"
                       v-model="user.roles"
-                      :options="roles"
+                      :options="rolesFilter"
                       :rules="[validation.required]"
                       multiple
                       use-chips
@@ -537,7 +537,7 @@
                     <q-item-label>{{ props.row.person?.photo ? 'Modificar' : 'Agregar' }} foto</q-item-label>
                   </q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup @click="print([props.row])">
+                <q-item clickable v-close-popup @click.prevent="print([props.row])">
                   <q-item-section avatar class="datatable-menu-item">
                     <q-icon name="print" />
                   </q-item-section>
@@ -602,7 +602,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
 import { useStore } from '../../../store'
@@ -633,6 +633,7 @@ const url = 'users'
 const store = useStore()
 
 const isAdmin = ![RoleSlug.SECRETARY, RoleSlug.TREASURER, RoleSlug.WORKER].includes(store.state.user.role.slug)
+const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store.state.user.role.slug)
 
 const columns = [
   { label: 'Acciones', align: 'center' },
@@ -655,11 +656,6 @@ const filters = ref([
   {
     label: 'Buscar por nombre completo',
     name: 'fullname',
-    type: 'input'
-  },
-  {
-    label: 'Buscar por nombre de usuario',
-    name: 'username',
     type: 'input'
   },
   {
@@ -689,6 +685,11 @@ const filters = ref([
     type: 'select',
     options: occupationOptions
   },
+  // {
+  //   label: 'Buscar por nombre de usuario del sistema',
+  //   name: 'username',
+  //   type: 'input'
+  // },
   {
     label: 'Estado del usuario',
     name: 'state',
@@ -894,6 +895,16 @@ const setUsername = () => {
 const setPasword = () => {
   user.value.password = user.value.person.documentNumber
 }
+
+const rolesFilter = computed(() => {
+  if (isSuperAdmin) {
+    return roles.value
+  }
+  if (isAdmin) {
+    return roles.value?.filter(item => [RoleSlug.SECRETARY, RoleSlug.TREASURER, RoleSlug.WORKER, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(item.slug as RoleSlug))
+  }
+  return []
+})
 
 onMounted(async () => {
   const items = await http.get('companies') as Result<Company>

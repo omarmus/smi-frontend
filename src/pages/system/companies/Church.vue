@@ -16,6 +16,7 @@
     >
       <template v-slot:buttons="props">
         <q-btn
+          v-if="$store.state.user?.permissions?.includes('company:create')"
           class="q-ml-none q-mr-xs"
           icon="add"
           no-caps
@@ -182,6 +183,7 @@
         <q-tr>
           <q-td>
             <q-btn
+              v-if="$store.state.user?.permissions?.includes('company:update')"
               flat
               round
               @click="openModal(props.open, props.row.id)"
@@ -189,7 +191,7 @@
               <q-tooltip>Editar registro</q-tooltip>
             </q-btn>
             <q-btn
-              v-if="isAdmin || isSuperAdmin"
+              v-if="$store.state.user?.permissions?.includes('company:delete')"
               color="negative"
               flat
               round
@@ -349,8 +351,8 @@ const labels = {
   MISSION: { color: 'info', textColor: 'white', label: 'MISION' },
   CHURCH: { color: 'positive', textColor: 'white', label: 'IGLESIA' },
   GROUP: { color: 'warning', textColor: 'white', label: 'GRUPO' },
-  ACTIVE: { color: 'positive', textColor: 'white', label: 'ACTIVE' },
-  INACTIVE: { color: 'warning', textColor: 'white', label: 'INACTIVE' }
+  ACTIVE: { color: 'positive', textColor: 'white', label: 'ACTIVO' },
+  INACTIVE: { color: 'warning', textColor: 'white', label: 'INACTIVO' }
 }
 
 const rules = {
@@ -407,7 +409,6 @@ const save = async (crud: { update: () => void, close: () => void }) => {
     await http.put(`${url}/${company.value.id}`, company.value)
     message.success('¡Registro actualizado!')
   } else {
-    console.log('COMPANY', company.value)
     await http.post(url, company.value)
     message.success('¡Registro creado exitósamente!')
   }

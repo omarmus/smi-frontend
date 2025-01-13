@@ -16,6 +16,7 @@ interface UserResponse {
   username: string
   email: string
   fullname: string
+  photo?: string
   company: Company
   roles: Role[],
   role: Role,
@@ -35,6 +36,7 @@ export default boot(({ app, router, store }) => {
             username: data.username,
             email: data.email,
             fullname: data.fullname,
+            photo: data.photo,
             company: {
               id: data.company.id,
               name: data.company.name,

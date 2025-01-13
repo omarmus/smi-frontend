@@ -225,9 +225,10 @@
               :label="idEntryDetail ? 'Actualizar recibo' : 'Guardar recibo'"
               color="primary"
               no-caps
-              :disable="conceptsItems.length === 0 && type === 'MEMBER'"
+              :disable="(conceptsItems.length === 0 && type === 'MEMBER') || loadingSend"
               @click="saveDetail"
               icon="check"
+              :loading="loadingSend"
               class="full-width" />
             <q-btn
               v-if="idEntryDetail"
@@ -363,8 +364,9 @@ import { debounce } from 'quasar'
 import { useRoute } from 'vue-router'
 import { http } from 'boot/http'
 import { Confirm } from 'boot/modal'
+import { message } from 'boot/message'
 import { Result } from '../../../components/entities/Entity'
-import { Concept, EntryDetail, Entry } from '../../../components/entities/Entry'
+import { Concept, EntryDetail, Entry, Option } from '../../../components/entities/Entry'
 import { Department, DepartmentOption } from '../../../components/entities/Department'
 import { User } from '../../../components/entities/User'
 import { months, days, getWeeks, format, normalize } from '../../../components/plugins/datetime'
@@ -381,14 +383,6 @@ const memberType = {
   visit: 'Visita'
 }
 
-interface Option {
-  value: string
-  label: string
-  church?: string
-  association?: string
-  type?: string
-}
-
 // data entry detail
 const idEntryDetail = ref<number | null>(null)
 const type = ref<string>('MEMBER')
@@ -400,6 +394,7 @@ const dates = ref<Option[]>([])
 const observation = ref<string>()
 const popoverUsers = ref<boolean>(false)
 const loadingState = ref<boolean>(false)
+const loadingSend = ref<boolean>(false)
 const users = ref<Option>([])
 const usersChurch = ref([])
 const concepts = ref<DepartmentOption[]>([])
@@ -491,6 +486,8 @@ const saveDetail = async () => {
       return false
     }
   }
+  if (loadingSend.value) return false
+  loadingSend.value = true
   const item: EntryDetail = {
     id: idEntryDetail.value,
     concepts: conceptsItems.value,
@@ -502,10 +499,18 @@ const saveDetail = async () => {
   if (type.value === 'MEMBER') {
     item.value = totalConcept.value
     item.id_user = name.value.value
+    if (!item.id_user) {
+      message.warning('No seleccionó correctamente el usuario')
+      return false
+    }
   } else {
     item.observations = observation.value
     item.value = value.value
     item.id_department = concept.value.value
+    if (!item.id_department) {
+      message.warning('No seleccionó correctamente el departamento')
+      return false
+    }
   }
   const idDepartmentLocal = concepts.value.find(item => item.group === 'YOUNG' && item.type === 'LOCAL').value
   const idDepartmentGlobal = concepts.value.find(item => item.group === 'YOUNG' && item.type === 'GLOBAL').value
@@ -518,10 +523,12 @@ const saveDetail = async () => {
       item.id_department = idDepartmentGlobal
       await http.post('entriesdetails', item)
       await getEntryDetails()
+      loadingSend.value = false
     }, async () => {
       item.split = false
       await http.post('entriesdetails', item)
       await getEntryDetails()
+      loadingSend.value = false
     }, 'Ofrenda de Jóvenes', 'Si', 'No')
     await cleanEntryDetail()
   } else {
@@ -530,6 +537,7 @@ const saveDetail = async () => {
     } else {
       await http.post('entriesdetails', item)
     }
+    loadingSend.value = false
     await getEntryDetails()
     await cleanEntryDetail()
   }

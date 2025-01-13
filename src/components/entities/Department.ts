@@ -13,3 +13,12 @@ export interface DepartmentOption {
   type: string;
   group?: string;
 }
+
+export interface DepartmentEntity {
+  id?: string
+  name: string
+  description?: string
+  group: string
+  type: string
+  state?: string
+}

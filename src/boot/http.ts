@@ -51,6 +51,9 @@ export default boot(({ app, router }) => {
           if (response.data?.code === -1) {
             message.error(response.data.message)
             reject(response.data.message)
+          } if (response.data?.code === 0) {
+            message.warning(response.data.message)
+            reject(response.data.message)
           } else {
             resolve(response.data?.data || response.data)
           }

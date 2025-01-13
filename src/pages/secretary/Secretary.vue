@@ -37,23 +37,32 @@
           class="full-width btn-block"
         />
       </div>
-      <!-- <div
-        v-if="$store.state.user?.permissions?.includes('department:read')"
+      <div
+        v-if="$store.state.user?.permissions?.includes('department:read') && (isSuperAdmin || isAdmin)"
         class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
           padding="lg"
-          icon="money_off"
+          icon="apartment"
           label="Departamentos"
           no-caps
           @click="$router.push('/secretary/departments')"
           class="full-width btn-block"
         />
-      </div> -->
+      </div>
     </div>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { RoleSlug } from 'src/components/entities/Permission'
+import { useStore } from '../../store'
+const store = useStore()
+
+const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
+const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
+</script>
 
 <style lang="scss">
 </style>

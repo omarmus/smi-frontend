@@ -113,6 +113,10 @@ body.body--dark {
   &.active {
     background-color: $warning-light;
     
+    .btn-block-detail {
+      color: white;
+      // font-weight: 600;
+    }
     .q-btn__content {
       color: white;
       .q-icon {
@@ -160,6 +164,25 @@ body.body--dark {
   line-height: 1.4rem;
   color: $primary;
 }
+.report-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 24px 0;
+  line-height: 1.4rem;
+  color: $primary;
+
+  strong {
+    margin-top: 4px;
+    display: block;
+    font-size: 1.2rem;
+  }
+
+  span {
+    display: block;
+    font-size: 0.9rem;
+    line-height: 1.1rem;
+  }
+}
 
 .treasury-observation,
 .treasury-departament {
@@ -167,6 +190,11 @@ body.body--dark {
   line-height: 1rem;
   display: block;
   margin-top: -2px;
+}
+
+.treasury-observation-report {
+  font-size: 0.7rem;
+  line-height: 1rem;
 }
 
 .treasury-check {
@@ -199,12 +227,30 @@ body.body--dark {
   // text-align: center;
 }
 
+.table-responsive {
+  overflow-y: auto;
+}
+
+.flow-row-link {
+  font-size: .7rem;
+}
+
 .q-table-simple {
   margin-bottom: 15px;
 
   .q-table tfoot th {
     border-top: 1px solid $border;
   }
+}
+
+.no-wrap {
+  white-space: normal !important;
+}
+
+.suffix-icon {
+  font-size: .9rem;
+  align-items: end;
+  padding-top: 23px !important;
 }
 
 .width-80 {
@@ -259,8 +305,8 @@ body.body--dark {
   margin-bottom: 15px;
   
   &.alert-info {
-    border: 1px solid lighten($primary, 65%);
-    background-color: lighten($primary, 72%);
+    border: 1px solid lighten($primary, 47%);
+    background-color: lighten($primary, 55%);
     color: $primary;
   }
   
@@ -293,6 +339,9 @@ body.body--dark {
 }
 
 @media (max-width: $breakpoint-xs-max) {
+  .q-table--dense .q-table th:last-child, .q-table--dense .q-table td:last-child {
+    padding-right: 8px;
+  }
   .container {
     padding: 15px;
   }
@@ -316,7 +365,7 @@ body.body--dark {
     //   background-color: transparent !important;
     // }
 
-    td {
+    td, th {
       border: none !important;
 
       &:first-child {
@@ -356,23 +405,24 @@ body.body--dark {
 
         .text-hidden {
           display: inline-block;
+          padding: 2px 0;
         }
       }
 
       .flow-head-table {
         font-weight: bold;
-        padding: 8px 0;
+        padding: 2px 0;
         display: inline-block;
       }
     }
 
-    tfoot th {
-      display: inline-block;
+    // tfoot th {
+    //   display: inline-block;
 
-      &:last-child {
-        float: right;
-      }
-    }
+    //   &:last-child {
+    //     float: right;
+    //   }
+    // }
   }
   .btn-close-month {
     width: 100%;

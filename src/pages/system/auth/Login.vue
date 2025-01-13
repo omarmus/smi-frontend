@@ -3,13 +3,13 @@
     <div class="login-left">
       <div class="login-logo">
         <div class="login-logo-smi"></div>
-        <h1 class="login-logo-title">Secretaría & Tesorería</h1>
       </div>
     </div>
     <div class="login-right">
+      <h1 class="login-logo-title">Secretaría & Tesorería</h1>
       <div class="login-form">
         <h2>Ingresar</h2>
-        <p>Llene sus datos para ingresar al sistema</p>
+        <p>Ingresa tus datos para ingresar al sistema</p>
         <q-form @submit.prevent="login" class="q-gutter-y-md">
           <q-input
             label="Nombre de usuario"
@@ -68,7 +68,9 @@ const login = () => {
 .login-right {
   background: #F5F8FA;
   display: flex;
-  align-items: center;
+  // align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .login-form {
@@ -98,24 +100,20 @@ const login = () => {
   height: 100%;
 }
 .login-logo-title {
-  position: absolute;
-  bottom: 60px;
-  left: 40px;
-  right: 20px;
   font-weight: bold;
-  font-size: 3rem;
-  margin: 0;
+  font-size: 2.8rem;
+  margin: 0 0 64px 100px;
   line-height: 2.8rem;
-  color: white;
+  color: #83A371;
 }
 .login-logo-smi {
   display: inline-block;
-  background-image: url(../../../assets/images/logo-smi.png);
+  background-image: url(../../../assets/images/logo-smi-blue.png);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  height: 120px;
-  width: 120px;
+  height: 150px;
+  width: 150px;
   margin: 20px 0 0 20px;
 }
 @media (max-width: $breakpoint-xs-max) {
@@ -125,25 +123,24 @@ const login = () => {
   }
   .login-left {
     min-height: 200px;
-
-    .login-logo-title {
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      font-size: 2rem;
-      line-height: 2rem;
-    }
+  }
+  .login-logo-title {
+    font-size: 2rem;
+    line-height: 2rem;
+    margin: 32px 16px;
+    text-align: center;
   }
   .login-form {
     margin: 20px auto;
     padding: 0 20px;
   }
   .login-logo-smi {
-    position: absolute;
-    right: 10px;
-    top: -5px;
-    height: 90px;
-    width: 90px;
+    // position: absolute;
+    // left: -8px;
+    // top: -16px;
+    margin: 4px 0 0 12px;
+    height: 64px;
+    width: 38px;
   }
 }
 </style>

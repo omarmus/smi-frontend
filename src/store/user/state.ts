@@ -1,4 +1,4 @@
-import { Permission, Role } from 'src/components/entities/Permission'
+import { Role } from 'src/components/entities/Permission'
 import { User } from '../../components/entities/User'
 
 export interface Menu {
@@ -8,7 +8,7 @@ export interface Menu {
 export interface UserStateInterface {
   user: User,
   menu: Menu[],
-  permissions: Permission[],
+  permissions: string[],
   roles: Role[],
   role: Role,
 }
