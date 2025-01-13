@@ -139,7 +139,7 @@
               </td>
               <td class="text-right text-primary">
                 <div class="flow-row-table">
-                  <strong class="text-hidden">Total Caja local:</strong> <strong>{{ Number(item.total).toFixed(2) }}</strong>
+                  <span class="text-hidden">Total:</span> <strong>{{ Number(item.total).toFixed(2) }}</strong>
                 </div>
               </td>
             </tr>
