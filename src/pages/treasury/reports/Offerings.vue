@@ -48,7 +48,9 @@
             :key="item.value">
             <td>
               {{ item.label }}
-              <span class="treasury-observation" v-if="item.type">{{ memberType[item.type] }}</span>
+              <span class="treasury-observation" v-if="item.type">
+                {{ memberType[item.type] }} {{ $store.state.user.user.company?.name !== item.church ? `- ${item.church}` : '' }}
+              </span>
             </td>
             <td
               v-for="month in [1,2,3,4,5,6,7,8,9,10,11,12]"
@@ -81,7 +83,7 @@
                     {{ item.active === true ? 'Ver menos' : 'Ver más' }}
                   </a>
                 </div>
-                <span class="treasury-observation" v-else>-</span>
+                <span class="treasury-observation text-right" v-else>-</span>
               </div>
             </td>
           </tr>
@@ -179,28 +181,43 @@ const getEntryDetails = async () => {
   for (const key in users.value) {
     users.value[key].months = {}
   }
-  const items = await http.get(`entriesdetails?year=${year.value}&id_department=0&order=entry_detail.id`) as Result<EntryDetail>
+  const items = await http.get(`entriesdetails?year=${year.value}&id_department=0&id_company=${idCompany}&order=entry_detail.id`) as Result<EntryDetail>
   for (const item of items.rows) {
     if (item.user?.id && users.value && users.value[`user-${item.user?.id}`]) {
-      const user = users.value[`user-${item.user?.id}`]
-      if (user.months) {
-        if (!user.months[item.entry.month]) {
-          user.months[item.entry.month] = {}
+      setMonthValue(users.value[`user-${item.user?.id}`], item)
+    } else {
+      if (users.value) {
+        users.value[`user-${item.user?.id || ''}`] = {
+          value: String(item.user?.id),
+          label: String(item.user?.person?.fullname),
+          church: String(item.user?.company?.name),
+          association: undefined,
+          type: item.user?.type?.toLowerCase(),
+          months: {}
         }
-        for (const off of item.concepts) {
-          if (off.concept.value) {
-            if (!user.months[item.entry.month][off.concept.value]) {
-              user.months[item.entry.month][off.concept.value] = {
-                id: String(off.concept.value),
-                type: off.concept.type,
-                label: off.concept.label,
-                group: off.concept.group,
-                value: Number(off.value)
-              }
-            } else {
-              user.months[item.entry.month][off.concept.value].value += Number(off.value)
-            }
+        setMonthValue(users.value[`user-${item.user?.id || ''}`], item)
+      }
+    }
+  }
+}
+
+const setMonthValue = (user: Option, item: EntryDetail) => {
+  if (user.months) {
+    if (!user.months[item.entry.month]) {
+      user.months[item.entry.month] = {}
+    }
+    for (const off of item.concepts) {
+      if (off.concept.value) {
+        if (!user.months[item.entry.month][off.concept.value]) {
+          user.months[item.entry.month][off.concept.value] = {
+            id: String(off.concept.value),
+            type: off.concept.type,
+            label: off.concept.label,
+            group: off.concept.group,
+            value: Number(off.value)
           }
+        } else {
+          user.months[item.entry.month][off.concept.value].value += Number(off.value)
         }
       }
     }

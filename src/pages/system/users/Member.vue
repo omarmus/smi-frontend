@@ -464,7 +464,7 @@
                       label="Rol"
                       v-model="user.roles"
                       :options="rolesFilter"
-                      :rules="[validation.required]"
+                      :rules="[]"
                       multiple
                       use-chips
                       option-value="id"
