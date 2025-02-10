@@ -32,33 +32,23 @@
       emit-value
       map-options
       dark />
+    <template v-if="isAdminTreasury">
+      <q-separator />
+      <q-select
+        filled
+        v-model="companyId"
+        :options="companiesFilter"
+        label="Iglesia seleccionada"
+        option-value="id"
+        option-label="name"
+        emit-value
+        map-options
+        use-input
+        input-debounce="200"
+        @filter="filterCompaniesFn"
+        dark />
+    </template>
     <q-separator />
-    <!-- <q-list padding class="menu-list">
-      <q-item
-        v-if="['TREASURER'].indexOf($store.state.user.role?.slug) === -1"
-        @click="$router.push('/secretary')" :active="$route.path.indexOf('/secretary') !== -1" clickable v-ripple>
-        <q-item-section avatar class="layout-menu-icon">
-          <q-icon name="edit_note" class="color-texto" />
-        </q-item-section>
-
-        <q-item-section>
-          Secretaria
-        </q-item-section>
-      </q-item>
-
-      <q-item
-        v-if="['SECRETARY'].indexOf($store.state.user?.role?.slug) === -1"
-        @click="$router.push('/treasury')" :active="$route.path.indexOf('/treasury') !== -1" clickable v-ripple>
-        <q-item-section avatar class="layout-menu-icon">
-          <q-icon name="monetization_on" class="color-texto" />
-        </q-item-section>
-
-        <q-item-section>
-          Tesorería
-        </q-item-section>
-      </q-item>
-    </q-list>
-    <q-separator /> -->
     <q-list>
       <q-expansion-item
         group="somegroup"
@@ -107,7 +97,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 // import { useQuasar } from 'quasar'
-import { auth, UserResponse } from 'boot/auth'
+import { auth, initStorage, UserResponse } from 'boot/auth'
 import { http, urlBase } from 'boot/http'
 import { storage } from 'boot/storage'
 import { useRouter } from 'vue-router'
@@ -116,6 +106,7 @@ import { useStore } from '../../store'
 import { Result } from '../../components/entities/Entity'
 import { Entry } from '../../components/entities/Entry'
 import { Expense } from '../../components/entities/Expense'
+import { Company } from '../entities/Company'
 
 interface Menu {
   path: string
@@ -136,14 +127,17 @@ const router = useRouter()
 
 const role = ref<Role>()
 const roles = ref<Role[]>()
+const companies = ref<Company[]>([])
+const companiesFilter = ref<Company[]>([])
 const menu = ref<Menu[]>([])
 
 const entries = ref<Result<Entry>>()
 const expenses = ref<Result<Expense>>()
 
-const idCompany = Number(store.state.user?.user?.company?.id)
+const companyId = ref<number>(Number(store.state.user?.user?.company?.id))
 const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
 const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
+const isAdminTreasury = ref<boolean>([RoleSlug.WORKER, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug))
 
 // function darkModeChange () {
 //   darkMode.value = !darkMode.value
@@ -166,8 +160,8 @@ const getPathEntryExpense = async () => {
   if (initial) {
     return router.push('/treasury/flows/initial')
   }
-  entries.value = await http.get(`entries/year/${year}/${idCompany}`) as Result<Entry>
-  expenses.value = await http.get(`expenses/year/${year}/${idCompany}`) as Result<Expense>
+  entries.value = await http.get(`entries/year/${year}/${companyId.value}`) as Result<Entry>
+  expenses.value = await http.get(`expenses/year/${year}/${companyId.value}`) as Result<Expense>
 
   const entry = entries.value.rows.find(item => item.state === 'ACTIVE')
   const expense = expenses.value.rows.find(item => item.state === 'ACTIVE')
@@ -177,15 +171,37 @@ const getPathEntryExpense = async () => {
   return router.push('/treasury/months')
 }
 
+const filterCompaniesFn = (val: string, update: (func: () => void) => void) : void => {
+  if (val === '') {
+    update(() => (companiesFilter.value = companies.value))
+  } else {
+    update(() => {
+      const needle = val.toLowerCase()
+      companiesFilter.value = companies.value.filter(v => v.name.toLowerCase().indexOf(needle) > -1)
+    })
+  }
+}
+
 const year = new Date().getUTCFullYear()
 
 watch(role, async () => {
   if (typeof role.value === 'number') {
-    const data = await http.get(`auth/token/${role.value as string}`) as UserResponse
+    const data = await http.get(`auth/token/${String(role.value)}`) as UserResponse
     storage.set('role', data.role)
     storage.set('menu', data.menu)
     storage.set('permissions', data.permissions)
     storage.set('token', data.token)
+    auth.initStore()
+    renderMenu()
+    isAdminTreasury.value = [RoleSlug.WORKER, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
+    return router.push('/')
+  }
+})
+
+watch(companyId, async () => {
+  if (typeof companyId.value === 'number') {
+    const data = await http.get(`auth/token/company/${String(companyId.value)}`) as UserResponse
+    initStorage(data)
     auth.initStore()
     renderMenu()
     return router.push('/')
@@ -257,7 +273,11 @@ const renderMenu = () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const items = await http.get('companies') as Result<Company>
+  companies.value = items.rows.filter(item => item.type && ['CHURCH', 'GROUP'].includes(item.type))
+  companiesFilter.value = items.rows.filter(item => item.type && ['CHURCH', 'GROUP'].includes(item.type))
+
   renderMenu()
 })
 </script>

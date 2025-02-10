@@ -6,7 +6,7 @@
         round
         flat
         @click="$router.push('/')" />
-        Configuración inicial Caja local - <span class="text-warning">{{ $store.state.user?.user?.company.name }}</span>
+        Configuración inicial Caja local - <span class="text-warning">{{ $store.state.user?.user?.company?.name }}</span>
         <!-- <span class="text-warning" v-if="entry.state === 'CLOSED'">CERRADO</span> -->
     </h2>
     <div class="alert alert-info">Selecciona el <strong>mes</strong> en el que empezarás a contabilizar los registros de tesorería en el sistema.</div>
@@ -41,7 +41,7 @@
       <div class="alert alert-warning"><strong>Importante.-</strong> Usa el <strong>punto decimal .</strong> como separador para los centavos en todo el sistema. <em>Ejemplo: 132.5</em></div>
       <div class="text-right">
         <q-chip square color="warning" text-color="white">
-          <strong>Total {{ monthPrev }}: {{ total }} {{ $store.state.user?.user.company.money }}</strong>
+          <strong>Total {{ monthPrev }}: {{ total }} {{ $store.state.user?.user?.company?.money }}</strong>
         </q-chip>
       </div>
       <div class="row flow-items q-col-gutter-x-lg q-pt-md">
@@ -57,7 +57,7 @@
                 class="text-right"
                 dense
                 placeholder="0.0"
-                :suffix="$store.state.user?.user.company.money"
+                :suffix="$store.state.user?.user?.company?.money"
                 v-model="item.total"
                 :disable="initial"
                 :rules="[validation.decimal]" />
@@ -100,8 +100,8 @@ const store = useStore()
 const departments = ref<[Department]>([])
 const initial = ref<false>()
 const month = ref<Option>()
-const year = ref<Option>(new Date().getFullYear())
-const idCompany = store.state.user?.user?.company.id as number
+const year = ref<number>(new Date().getFullYear())
+const idCompany = store.state.user?.user?.company?.id as number
 
 const getDepartments = async () => {
   const items = await http.get('departments?order=id&type=LOCAL') as Result<Department>

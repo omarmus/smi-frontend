@@ -26,34 +26,37 @@ interface UserResponse {
   initial: boolean
 }
 
+export function initStorage (data: UserResponse) {
+  const user = {
+    username: data.username,
+    email: data.email,
+    fullname: data.fullname,
+    photo: data.photo,
+    company: {
+      id: data.company.id,
+      name: data.company.name,
+      id_association: data.company.idAssociation,
+      id_union: data.company.idUnion,
+      money: data.company.money
+    }
+  }
+
+  storage.setUser(user)
+  storage.set('roles', data.roles)
+  storage.set('role', data.role)
+  storage.set('menu', data.menu)
+  storage.set('permissions', data.permissions)
+  storage.set('token', data.token)
+  storage.set('initial', data.initial)
+}
+
 export default boot(({ app, router, store }) => {
   auth.login = (username?: string, password?: string) => {
     return axios.post(`${urlBackend as string}api/auth/login`, { username, password })
       .then((response: AxiosResponse<Response<UserResponse>>) => {
         if (response.data?.data) {
           const data = response.data.data
-          const user = {
-            username: data.username,
-            email: data.email,
-            fullname: data.fullname,
-            photo: data.photo,
-            company: {
-              id: data.company.id,
-              name: data.company.name,
-              id_association: data.company.idAssociation,
-              id_union: data.company.idUnion,
-              money: data.company.money
-            }
-          }
-
-          storage.setUser(user)
-          storage.set('roles', data.roles)
-          storage.set('role', data.role)
-          storage.set('menu', data.menu)
-          storage.set('permissions', data.permissions)
-          storage.set('token', data.token)
-          storage.set('initial', data.initial)
-
+          initStorage(data)
           auth.initStore()
           return router.push('/')
         }
@@ -84,6 +87,7 @@ export default boot(({ app, router, store }) => {
     store.commit('user/setPermissions', [])
     return router.push('/login')
   }
+
   auth.initStore = () => {
     if (!store) {
       store = useStore()
