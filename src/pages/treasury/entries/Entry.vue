@@ -331,7 +331,7 @@
               <tr>
                 <th class="text-left" colspan="2"></th>
                 <th class="text-left"><strong>TOTAL</strong></th>
-                <th class="text-right"><strong>{{ totalEntries }}</strong></th>
+                <th class="text-right"><strong>{{ totalEntries.toFixed(2) }}</strong></th>
               </tr>
             </tfoot>
           </table>

@@ -98,7 +98,11 @@ import { message } from 'boot/message'
 import { Confirm } from 'boot/modal'
 import { Entry, EntryDetail } from '../../components/entities/Entry'
 import { Result } from '../../components/entities/Entity'
+import { RoleSlug } from '../../components/entities/Permission'
 import { ExpenseDetail } from '../../components/entities/Expense'
+import { useStore } from '../../store'
+
+const store = useStore()
 
 const entry = ref<Entry>()
 const totalEntries = ref<number>(0)
@@ -106,6 +110,8 @@ const totalExpenses = ref<number>(0)
 const route = useRoute()
 const router = useRouter()
 const { entryId, expenseId } = route.params
+
+const isAdmin = ref<boolean>([RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug))
 
 const getEntry = async () => {
   entry.value = await http.get(`entries/${parseInt(entryId)}`) as Entry
@@ -122,11 +128,15 @@ const getExpenseDetails = async () => {
 }
 
 const closeMonth = () => {
-  if (Number.parseFloat(totalEntries.value) === 0 || Number.parseFloat(totalExpenses.value) === 0) {
+  if ((Number.parseFloat(totalEntries.value) === 0 || Number.parseFloat(totalExpenses.value) === 0) && !isAdmin.value) {
     message.warning('Debe llenar los ingresos y los gastos')
   } else {
     if (entry.value.state === 'ACTIVE') {
-      Confirm(`Va a <strong>cerrar</strong> el mes de <strong>${months[entry.value.month - 1]}</strong> este proceso es irreversible, revise los datos antes de continuar porque ya no podrá modificarlos.`, async () => {
+      let msg = `Va a <strong>cerrar</strong> el mes de <strong>${months[entry.value.month - 1]}</strong> este proceso es irreversible, revise los datos antes de continuar porque ya no podrá modificarlos.`
+      if (Number.parseFloat(totalEntries.value) === 0 || Number.parseFloat(totalExpenses.value) === 0) {
+        msg += '<br><br><strong class="text-red">VA CERRAR EL MES CON CERO DATOS. ¿Está seguro?</strong>'
+      }
+      Confirm(msg, async () => {
         await http.put(`entries/close/${entryId as string}/${expenseId as string}`)
         return router.push(`/treasury/report/${entryId as string}/${expenseId as string}`)
       }, null, 'Advertencia', 'Cerrar mes')

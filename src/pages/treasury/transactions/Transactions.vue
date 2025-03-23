@@ -254,7 +254,7 @@ const setDescription = (interest) => {
 
 const getTotalBalance = async (idAccount: number) => {
   const lastTransaction = await http.get(`transactions/last/${idAccount}`) as Transaction
-  total.value = lastTransaction.balance
+  total.value = lastTransaction?.balance || 0
 }
 
 const redirectAccounts = () => {
