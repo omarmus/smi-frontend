@@ -62,8 +62,10 @@
                   v-for="item in flowsEntriesSendGlobal"
                   :key="item.id"
                   class="row justify-end">
-                  <div class="col-8">{{ item.department.name }}</div>
-                  <div class="col-xs-4 col-sm-4 text-right">{{ Number(item.total).toFixed(2) }} {{ $store.state.user?.user?.company?.money }}</div>
+                  <template v-if="item.department">
+                    <div class="col-8">{{ item.department.name }}</div>
+                    <div class="col-xs-4 col-sm-4 text-right">{{ Number(item.total).toFixed(2) }} {{ $store.state.user?.user?.company?.money }}</div>
+                  </template>
                 </div>
                 <div class="row justify-end">
                   <div class="col-xs-12 col-sm-12">
