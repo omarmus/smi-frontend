@@ -85,6 +85,14 @@
         :icon="entry.state === 'CLOSED' ? 'print' : 'check'"
         class="btn-close-month"
         @click="closeMonth" />
+      <q-btn
+        v-if="entry.state === 'CLOSED' && isAdmin"
+        label="Reabrir el mes"
+        no-caps
+        color="red"
+        :icon="'warning'"
+        class="btn-close-month"
+        @click="revertMonth" />
     </div>
   </div>
 </template>
@@ -141,6 +149,17 @@ const closeMonth = () => {
         return router.push(`/treasury/report/${entryId as string}/${expenseId as string}`)
       }, null, 'Advertencia', 'Cerrar mes')
     }
+  }
+}
+
+const revertMonth = () => {
+  if (entry.value.state !== 'ACTIVE') {
+    const msg = `Va a <strong>reabrir</strong> el mes de <strong>${months[entry.value.month - 1]}</strong>. ¿Está seguro de continuar?`
+
+    Confirm(msg, async () => {
+      await http.put(`entries/revert/${entryId as string}/${expenseId as string}`)
+      return window.location.reload()
+    }, null, 'Advertencia', 'Reabrir el mes')
   }
 }
 
