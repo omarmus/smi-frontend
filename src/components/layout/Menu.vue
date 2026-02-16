@@ -200,7 +200,9 @@ watch(role, async () => {
 
 watch(companyId, async () => {
   if (typeof companyId.value === 'number') {
-    const data = await http.get(`auth/token/company/${String(companyId.value)}`) as UserResponse
+    const currentRoleId = store.state.user?.role?.id ?? (typeof role.value === 'number' ? role.value : (role.value as Role)?.id)
+    const roleQuery = currentRoleId != null ? `?roleId=${String(currentRoleId)}` : ''
+    const data = await http.get(`auth/token/company/${String(companyId.value)}${roleQuery}`) as UserResponse
     initStorage(data)
     auth.initStore()
     renderMenu()

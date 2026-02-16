@@ -33,13 +33,13 @@
     >
       <q-tab-panel name="entry">
         <div class="row">
-          <div class="text-right q-mb-md col-xs-12">
+          <div class="q-mb-md col-xs-12">
             <q-btn
               icon="print"
               no-caps
               @click="printMonthReport"
             >
-              &nbsp;Imprimir informe
+              &nbsp;Imprimir
             </q-btn>
           </div>
         </div>
@@ -232,51 +232,78 @@
         <h3 class="text-primary flow-title q-pt-lg">Comprobante de pago</h3>
         <div class="row q-col-gutter-sm">
           <div class="col-xs-12 col-sm-12 col-md-5">
-            <q-uploader
-              :url="voucherUrl"
-              :headers="voucherHeaders"
-              field-name="file"
-              accept=".jpg, image/*, .pdf"
-              :max-file-size="5 * 1024 * 1024"
-              auto-upload
-              class="full-width"
-              @uploaded="onUploaded"
-              @rejected="onRejected">
-              <template v-slot:header="scope">
-                <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
-                  <q-spinner v-if="scope.isUploading" class="q-uploader__spinner" />
-                  <div class="col">
-                    <a class="q-uploader__title text-white" :href="`${urlBase.replace(/\/api\//g, '')}/files/${entry.voucherDeposited}`" target="blank" v-if="entry.voucherDeposited">
-                      <q-icon name="file_download" /> {{ entry.voucherDeposited }}
-                    </a>
-                    <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+            <!-- Desktop: QUploader -->
+            <div class="voucher-desktop">
+              <q-uploader
+                :url="voucherUrl"
+                :headers="voucherHeaders"
+                field-name="file"
+                accept="image/*,application/pdf"
+                :max-file-size="5 * 1024 * 1024"
+                :multiple="false"
+                auto-upload
+                class="full-width voucher-uploader"
+                @uploaded="onUploaded"
+                @rejected="onRejected">
+                <template v-slot:header="scope">
+                  <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
+                    <q-spinner v-if="scope.isUploading" class="q-uploader__spinner" />
+                    <div class="col">
+                      <a class="q-uploader__title text-white" :href="`${urlBase.replace(/\/api\//g, '')}/files/${entry.voucherDeposited}`" target="blank" v-if="entry.voucherDeposited">
+                        <q-icon name="file_download" /> {{ entry.voucherDeposited }}
+                      </a>
+                      <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+                    </div>
+                    <q-btn v-if="scope.canAddFiles" type="a" no-caps color="warning" icon="add_box" class="voucher-uploader-trigger">
+                      <q-uploader-add-trigger />
+                      {{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+                      <q-tooltip>{{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}</q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
+                      <q-tooltip>Subir archivo</q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
+                      <q-tooltip>Cancela subida</q-tooltip>
+                    </q-btn>
                   </div>
-                  <q-btn v-if="scope.canAddFiles" type="a" no-caps color="warning" icon="add_box" dense>
-                    <q-uploader-add-trigger />
-                    {{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}
-                    <q-tooltip>{{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}</q-tooltip>
-                  </q-btn>
-                  <q-btn v-if="scope.canUpload" icon="cloud_upload" @click="scope.upload" round dense flat >
-                    <q-tooltip>Subir archivo</q-tooltip>
-                  </q-btn>
-                  <q-btn v-if="scope.isUploading" icon="clear" @click="scope.abort" round dense flat >
-                    <q-tooltip>Cancela subida</q-tooltip>
-                  </q-btn>
+                </template>
+              </q-uploader>
+            </div>
+            <!-- Mobile: input nativo para evitar "blocked due to lack of user activation" -->
+            <div class="voucher-mobile">
+              <div class="row no-wrap items-center q-pa-sm q-gutter-xs voucher-mobile-inner">
+                <q-spinner v-if="voucherUploading" size="sm" color="warning" />
+                <div class="col">
+                  <a v-if="entry.voucherDeposited" class="text-primary" :href="`${urlBase.replace(/\/api\//g, '')}/files/${entry.voucherDeposited}`" target="_blank" rel="noopener">
+                    <q-icon name="file_download" /> {{ entry.voucherDeposited }}
+                  </a>
+                  <span v-else class="text-grey">Sin comprobante</span>
                 </div>
-              </template>
-            </q-uploader>
+                <label class="voucher-mobile-trigger q-btn q-btn-item non-selectable no-outline q-btn--flat q-btn--rectangle q-btn--no-wrap bg-warning text-white">
+                  <input
+                    ref="mobileVoucherInputRef"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    class="voucher-mobile-input-overlay"
+                    @change="onMobileVoucherChange"
+                  >
+                  <q-icon name="add_box" />
+                  {{ entry.voucherDeposited ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </q-tab-panel>
       <q-tab-panel name="expense">
         <div class="row">
-          <div class="text-right q-mb-md col-xs-12">
+          <div class="q-mb-md col-xs-12">
             <q-btn
               icon="print"
               no-caps
               @click="printMonthReportLocal"
             >
-              &nbsp;Imprimir informe
+              &nbsp;Imprimir
             </q-btn>
           </div>
         </div>
@@ -384,7 +411,7 @@ import { months, getWeeks, format, normalize } from '../../../components/plugins
 import { EntryDetail, Entry } from '../../../components/entities/Entry'
 import { ExpenseDetail } from '../../../components/entities/Expense'
 import { useStore } from '../../../store'
-import { printHTML } from 'src/components/plugins/util'
+import html2pdf from 'html2pdf.js'
 
 const store = useStore()
 
@@ -406,6 +433,55 @@ const router = useRouter()
 const { entryId, expenseId } = route.params
 const voucherUrl = `${urlBase as string}entries/${entryId as string}/upload`
 const voucherHeaders = [{ name: 'Authorization', value: `Bearer ${storage.get('token') as string}` }]
+
+const voucherUploading = ref(false)
+const mobileVoucherInputRef = ref<HTMLInputElement | null>(null)
+const maxVoucherSize = 5 * 1024 * 1024
+
+/** Quita los puntos del nombre del archivo y deja solo la extensión real (tras el último punto). */
+function sanitizeVoucherFilename (originalName: string): string {
+  const lastDot = originalName.lastIndexOf('.')
+  if (lastDot === -1) {
+    return originalName.replace(/\./g, '')
+  }
+  const base = originalName.slice(0, lastDot)
+  const ext = originalName.slice(lastDot)
+  const baseWithoutDots = base.replace(/\./g, '')
+  return baseWithoutDots + ext
+}
+
+async function onMobileVoucherChange (e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !entry.value) return
+  if (file.size > maxVoucherSize) {
+    message.error('El archivo supera el tamaño máximo (5 MB)')
+    input.value = ''
+    return
+  }
+  voucherUploading.value = true
+  const formData = new FormData()
+  const safeFilename = sanitizeVoucherFilename(file.name)
+  formData.append('file', file, safeFilename)
+  try {
+    const res = await fetch(voucherUrl, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${storage.get('token') as string}` },
+      body: formData
+    })
+    const json = await res.json() as Response<{ filename: string }>
+    if (json.data?.filename) {
+      entry.value.voucherDeposited = json.data.filename
+    } else {
+      message.error('Error al subir el comprobante')
+    }
+  } catch {
+    message.error('Error al subir el comprobante')
+  } finally {
+    voucherUploading.value = false
+    input.value = ''
+  }
+}
 
 const saveDeposit = async (): void => {
   await http.put(`entries/${entryId as string}`, {
@@ -557,12 +633,60 @@ const goBack = () => {
   return router.push(`/treasury/entryexpense/${String(entryId)}/${String(expenseId)}`)
 }
 
-function printMonthReport () {
-  printHTML('report-month', 'Informe mensual')
+const printMonthReport = async () => {
+  const element = document.getElementById('report-month')
+  if (!element) {
+    return
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  const opt = {
+    margin: [10, 10, 10, 10] as [number, number, number, number],
+    filename: `informe-mensual-asociacion-${store.state.user.user.company?.name || 'iglesia'}-${entry.value?.month || ''}-${entry.value?.year || ''}-${Date.now()}.pdf`,
+    image: { type: 'jpeg' as const, quality: 1.0 },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: {
+      unit: 'mm' as const,
+      format: 'letter' as const,
+      orientation: 'portrait' as const
+    }
+  }
+
+  void html2pdf().set(opt).from(element).save()
 }
 
-function printMonthReportLocal () {
-  printHTML('report-month-local', 'Informe mensual - Iglesia local')
+const printMonthReportLocal = async () => {
+  const element = document.getElementById('report-month-local')
+  if (!element) {
+    return
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  const opt = {
+    margin: [10, 10, 10, 10] as [number, number, number, number],
+    filename: `informe-mensual-local-${store.state.user.user.company?.name || 'iglesia'}-${entry.value?.month || ''}-${entry.value?.year || ''}-${Date.now()}.pdf`,
+    image: { type: 'jpeg' as const, quality: 1.0 },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: {
+      unit: 'mm' as const,
+      format: 'letter' as const,
+      orientation: 'portrait' as const
+    }
+  }
+
+  void html2pdf().set(opt).from(element).save()
 }
 
 onMounted(async () => {
@@ -573,3 +697,45 @@ onMounted(async () => {
   await getFlowsEntriesSendGlobal()
 })
 </script>
+
+<style scoped>
+/* Desktop: mostrar q-uploader; móvil: mostrar input nativo (evita "blocked due to lack of user activation") */
+.voucher-mobile {
+  display: none;
+}
+@media (max-width: 768px) {
+  .voucher-desktop {
+    display: none;
+  }
+  .voucher-mobile {
+    display: block;
+  }
+}
+
+/* En móvil el input cubre el botón para que el tap sea activación directa */
+.voucher-mobile-trigger {
+  position: relative;
+  min-height: 44px;
+  min-width: 44px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.voucher-mobile-input-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+@media (min-width: 769px) {
+  .voucher-uploader-trigger {
+    min-height: 44px;
+    min-width: 44px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+</style>

@@ -329,6 +329,10 @@ body.body--dark {
 .row {
   & > .card-button {
     max-width: 250px;
+
+    .block {
+      line-height: 1.4rem;
+    }
   }
 }
 

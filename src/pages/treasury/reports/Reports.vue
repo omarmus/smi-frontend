@@ -58,10 +58,24 @@
           flat
           color="secondary"
           padding="lg"
-          icon="person"
-          label="Ofrendas por persona"
+          icon="people"
+          label="Ofrendas y diezmos por iglesia"
           no-caps
           @click="$router.push('/treasury/report/offerings')"
+          class="full-width btn-block"
+        />
+      </div>
+      <div
+        v-if="$store.state.user?.permissions?.includes('balance:read')"
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          icon="person"
+          label="Ofrendas y diezmos por persona"
+          no-caps
+          @click="$router.push('/treasury/report/offering')"
           class="full-width btn-block"
         />
       </div>

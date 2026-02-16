@@ -85,7 +85,22 @@
     <div
       v-if="flows.length && type === 'MONTH'"
       class="row tithe-column">
-      <h3 class="flow-title col-12">Flujo de caja {{ monthsLiteral[month - 1] }}</h3>
+      <div class="col-12 q-mb-lg">
+        <q-btn
+          icon="print"
+          no-caps
+          label="Imprimir"
+          @click="printFlowReport" />
+      </div>
+    <div
+      id="report-flow"
+      class="row tithe-column col-12">
+      <h3 class="flow-title col-12 q-mb-lg">
+        Flujo de caja {{ monthsLiteral[month - 1] }}
+        <span
+          id="pdf-church-name"
+          style="display: none;"> - {{ store.state.user?.user?.company?.name }}</span>
+      </h3>
       <div class="q-table-simple q-table__container q-table--horizontal-separator column no-wrap q-table--dense q-table--no-wrap col-12">
         <table class="q-table treasury-table-data">
           <thead>
@@ -189,6 +204,7 @@
         </table>
       </div>
     </div>
+    </div>
     <div v-else-if="flows.length === 0 && type === 'MONTH'" class="q-pa-sm text-primary">No existe datos para el mes de <strong>{{ monthsLiteral[month - 1] }}</strong>.</div>
   </div>
 </template>
@@ -201,6 +217,7 @@ import { months as monthsLiteral, getYears } from '../../../components/plugins/d
 import { Flow } from '../../../components/entities/Flow'
 import { Entry } from '../../../components/entities/Entry'
 import { useStore } from '../../../store'
+import html2pdf from 'html2pdf.js'
 
 const store = useStore()
 
@@ -297,6 +314,48 @@ const monthPrev = computed(() => {
   }
   return month.value - 2
 })
+
+const printFlowReport = async () => {
+  const element = document.getElementById('report-flow')
+  if (!element) {
+    return
+  }
+
+  // Show church name only for PDF
+  const pdfChurchName = document.getElementById('pdf-church-name')
+  const originalChurchDisplay = pdfChurchName?.style.display
+  if (pdfChurchName) {
+    pdfChurchName.style.display = 'inline'
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 100))
+
+  const opt = {
+    margin: [10, 10, 10, 10] as [number, number, number, number],
+    filename: `flujo-caja-${store.state.user?.user?.company?.name || 'iglesia'}-${monthsLiteral[month.value - 1]}-${year.value}-${Date.now()}.pdf`,
+    image: { type: 'png' as const },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: {
+      unit: 'mm' as const,
+      format: 'letter' as const,
+      orientation: 'landscape' as const
+    }
+  }
+
+  try {
+    await html2pdf().set(opt).from(element).save()
+  } finally {
+    // Hide church name again
+    if (pdfChurchName) {
+      pdfChurchName.style.display = originalChurchDisplay ?? 'none'
+    }
+  }
+}
 
 watch(type, async () => (await getFlows()))
 watch(year, async () => (await getFlows()))
