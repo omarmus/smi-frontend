@@ -80,7 +80,7 @@
                         <li
                           v-for="off in getFirstOffering(row.user.months[month])"
                           :key="off.id">
-                          <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value }}</strong>
+                          <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value?.toFixed(2) }}</strong>
                         </li>
                       </ul>
                       <ul
@@ -90,7 +90,7 @@
                           v-for="off in row.user.months[month]"
                           :key="off.id">
                           <template v-if="off.group !== 'TITHES' && off.group !== 'SCOOP'">
-                            <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value }}</strong>
+                            <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value?.toFixed(2) }}</strong>
                           </template>
                         </li>
                       </ul>
