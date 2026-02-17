@@ -145,9 +145,9 @@ const memberType = {
 /** Etiqueta de sección para filas separadoras (mismo criterio que el backend). */
 function getSectionLabel (user: Option): string {
   const t = user.type?.toLowerCase()
-  if (t === 'member') return user.id_company === idCompany ? 'Miembro' : 'Miembro de otra iglesia'
-  if (t === 'sympathizer' || t === 'baptismal_candidate') return 'Miembro Esc. sabática'
-  if (t === 'visit') return 'Visita'
+  if (t === 'member') return user.id_company === idCompany ? 'Miembros' : 'Miembros de otra iglesia'
+  if (t === 'sympathizer' || t === 'baptismal_candidate') return 'Miembros Esc. sabática'
+  if (t === 'visit') return 'Visitas'
   return 'Otros'
 }
 
