@@ -47,8 +47,13 @@ export interface Option {
   value: string
   label: string
   church?: string
+  /* eslint-disable camelcase */
+  id_company?: number
   association?: string
   type?: string,
   months?: Record<string, Record<string, Offering>>
   active?: boolean
 }
+
+/** Fila del reporte: separador de sección o usuario (para tabla ordenada con secciones). */
+export type ReportRow = { type: 'section'; label: string } | { type: 'user'; key: string; user: Option }

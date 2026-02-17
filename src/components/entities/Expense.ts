@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 import { Department } from './Department'
 
 export interface Expense {
@@ -16,6 +14,7 @@ export interface ExpenseDetail {
   value: number
   concept: string
   documentType: string
+  /* eslint-disable camelcase */
   document_type: string
   documentNumber: string
   supplier: string

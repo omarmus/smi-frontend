@@ -59,50 +59,53 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="item in filterUsers"
-              :key="item.value">
-              <td>
-                {{ item.label }}
-                <span class="treasury-observation" v-if="item.type">
-                  {{ memberType[item.type as keyof typeof memberType] }} {{ $store.state.user.user.company?.name !== item.church ? `- ${item.church}` : '' }}
-                </span>
-              </td>
-              <td
-                v-for="month in [1,2,3,4,5,6,7,8,9,10,11,12]"
-                :key="month">
-                <div class="flow-row-table">
-                  <span class="text-hidden">{{ monthsLiteral[month - 1] }}:</span>
-                  <div class="flow-row-content text-right" v-if="item.months && item.months[month]">
-                    <ul class="treasury-list-concepts">
-                      <li
-                        v-for="off in getFirstOffering(item.months[month])"
-                        :key="off.id">
-                        <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value }}</strong>
-                      </li>
-                    </ul>
-                    <ul
-                      class="treasury-list-concepts"
-                      v-if="item.active === true">
-                      <li
-                        v-for="off in item.months[month]"
-                        :key="off.id">
-                        <template v-if="off.group !== 'TITHES' && off.group !== 'SCOOP'">
+            <template v-for="(row, idx) in rowsForTable">
+              <tr v-if="row.type === 'section'" :key="`section-${row.label}-${idx}`" class="treasury-section-row">
+                <td colspan="13" class="treasury-section-cell">{{ row.label }}</td>
+              </tr>
+              <tr v-else :key="row.key">
+                <td>
+                  {{ row.user.label }}
+                  <span class="treasury-observation" v-if="row.user.type">
+                    {{ memberType[row.user.type as keyof typeof memberType] }} {{ $store.state.user.user.company?.name !== row.user.church ? `- ${row.user.church}` : '' }}
+                  </span>
+                </td>
+                <td
+                  v-for="month in [1,2,3,4,5,6,7,8,9,10,11,12]"
+                  :key="month">
+                  <div class="flow-row-table">
+                    <span class="text-hidden">{{ monthsLiteral[month - 1] }}:</span>
+                    <div class="flow-row-content text-right" v-if="row.user.months && row.user.months[month]">
+                      <ul class="treasury-list-concepts">
+                        <li
+                          v-for="off in getFirstOffering(row.user.months[month])"
+                          :key="off.id">
                           <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value }}</strong>
-                        </template>
-                      </li>
-                    </ul>
-                    <a
-                      class="flow-row-link"
-                      v-if="Object.keys(item.months[month]).length > getFirstOffering(item.months[month]).length" href=""
-                      @click.prevent="item.active = !item.active">
-                      {{ item.active === true ? 'Ver menos' : 'Ver más' }}
-                    </a>
+                        </li>
+                      </ul>
+                      <ul
+                        class="treasury-list-concepts"
+                        v-if="row.user.active === true">
+                        <li
+                          v-for="off in row.user.months[month]"
+                          :key="off.id">
+                          <template v-if="off.group !== 'TITHES' && off.group !== 'SCOOP'">
+                            <span class="treasury-observation-report">{{ off.label }}: </span> <strong>{{ off.value }}</strong>
+                          </template>
+                        </li>
+                      </ul>
+                      <a
+                        class="flow-row-link"
+                        v-if="Object.keys(row.user.months[month]).length > getFirstOffering(row.user.months[month]).length" href=""
+                        @click.prevent="row.user.active = !row.user.active">
+                        {{ row.user.active === true ? 'Ver menos' : 'Ver más' }}
+                      </a>
+                    </div>
+                    <span class="treasury-observation text-right" v-else>-</span>
                   </div>
-                  <span class="treasury-observation text-right" v-else>-</span>
-                </div>
-              </td>
-            </tr>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </template>
@@ -115,7 +118,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { http } from 'boot/http'
-import { Offering, Option } from '../../../components/entities/Entry'
+import { Offering, Option, ReportRow } from '../../../components/entities/Entry'
 import { months as monthsLiteral, getYears } from '../../../components/plugins/datetime'
 import { useStore } from '../../../store'
 
@@ -137,6 +140,15 @@ const memberType = {
   member: 'Miembro',
   sympathizer: 'Miembro Esc. sabática',
   visit: 'Visita'
+}
+
+/** Etiqueta de sección para filas separadoras (mismo criterio que el backend). */
+function getSectionLabel (user: Option): string {
+  const t = user.type?.toLowerCase()
+  if (t === 'member') return user.id_company === idCompany ? 'Miembro' : 'Miembro de otra iglesia'
+  if (t === 'sympathizer' || t === 'baptismal_candidate') return 'Miembro Esc. sabática'
+  if (t === 'visit') return 'Visita'
+  return 'Otros'
 }
 
 /** Respuesta posible del endpoint offerings-by-church (objeto directo o envuelto en .data). */
@@ -192,6 +204,25 @@ const filterUsers = computed(() => {
   return source
 })
 
+/** Lista para la tabla: filas de sección + filas de usuario en orden (el backend ya envía ordenado). */
+const rowsForTable = computed((): ReportRow[] => {
+  const source = filterUsers.value ?? {}
+  const keys = Object.keys(source)
+  if (keys.length === 0) return []
+  const rows: ReportRow[] = []
+  let currentSection = ''
+  for (const key of keys) {
+    const user = source[key]
+    const sectionLabel = getSectionLabel(user)
+    if (sectionLabel !== currentSection) {
+      currentSection = sectionLabel
+      rows.push({ type: 'section', label: sectionLabel })
+    }
+    rows.push({ type: 'user', key, user })
+  }
+  return rows
+})
+
 const getFirstOffering = (items: Record<string, Offering>) => {
   const offerings: Offering[] = []
 
@@ -226,3 +257,12 @@ const generatePdf = async () => {
 
 onMounted(loadReport)
 </script>
+
+<style scoped>
+.treasury-section-row .treasury-section-cell {
+  font-weight: 700;
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 0.4em 0.6em;
+  text-transform: uppercase;
+}
+</style>
