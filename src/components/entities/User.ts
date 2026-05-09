@@ -11,6 +11,9 @@ export interface Person {
   acceptanceDate?: string
   nationality?: string
   documentNumber?: string
+  address?: string
+  department?: string
+  province?: string
 }
 
 export interface User {

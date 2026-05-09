@@ -28,6 +28,8 @@ export interface Entry {
   dateDeposited?: string
 }
 
+export type PaymentType = 'CASH' | 'QR' | 'DEPOSIT' | 'BANK_TRANSFER'
+
 export interface EntryDetail {
   id?: number
   entry: Entry
@@ -35,6 +37,7 @@ export interface EntryDetail {
   user?: User
   code: string
   type: string
+  paymentType?: PaymentType
   week: number
   date: Date
   value: number

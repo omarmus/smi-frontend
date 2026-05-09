@@ -18,7 +18,7 @@
           <li v-if="user.person.phone"><strong>Teléfono:</strong> {{ user.person.phone }}</li>
           <li v-if="user.person.mobile"><strong>Teléfono móvil:</strong> {{ user.person.mobile }}</li>
           <li><strong>Nacionalidad:</strong> {{ user.person.nationality }}</li>
-          <li><strong>Dirección:</strong> {{ user.person.address }}</li>
+          <li><strong>Dirección:</strong> {{ user.person.address }} {{ user.person.province ? `- ${user.person.province}` : '' }} {{ user.person.department ? `- ${user.person.department}` : '' }}</li>
         </ul>
         <figure v-if="user.person.photo" class="member-info-photo">
           <img :src="`${urlBase.replace(/\/api\//g, '')}/files/users/${user.person.photo}`" :alt="user.person.firstName">

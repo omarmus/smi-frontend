@@ -33,6 +33,11 @@
           class="q-ml-none q-mr-xs"
           padding="6px 7px 6px 9px">
           <q-list>
+            <q-item clickable v-close-popup @click="printAllMembers">
+              <q-item-section>
+                <q-item-label>Imprimir miembros activos</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item clickable v-close-popup @click.prevent="print(props.getSelected())">
               <q-item-section>
                 <q-item-label>Imprimir seleccionados</q-item-label>
@@ -119,13 +124,52 @@
                       v-model="user.person.documentNumber"
                       @keyup="setPasword" />
                   </div>
-                  <div class="col-xs-12 col-md-3">
-                    <q-input
-                      filled
-                      label="Lugar de nacimiento"
-                      v-model="user.person.birthplaceCountry" />
+                  <div class="col-xs-12 col-md-3 q-pt-md">
+                    <q-radio v-model="user.person.gender" val="MALE" label="Hombre" class="q-mr-sm"/>
+                    <q-radio v-model="user.person.gender" val="FEMALE" label="Mujer" />
                   </div>
                   <div class="col-xs-12 col-md-3">
+                    <q-select
+                      filled
+                      v-model="user.person.civilStatus"
+                      :options="civilOptions"
+                      label="Estado civil"
+                      emit-value
+                      map-options />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-input
+                      filled
+                      label="Teléfono(s)"
+                      v-model="user.person.phone" />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-select
+                      filled
+                      v-model="user.person.occupation"
+                      :options="occupationOptions"
+                      label="Ocupación"
+                      emit-value
+                      map-options />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-select
+                      filled
+                      v-model="user.person.education"
+                      :options="educationOptions"
+                      label="Educación"
+                      emit-value
+                      map-options />
+                  </div>
+                  <!-- <div class="col-xs-12 col-md-2">
+                    <q-input
+                      filled
+                      label="Celular"
+                      v-model="user.person.mobile"
+                      :rules="[validation.required]" />
+                  </div> -->
+                  <div class="col-xs-12"><h6 class="q-ma-none">Nacimiento</h6></div>
+                  <div class="col-xs-12 col-md-4">
                     <q-input
                       filled
                       label="Fecha de nacimiento"
@@ -155,20 +199,13 @@
                       </template>
                     </q-input>
                   </div>
-                  <div class="col-xs-12 col-md-3 q-pt-md">
-                    <q-radio v-model="user.person.gender" val="MALE" label="Hombre" />
-                    <q-radio v-model="user.person.gender" val="FEMALE" label="Mujer" />
-                  </div>
-                  <div class="col-xs-12 col-md-3">
-                    <q-select
+                  <div class="col-xs-12 col-md-4">
+                    <q-input
                       filled
-                      v-model="user.person.civilStatus"
-                      :options="civilOptions"
-                      label="Estado civil"
-                      emit-value
-                      map-options />
+                      label="Lugar de nacimiento"
+                      v-model="user.person.birthplaceCountry" />
                   </div>
-                  <div class="col-xs-12 col-md-3">
+                  <div class="col-xs-12 col-md-4">
                     <q-select
                       filled
                       label="Nacionalidad"
@@ -191,38 +228,30 @@
                       </template>
                     </q-select>
                   </div>
+                  <div class="col-xs-12"><h6 class="q-ma-none">Domicilio</h6></div>
                   <div class="col-xs-12 col-md-3">
                     <q-select
                       filled
-                      v-model="user.person.occupation"
-                      :options="occupationOptions"
-                      label="Ocupación"
+                      v-model="user.person.department"
+                      :options="departmentOptions"
+                      label="Departamento"
                       emit-value
-                      map-options />
-                  </div>
-                  <div class="col-xs-12 col-md-4">
-                    <q-select
-                      filled
-                      v-model="user.person.education"
-                      :options="educationOptions"
-                      label="Educación"
-                      emit-value
-                      map-options />
+                      map-options
+                      @update:model-value="onDepartmentChange"
+                      clearable />
                   </div>
                   <div class="col-xs-12 col-md-3">
-                    <q-input
+                    <q-select
                       filled
-                      label="Teléfono(s)"
-                      v-model="user.person.phone" />
+                      v-model="user.person.province"
+                      :options="provinceOptions"
+                      label="Provincia"
+                      emit-value
+                      map-options
+                      :disable="!user.person.department"
+                      clearable />
                   </div>
-                  <!-- <div class="col-xs-12 col-md-2">
-                    <q-input
-                      filled
-                      label="Celular"
-                      v-model="user.person.mobile"
-                      :rules="[validation.required]" />
-                  </div> -->
-                  <div class="col-xs-12 col-md-5">
+                  <div class="col-xs-12 col-md-6">
                     <q-input
                       filled
                       label="Dirección"
@@ -628,9 +657,29 @@ import {
   memberTypeOptions
 } from '../../../components/plugins/params'
 import { createPdf } from '../../../components/plugins/util'
+import boliviaDepartamentosProvincias from '../../../data/bolivia-departamentos-provincias.json'
 
 const url = 'users'
 const store = useStore()
+
+const departmentOptions = boliviaDepartamentosProvincias.map((d: { id: number, department: string }) => ({
+  label: d.department,
+  value: d.department
+}))
+
+const provinceOptions = computed(() => {
+  if (!user.value?.person?.department) return []
+  const dept = boliviaDepartamentosProvincias.find(
+    (d: { department: string }) => d.department === user.value.person.department
+  )
+  return (dept?.provinces ?? []).map((p: { id: number, name: string }) => ({ label: p.name, value: p.name }))
+})
+
+const onDepartmentChange = () => {
+  if (user.value?.person) {
+    user.value.person.province = undefined
+  }
+}
 
 const isAdmin = ![RoleSlug.SECRETARY, RoleSlug.TREASURER, RoleSlug.WORKER].includes(store.state.user.role.slug)
 const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store.state.user.role.slug)
@@ -823,6 +872,11 @@ const print = async (items: User[]) => {
 const printAll = async () => {
   const pdf = await http.post('users/print', { ids: [] }) as string
   createPdf(pdf, `kardex-${Date.now()}.pdf`)
+}
+
+const printAllMembers = async () => {
+  const pdf = await http.post('users/print', { ids: [], memberStatus: 'ALL_ACTIVE' }) as string
+  createPdf(pdf, `kardex-miembros-${Date.now()}.pdf`)
 }
 
 const openAddPhoto = (item: User) => {

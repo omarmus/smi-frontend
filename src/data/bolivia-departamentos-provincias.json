@@ -1,0 +1,168 @@
+[
+  {
+    "id": 1,
+    "department": "Beni",
+    "provinces": [
+      { "id": 1, "name": "Cercado" },
+      { "id": 2, "name": "Iténez" },
+      { "id": 3, "name": "General José Ballivián" },
+      { "id": 4, "name": "Mamoré" },
+      { "id": 5, "name": "Marbán" },
+      { "id": 6, "name": "Moxos" },
+      { "id": 7, "name": "Vaca Díez" },
+      { "id": 8, "name": "Yacuma" }
+    ]
+  },
+  {
+    "id": 2,
+    "department": "Chuquisaca",
+    "provinces": [
+      { "id": 9, "name": "Belisario Boeto" },
+      { "id": 10, "name": "Hernando Siles" },
+      { "id": 11, "name": "Zudáñez" },
+      { "id": 12, "name": "Azurduy" },
+      { "id": 13, "name": "Luis Calvo" },
+      { "id": 14, "name": "Nor Cinti" },
+      { "id": 15, "name": "Oropeza" },
+      { "id": 16, "name": "Sud Cinti" },
+      { "id": 17, "name": "Tomina" },
+      { "id": 18, "name": "Yamparáez" }
+    ]
+  },
+  {
+    "id": 3,
+    "department": "Cochabamba",
+    "provinces": [
+      { "id": 19, "name": "Arani" },
+      { "id": 20, "name": "Arque" },
+      { "id": 21, "name": "Ayopaya" },
+      { "id": 22, "name": "Bolívar" },
+      { "id": 23, "name": "Capinota" },
+      { "id": 24, "name": "Carrasco" },
+      { "id": 25, "name": "Cercado" },
+      { "id": 26, "name": "Chapare" },
+      { "id": 27, "name": "Esteban Arze" },
+      { "id": 28, "name": "Germán Jordán" },
+      { "id": 29, "name": "Mizque" },
+      { "id": 30, "name": "Campero" },
+      { "id": 31, "name": "Punata" },
+      { "id": 32, "name": "Quillacollo" },
+      { "id": 33, "name": "Tapacarí" },
+      { "id": 34, "name": "Tiraque" }
+    ]
+  },
+  {
+    "id": 4,
+    "department": "La Paz",
+    "provinces": [
+      { "id": 35, "name": "Iturralde" },
+      { "id": 36, "name": "Aroma" },
+      { "id": 37, "name": "Bautista Saavedra" },
+      { "id": 38, "name": "Caranavi" },
+      { "id": 39, "name": "Camacho" },
+      { "id": 40, "name": "Franz Tamayo" },
+      { "id": 41, "name": "Gualberto Villarroel" },
+      { "id": 42, "name": "Ingavi" },
+      { "id": 43, "name": "Inquisivi" },
+      { "id": 44, "name": "General José Manuel Pando" },
+      { "id": 45, "name": "Loayza" },
+      { "id": 46, "name": "Larecaja" },
+      { "id": 47, "name": "Los Andes" },
+      { "id": 48, "name": "Manco Kapac" },
+      { "id": 49, "name": "Muñecas" },
+      { "id": 50, "name": "Nor Yungas" },
+      { "id": 51, "name": "Omasuyos" },
+      { "id": 52, "name": "Pacajes" },
+      { "id": 53, "name": "Murillo" },
+      { "id": 54, "name": "Sud Yungas" }
+    ]
+  },
+  {
+    "id": 5,
+    "department": "Oruro",
+    "provinces": [
+      { "id": 55, "name": "Sabaya" },
+      { "id": 56, "name": "Carangas" },
+      { "id": 57, "name": "Cercado" },
+      { "id": 58, "name": "Abaroa" },
+      { "id": 59, "name": "Ladislao Cabrera" },
+      { "id": 60, "name": "Litoral" },
+      { "id": 61, "name": "Nor Carangas" },
+      { "id": 62, "name": "Dalence" },
+      { "id": 63, "name": "Poopó" },
+      { "id": 64, "name": "Mejillones" },
+      { "id": 65, "name": "Sajama" },
+      { "id": 66, "name": "San Pedro de Totora" },
+      { "id": 67, "name": "Saucarí" },
+      { "id": 68, "name": "Sebastián Pagador" },
+      { "id": 69, "name": "Sud Carangas" },
+      { "id": 70, "name": "Tomás Barrón" }
+    ]
+  },
+  {
+    "id": 6,
+    "department": "Pando",
+    "provinces": [
+      { "id": 71, "name": "Abuná" },
+      { "id": 72, "name": "General Federico Román" },
+      { "id": 73, "name": "Madre de Dios" },
+      { "id": 74, "name": "Manuripi" },
+      { "id": 75, "name": "Nicolás Suárez" }
+    ]
+  },
+  {
+    "id": 7,
+    "department": "Potosí",
+    "provinces": [
+      { "id": 76, "name": "Alonso de Ibáñez" },
+      { "id": 77, "name": "Quijarro" },
+      { "id": 78, "name": "General Bilbao" },
+      { "id": 79, "name": "Charcas" },
+      { "id": 80, "name": "Chayanta" },
+      { "id": 81, "name": "Cornelio Saavedra" },
+      { "id": 82, "name": "Daniel Campos" },
+      { "id": 83, "name": "Enrique Baldivieso" },
+      { "id": 84, "name": "Linares" },
+      { "id": 85, "name": "Modesto Omiste" },
+      { "id": 86, "name": "Nor Chichas" },
+      { "id": 87, "name": "Nor Lípez" },
+      { "id": 88, "name": "Rafael Bustillo" },
+      { "id": 89, "name": "Sud Chichas" },
+      { "id": 90, "name": "Sud Lípez" },
+      { "id": 91, "name": "Frías" }
+    ]
+  },
+  {
+    "id": 8,
+    "department": "Santa Cruz",
+    "provinces": [
+      { "id": 92, "name": "Andrés Ibáñez" },
+      { "id": 93, "name": "Ángel Sandóval" },
+      { "id": 94, "name": "Chiquitos" },
+      { "id": 95, "name": "Cordillera" },
+      { "id": 96, "name": "Florida" },
+      { "id": 97, "name": "Germán Busch" },
+      { "id": 98, "name": "Guarayos" },
+      { "id": 99, "name": "Ichilo" },
+      { "id": 100, "name": "Warnes" },
+      { "id": 101, "name": "Velasco" },
+      { "id": 102, "name": "Caballero" },
+      { "id": 103, "name": "Ñuflo de Chaves" },
+      { "id": 104, "name": "Obispo Santistevan" },
+      { "id": 105, "name": "Sara" },
+      { "id": 106, "name": "Vallegrande" }
+    ]
+  },
+  {
+    "id": 9,
+    "department": "Tarija",
+    "provinces": [
+      { "id": 107, "name": "Arce" },
+      { "id": 108, "name": "O'Connor" },
+      { "id": 109, "name": "Cercado" },
+      { "id": 110, "name": "Méndez" },
+      { "id": 111, "name": "Gran Chaco" },
+      { "id": 112, "name": "José María Avilés" }
+    ]
+  }
+]

@@ -201,7 +201,7 @@ import { onMounted, ref, computed } from 'vue'
 import { http } from 'boot/http'
 import { Report, ReportQuarter } from '../../../components/entities/Report'
 import { months as monthsLiteral } from '../../../components/plugins/datetime'
-import html2pdf from 'html2pdf.js'
+import { createPdf } from '../../../components/plugins/util'
 
 const route = useRoute()
 const store = useStore()
@@ -239,32 +239,12 @@ const getReportQuarter = async (id: string) => {
 }
 
 const printQuarterReport = async () => {
-  const element = document.getElementById('report-quarter')
-  if (!element) {
+  if (!route.params.id) {
     return
   }
-
-  // Wait a bit to ensure content is fully rendered
-  await new Promise(resolve => setTimeout(resolve, 100))
-
-  const opt = {
-    margin: [10, 10, 10, 10] as [number, number, number, number],
-    filename: `informe-trimestral-${store.state.user.user.company?.name || 'iglesia'}-${report.value?.year || ''}-${Date.now()}.pdf`,
-    image: { type: 'png' as const },
-    html2canvas: {
-      scale: 2.5,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff'
-    },
-    jsPDF: {
-      unit: 'mm' as const,
-      format: 'letter' as const,
-      orientation: 'landscape' as const
-    }
-  }
-
-  void html2pdf().set(opt).from(element).save()
+  const pdf = await http.get(`reports/${String(route.params.id)}/quarter-pdf`) as string
+  const filename = `informe-trimestral-${store.state.user.user.company?.name || 'iglesia'}-${report.value?.year || ''}-${Date.now()}.pdf`
+  createPdf(pdf, filename)
 }
 
 onMounted(() => {

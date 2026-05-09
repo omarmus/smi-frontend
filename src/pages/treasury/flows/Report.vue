@@ -437,6 +437,7 @@ const voucherHeaders = [{ name: 'Authorization', value: `Bearer ${storage.get('t
 const voucherUploading = ref(false)
 const mobileVoucherInputRef = ref<HTMLInputElement | null>(null)
 const maxVoucherSize = 5 * 1024 * 1024
+const compressionTarget = 800 * 1024 // 800 KB objetivo para fotos de cámara
 
 /** Quita los puntos del nombre del archivo y deja solo la extensión real (tras el último punto). */
 function sanitizeVoucherFilename (originalName: string): string {
@@ -450,33 +451,216 @@ function sanitizeVoucherFilename (originalName: string): string {
   return baseWithoutDots + ext
 }
 
+/**
+ * Comprime una imagen usando canvas hasta que cumpla el tamaño máximo.
+ * Devuelve un Blob con el contenido comprimido.
+ */
+async function compressImage (file: File, maxSizeBytes = 1024 * 1024, maxWidth = 1280): Promise<Blob | File> {
+  if (file.size <= maxSizeBytes) return file
+
+  // Obtener orientación EXIF si existe
+  const orientation = await getExifOrientation(file)
+
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const fr = new FileReader()
+    fr.onload = () => resolve(String(fr.result))
+    fr.onerror = reject
+    fr.readAsDataURL(file)
+  })
+
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = reject
+    image.src = dataUrl
+  })
+  let { width, height } = img
+  let ratio = 1
+  if (width > maxWidth) {
+    ratio = maxWidth / width
+    width = Math.round(width * ratio)
+    height = Math.round(height * ratio)
+  }
+
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+
+  // Ajustar canvas y aplicar transformaciones según orientación EXIF
+  if (orientation && orientation > 4) {
+    canvas.width = height
+    canvas.height = width
+  } else {
+    canvas.width = width
+    canvas.height = height
+  }
+
+  applyOrientationTransform(ctx, width, height, orientation || 1)
+  ctx.drawImage(img, 0, 0, width, height)
+
+  // Intentar con calidades decrecientes hasta que el tamaño sea aceptable
+  let quality = 0.92
+  const minQuality = 0.5
+  let blob: Blob | null = null
+
+  while (quality >= minQuality) {
+    // eslint-disable-next-line no-await-in-loop
+    blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/jpeg', quality)
+    })
+    if (!blob) break
+    if (blob.size <= maxSizeBytes) break
+    quality -= 0.12
+  }
+
+  if (blob && blob.size <= maxSizeBytes) return blob
+
+  // Si aún es demasiado grande, reducir dimensiones a la mitad y volver a intentar
+  let reducedWidth = Math.max(800, Math.round(width / 2))
+  while (reducedWidth >= 400) {
+    const scale = reducedWidth / width
+    const newW = Math.round(width * scale)
+    const newH = Math.round(height * scale)
+    canvas.width = newW
+    canvas.height = newH
+    ctx.drawImage(img, 0, 0, newW, newH)
+    // eslint-disable-next-line no-await-in-loop
+    blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/jpeg', minQuality)
+    })
+    if (blob && blob.size <= maxSizeBytes) return blob
+    reducedWidth = Math.round(reducedWidth / 2)
+  }
+
+  // Fallback: devolver el archivo original si no pudo comprimirse correctamente
+  return file
+}
+
+/** Lee la orientación EXIF (tag 0x0112) de un JPEG y devuelve el valor (1-8) o null. */
+async function getExifOrientation (file: File): Promise<number | null> {
+  try {
+    const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+      const fr = new FileReader()
+      fr.onload = () => resolve(fr.result as ArrayBuffer)
+      fr.onerror = reject
+      fr.readAsArrayBuffer(file.slice(0, 64 * 1024)) // solo los primeros KB
+    })
+
+    const view = new DataView(arrayBuffer)
+    if (view.getUint16(0, false) !== 0xFFD8) return null // no es JPEG
+
+    let offset = 2
+    const length = view.byteLength
+    while (offset < length) {
+      const marker = view.getUint16(offset, false)
+      offset += 2
+      if (marker === 0xFFE1) {
+        // const app1Length = view.getUint16(offset, false)
+        offset += 2
+        // Check for 'Exif' string
+        if (view.getUint32(offset, false) !== 0x45786966) return null
+        offset += 6 // 'Exif\0\0'
+
+        const little = view.getUint16(offset, false) === 0x4949
+        offset += 2
+        // const magic = view.getUint16(offset, little)
+        offset += 2
+        const ifdOffset = view.getUint32(offset, little)
+        offset += ifdOffset - 4
+
+        const entries = view.getUint16(offset, little)
+        offset += 2
+        for (let i = 0; i < entries; i++) {
+          const tag = view.getUint16(offset + i * 12, little)
+          if (tag === 0x0112) {
+            const value = view.getUint16(offset + i * 12 + 8, little)
+            return value
+          }
+        }
+        break
+      } else {
+        offset += view.getUint16(offset, false)
+      }
+    }
+    return null
+  } catch (e) {
+    return null
+  }
+}
+
+/** Aplica la transformación en el contexto para corregir la orientación EXIF antes de dibujar. */
+function applyOrientationTransform (ctx: CanvasRenderingContext2D, width: number, height: number, orientation: number) {
+  switch (orientation) {
+    case 2: // flip horizontal
+      ctx.transform(-1, 0, 0, 1, width, 0)
+      break
+    case 3: // rotate 180
+      ctx.transform(-1, 0, 0, -1, width, height)
+      break
+    case 4: // flip vertical
+      ctx.transform(1, 0, 0, -1, 0, height)
+      break
+    case 5: // transpose
+      ctx.transform(0, 1, 1, 0, 0, 0)
+      break
+    case 6: // rotate 90
+      ctx.transform(0, 1, -1, 0, height, 0)
+      break
+    case 7: // transverse
+      ctx.transform(0, -1, -1, 0, height, width)
+      break
+    case 8: // rotate -90
+      ctx.transform(0, -1, 1, 0, 0, width)
+      break
+    default:
+      break
+  }
+}
+
 async function onMobileVoucherChange (e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file || !entry.value) return
-  if (file.size > maxVoucherSize) {
-    message.error('El archivo supera el tamaño máximo (5 MB)')
-    input.value = ''
-    return
-  }
+
   voucherUploading.value = true
-  const formData = new FormData()
-  const safeFilename = sanitizeVoucherFilename(file.name)
-  formData.append('file', file, safeFilename)
   try {
-    const res = await fetch(voucherUrl, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${storage.get('token') as string}` },
-      body: formData
-    })
-    const json = await res.json() as Response<{ filename: string }>
-    if (json.data?.filename) {
-      entry.value.voucherDeposited = json.data.filename
+    let toUpload: File | Blob = file
+
+    // Si es imagen, intentar comprimir antes de subir
+    if (file.type && file.type.startsWith('image/')) {
+      const compressed = await compressImage(file, compressionTarget, 1280)
+      if (compressed instanceof File) {
+        toUpload = compressed
+      } else if (compressed instanceof Blob) {
+        const ext = '.jpg'
+        const safeName = sanitizeVoucherFilename(file.name).replace(/\.[^.]*$/, '') + ext
+        toUpload = new File([compressed], safeName, { type: compressed.type || 'image/jpeg' })
+      }
+    } else if (file.size > maxVoucherSize) {
+      // No es imagen y supera tamaño
+      message.error('El archivo supera el tamaño máximo (5 MB)')
+      input.value = ''
+      voucherUploading.value = false
+      return
+    }
+
+    const formData = new FormData()
+    const safeFilename = sanitizeVoucherFilename((toUpload as File).name || file.name)
+    formData.append('file', toUpload as Blob, safeFilename)
+
+    const data = await http.post(
+      `entries/${entry.value.id as number}/upload`,
+      formData,
+      false,
+      { 'Content-Type': 'multipart/form-data' }
+    ) as { filename?: string }
+
+    if (data?.filename) {
+      entry.value.voucherDeposited = data.filename
     } else {
       message.error('Error al subir el comprobante')
     }
-  } catch {
-    message.error('Error al subir el comprobante')
+  } catch (error) {
+    message.error(String(error || 'Error al subir el comprobante'))
   } finally {
     voucherUploading.value = false
     input.value = ''

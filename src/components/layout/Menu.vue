@@ -259,6 +259,12 @@ const renderMenu = () => {
         label: 'Ingresos y Gastos'
       })
     }
+    // if (store.state.user?.permissions?.includes('account:read') && !initial) {
+    //   treasury.items?.push({
+    //     path: '/treasury/accounts',
+    //     label: 'Gestión financiera'
+    //   })
+    // }
     if (store.state.user?.permissions?.includes('account:read') && !initial) {
       treasury.items?.push({
         path: '/treasury/accounts',

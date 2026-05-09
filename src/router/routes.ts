@@ -19,6 +19,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'months', component: () => import('pages/treasury/Months.vue') },
       { path: 'entryexpense/:entryId/:expenseId', component: () => import('pages/treasury/EntryExpense.vue') },
       { path: 'entries', component: () => import('pages/treasury/entries/Entries.vue') },
+      { path: 'entries/association', component: () => import('pages/treasury/entries/AssociationEntries.vue') },
       { path: 'week/:entryId/:expenseId', component: () => import('pages/treasury/entries/EntriesWeek.vue') },
       { path: 'entry/:entryId/:expenseId/:week', component: () => import('pages/treasury/entries/Entry.vue') },
       { path: 'reports', component: () => import('pages/treasury/reports/Reports.vue') },

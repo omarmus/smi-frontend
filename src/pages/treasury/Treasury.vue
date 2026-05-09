@@ -25,6 +25,20 @@
         />
       </div>
       <div
+        v-if="$store.state.user?.permissions?.includes('entry:read')"
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          icon="church"
+          label="Gestión financiera"
+          no-caps
+          @click="$router.push('/treasury/entries/association')"
+          class="full-width btn-block"
+        />
+      </div>
+      <div
         v-if="$store.state.user?.permissions?.includes('account:read')"
         class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn

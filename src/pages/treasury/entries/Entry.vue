@@ -140,25 +140,38 @@
             <div class="col-xs-6 q-pr-xs" id="entry-value">
               <q-input
                 filled
-                label="Valor"
+                label="Monto"
                 v-model="value"
                 lazy-rules
                 :rules="[validation.decimal, validation.required]" />
             </div>
-            <div class="col-xs-6">
+            <div class="col-xs-6 q-pr-xs" id="entry-payment-type">
               <q-select
                 filled
-                label="Fecha"
-                v-model="date"
-                :options="dates"
-                :rules="[ val => !!val || 'Seleccione el concepto']" />
+                label="Forma de entrega"
+                v-model="paymentType"
+                :options="paymentTypeOptions"
+                emit-value
+                map-options />
             </div>
           </div>
           <div class="col-xs-12">
-            <q-input
-              filled
-              label="Observaciones"
-              v-model="observation" />
+            <div class="row">
+              <div class="col-xs-6 q-pr-xs">
+                <q-select
+                  filled
+                  label="Fecha"
+                  v-model="date"
+                  :options="dates"
+                  :rules="[ val => !!val || 'Seleccione el concepto']" />
+              </div>
+              <div class="col-xs-6 q-pr-xs">
+                <q-input
+                  filled
+                  label="Observaciones"
+                  v-model="observation" />
+              </div>
+            </div>
           </div>
           <div
             class="col-xs-12"
@@ -383,11 +396,19 @@ const memberType = {
   visit: 'Visita'
 }
 
+const paymentTypeOptions = [
+  { label: 'Efectivo', value: 'CASH' },
+  { label: 'QR', value: 'QR' },
+  { label: 'Depósito', value: 'DEPOSIT' },
+  { label: 'Transferencia bancaria', value: 'BANK_TRANSFER' }
+]
+
 // data entry detail
 const idEntryDetail = ref<number | null>(null)
 const type = ref<string>('MEMBER')
 const name = ref<Option>({ value: '', label: '' })
 const concept = ref<Option>()
+const paymentType = ref<string>('CASH')
 const value = ref<number>()
 const date = ref<Option>()
 const dates = ref<Option[]>([])
@@ -492,6 +513,7 @@ const saveDetail = async () => {
     id: idEntryDetail.value,
     concepts: conceptsItems.value,
     type: type.value,
+    paymentType: paymentType.value as EntryDetail['paymentType'],
     id_entry: entry.value.id,
     date: date.value.value,
     week: week as number
@@ -550,6 +572,7 @@ const cleanEntryDetail = async () => {
   await nextTick(() => {
     idEntryDetail.value = null
     concept.value = null
+    paymentType.value = 'CASH'
     observation.value = ''
     value.value = ''
     index.value = -1
@@ -564,6 +587,7 @@ const editEntryDetails = async (id: number) => {
   const item = await http.get(`entriesdetails/${id}`) as EntryDetail
   type.value = item.type
   idEntryDetail.value = item.id
+  paymentType.value = item.paymentType || 'CASH'
 
   if (type.value === 'MEMBER') {
     name.value = { value: item.user.id, label: item.user.person.fullname }
