@@ -44,7 +44,15 @@ const routes: RouteRecordRaw[] = [
       { path: '', component: () => import('pages/secretary/Secretary.vue') },
       { path: 'members', component: () => import('pages/system/users/Member.vue') },
       { path: 'churchs', component: () => import('pages/system/companies/Church.vue') },
-      { path: 'departments', component: () => import('pages/secretary/departments/Departament.vue') }
+      { path: 'departments', component: () => import('pages/secretary/departments/Departament.vue') },
+      { path: 'positions', component: () => import('pages/secretary/positions/Position.vue') }
+    ]
+  },
+  {
+    path: '/system',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: 'audit', component: () => import('pages/system/audit/AuditLogs.vue') }
     ]
   },
 

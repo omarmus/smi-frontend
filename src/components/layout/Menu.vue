@@ -135,8 +135,8 @@ const entries = ref<Result<Entry>>()
 const expenses = ref<Result<Expense>>()
 
 const companyId = ref<number>(Number(store.state.user?.user?.company?.id))
-const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
-const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
+// const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
+// const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
 const isAdminTreasury = ref<boolean>([RoleSlug.WORKER, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug))
 
 // function darkModeChange () {
@@ -214,6 +214,10 @@ const renderMenu = () => {
   roles.value = store.state.user.roles
   role.value = store.state.user.role
 
+  const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
+  const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
+  const canSeeAudit = isSuperAdmin || isAdmin
+
   const initial = storage.get('initial')
 
   menu.value = []
@@ -241,6 +245,12 @@ const renderMenu = () => {
       secretary.items?.push({
         path: '/secretary/departments',
         label: 'Departamentos'
+      })
+    }
+    if (store.state.user?.permissions?.includes('position:read') && (isSuperAdmin || isAdmin)) {
+      secretary.items?.push({
+        path: '/secretary/positions',
+        label: 'Cargos'
       })
     }
     menu.value.push(secretary)
@@ -277,7 +287,27 @@ const renderMenu = () => {
         label: 'Reportes'
       })
     }
+    if (isAdmin && store.state.user?.permissions?.includes('entry:read')) {
+      treasury.items?.push({
+        path: '/treasury/entries/association',
+        label: 'Aportes a la asociación'
+      })
+    }
     menu.value.push(treasury)
+  }
+
+  if (canSeeAudit) {
+    const system: Menu = {
+      path: '/system',
+      label: 'Sistema',
+      icon: 'admin_panel_settings',
+      items: []
+    }
+    system.items?.push({
+      path: '/system/audit',
+      label: 'Bitácora de auditoría'
+    })
+    menu.value.push(system)
   }
 }
 
