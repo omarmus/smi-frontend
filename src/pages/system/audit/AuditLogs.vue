@@ -68,18 +68,18 @@
       @request="onRequest">
       <template v-slot:body="props">
         <q-tr :props="props">
-          <q-td auto-width>
+          <!-- <q-td auto-width>
             <q-btn
               size="sm"
               round
               dense
               :icon="props.expand ? 'remove' : 'add'"
               @click="props.expand = !props.expand" />
-          </q-td>
+          </q-td> -->
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
             <template v-if="col.name === 'createAt'">{{ formatDate(props.row.createAt) }}</template>
             <template v-else-if="col.name === 'eventName'">
-              <q-badge color="primary" :label="eventLabel(props.row.eventName)" />
+              <q-badge :color="eventColor(props.row.eventName)" :label="eventLabel(props.row.eventName)" />
             </template>
             <template v-else-if="col.name === 'severity'">
               <q-badge :color="severityColor(props.row.severity)" :label="severityLabel(props.row.severity)" />
@@ -155,30 +155,9 @@ const loading = ref(false)
 const pagination = ref({ page: 1, rowsPerPage: 30, sortBy: 'createAt', descending: true })
 const filters = ref({ eventName: null as string | null, actorUsername: '', startDate: '', endDate: '' })
 
-const eventOptions = [
-  { value: 'treasury_purged', label: 'Treasury Purged' },
-  { value: 'month_reopened', label: 'Month Reopened' },
-  { value: 'month_closed', label: 'Month Closed' },
-  { value: 'manual_contribution_saved', label: 'Manual Contribution Saved' },
-  { value: 'initial_balance_created', label: 'Initial Balance Created' },
-  { value: 'initial_balance_updated', label: 'Initial Balance Updated' },
-  { value: 'cross_church_report_viewed', label: 'Cross Church Report Viewed' },
-  { value: 'login_failed', label: 'Login Failed' },
-  { value: 'login_succeeded', label: 'Login Succeeded' },
-  { value: 'login_denied_inactive', label: 'Login Denied Inactive' },
-  { value: 'context_switched', label: 'Context Switched' },
-  { value: 'user_password_changed', label: 'User Password Changed' },
-  { value: 'user_roles_changed', label: 'User Roles Changed' },
-  { value: 'user_state_changed', label: 'User State Changed' },
-  { value: 'user_deleted', label: 'User Deleted' },
-  { value: 'company_deleted', label: 'Company Deleted' },
-  { value: 'company_state_changed', label: 'Company State Changed' },
-  { value: 'role_permissions_changed', label: 'Role Permissions Changed' }
-]
-
 const severityColor = (severity: string): string => {
   const map: Record<string, string> = {
-    LOW: 'green', MEDIUM: 'yellow', HIGH: 'orange', CRITICAL: 'red'
+    LOW: 'green-9', MEDIUM: 'amber-9', HIGH: 'deep-orange-7', CRITICAL: 'red-10'
   }
   return map[severity] ?? 'grey'
 }
@@ -193,7 +172,7 @@ const severityLabel = (severity: string): string => {
 const eventLabel = (eventName: string): string => {
   const map: Record<string, string> = {
     treasury_purged: 'Tesorería purgada',
-    month_reopened: 'Mes reopened',
+    month_reopened: 'Mes reabierto',
     month_closed: 'Mes cerrado',
     manual_contribution_saved: 'Aporte manual guardado',
     initial_balance_created: 'Balance inicial creado',
@@ -213,6 +192,51 @@ const eventLabel = (eventName: string): string => {
   }
   return map[eventName] ?? eventName
 }
+
+const eventColor = (eventName: string): string => {
+  const map: Record<string, string> = {
+    treasury_purged: 'red-10',
+    month_reopened: 'orange-9',
+    month_closed: 'green-9',
+    manual_contribution_saved: 'amber-9',
+    initial_balance_created: 'teal-10',
+    initial_balance_updated: 'teal-8',
+    cross_church_report_viewed: 'purple-10',
+    login_failed: 'red-10',
+    login_succeeded: 'green-9',
+    login_denied_inactive: 'orange-9',
+    context_switched: 'blue-10',
+    user_password_changed: 'amber-9',
+    user_roles_changed: 'indigo-9',
+    user_state_changed: 'indigo-8',
+    user_deleted: 'red-10',
+    company_deleted: 'red-9',
+    company_state_changed: 'indigo-9',
+    role_permissions_changed: 'purple-9'
+  }
+  return map[eventName] ?? 'grey'
+}
+
+const eventOptions = [
+  { value: 'treasury_purged', label: 'Tesorería purgada' },
+  { value: 'month_reopened', label: 'Mes reabierto' },
+  { value: 'month_closed', label: 'Mes cerrado' },
+  { value: 'manual_contribution_saved', label: 'Aporte manual guardado' },
+  { value: 'initial_balance_created', label: 'Balance inicial creado' },
+  { value: 'initial_balance_updated', label: 'Balance inicial actualizado' },
+  { value: 'cross_church_report_viewed', label: 'Reporte cruzado visualizado' },
+  { value: 'login_failed', label: 'Login fallido' },
+  { value: 'login_succeeded', label: 'Login exitoso' },
+  { value: 'login_denied_inactive', label: 'Login denegado (inactivo)' },
+  { value: 'context_switched', label: 'Cambio de contexto' },
+  { value: 'user_password_changed', label: 'Contraseña cambiada' },
+  { value: 'user_roles_changed', label: 'Roles de usuario cambiados' },
+  { value: 'user_state_changed', label: 'Estado de usuario cambiado' },
+  { value: 'user_deleted', label: 'Usuario eliminado' },
+  { value: 'company_deleted', label: 'Compañía eliminada' },
+  { value: 'company_state_changed', label: 'Estado de compañía cambiado' },
+  { value: 'role_permissions_changed', label: 'Permisos de rol cambiados' }
+]
 
 const roleLabel = (slug: string | null): string => {
   if (!slug) return '—'
