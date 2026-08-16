@@ -68,14 +68,6 @@
       @request="onRequest">
       <template v-slot:body="props">
         <q-tr :props="props">
-          <!-- <q-td auto-width>
-            <q-btn
-              size="sm"
-              round
-              dense
-              :icon="props.expand ? 'remove' : 'add'"
-              @click="props.expand = !props.expand" />
-          </q-td> -->
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
             <template v-if="col.name === 'createAt'">{{ formatDate(props.row.createAt) }}</template>
             <template v-else-if="col.name === 'eventName'">
@@ -86,6 +78,17 @@
             </template>
             <template v-else-if="col.name === 'payload'">
               <q-badge color="grey-7" :label="payloadSize(props.row.payload)" />
+              <q-btn
+                size="sm"
+                round
+                dense
+                class="q-ml-md"
+                :icon="props.expand ? 'remove' : 'add'"
+                @click="props.expand = !props.expand" />
+            </template>
+            <template v-else-if="col.name === 'actorUsername'">
+              <div class="text-weight-medium">{{ props.row.actorFullname || props.row.actorUsername || '—' }}</div>
+              <div class="text-caption text-grey">@{{ props.row.actorUsername }} · #{{ props.row.actorIdUser }}</div>
             </template>
             <template v-else-if="col.name === 'actorRoleSlug'">{{ roleLabel(props.row.actorRoleSlug) }}</template>
             <template v-else>{{ col.value }}</template>
@@ -121,6 +124,7 @@ interface AuditRow {
   severity: string
   actorIdUser: number | null
   actorUsername: string | null
+  actorFullname: string | null
   actorRoleSlug: string | null
   actorIdCompany: number | null
   targetType: string | null
