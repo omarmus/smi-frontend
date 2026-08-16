@@ -328,4 +328,10 @@ onMounted(() => void loadData())
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+:deep(.q-badge) {
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.03em;
+}
 </style>
