@@ -66,18 +66,6 @@
       row-key="id"
       @update:pagination="onPagination"
       @request="onRequest">
-      <template v-slot:body-cell-createAt="props">
-        <q-td :props="props">
-          {{ formatDate(props.value) }}
-        </q-td>
-      </template>
-
-      <template v-slot:body-cell-severity="props">
-        <q-td :props="props">
-          <q-badge :color="severityColor(props.value)" :label="props.value" />
-        </q-td>
-      </template>
-
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td auto-width>
