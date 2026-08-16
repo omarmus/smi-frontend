@@ -78,12 +78,6 @@
         </q-td>
       </template>
 
-      <template v-slot:body-cell-payload="props">
-        <q-td :props="props">
-          <q-badge color="grey-7" :label="payloadSize(props.value)" />
-        </q-td>
-      </template>
-
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td auto-width>
@@ -96,12 +90,16 @@
           </q-td>
           <q-td v-for="col in props.cols" :key="col.name" :props="props">
             <template v-if="col.name === 'createAt'">{{ formatDate(props.row.createAt) }}</template>
+            <template v-else-if="col.name === 'eventName'">
+              <q-badge color="primary" :label="eventLabel(props.row.eventName)" />
+            </template>
             <template v-else-if="col.name === 'severity'">
-              <q-badge :color="severityColor(props.row.severity)" :label="props.row.severity" />
+              <q-badge :color="severityColor(props.row.severity)" :label="severityLabel(props.row.severity)" />
             </template>
             <template v-else-if="col.name === 'payload'">
               <q-badge color="grey-7" :label="payloadSize(props.row.payload)" />
             </template>
+            <template v-else-if="col.name === 'actorRoleSlug'">{{ roleLabel(props.row.actorRoleSlug) }}</template>
             <template v-else>{{ col.value }}</template>
           </q-td>
         </q-tr>
@@ -195,6 +193,50 @@ const severityColor = (severity: string): string => {
     LOW: 'green', MEDIUM: 'yellow', HIGH: 'orange', CRITICAL: 'red'
   }
   return map[severity] ?? 'grey'
+}
+
+const severityLabel = (severity: string): string => {
+  const map: Record<string, string> = {
+    LOW: 'Bajo', MEDIUM: 'Medio', HIGH: 'Alto', CRITICAL: 'Crítico'
+  }
+  return map[severity] ?? severity
+}
+
+const eventLabel = (eventName: string): string => {
+  const map: Record<string, string> = {
+    treasury_purged: 'Tesorería purgada',
+    month_reopened: 'Mes reopened',
+    month_closed: 'Mes cerrado',
+    manual_contribution_saved: 'Aporte manual guardado',
+    initial_balance_created: 'Balance inicial creado',
+    initial_balance_updated: 'Balance inicial actualizado',
+    cross_church_report_viewed: 'Reporte cruzado visualizado',
+    login_failed: 'Login fallido',
+    login_succeeded: 'Login exitoso',
+    login_denied_inactive: 'Login denegado (inactivo)',
+    context_switched: 'Cambio de contexto',
+    user_password_changed: 'Contraseña cambiada',
+    user_roles_changed: 'Roles de usuario cambiados',
+    user_state_changed: 'Estado de usuario cambiado',
+    user_deleted: 'Usuario eliminado',
+    company_deleted: 'Compañía eliminada',
+    company_state_changed: 'Estado de compañía cambiado',
+    role_permissions_changed: 'Permisos de rol cambiados'
+  }
+  return map[eventName] ?? eventName
+}
+
+const roleLabel = (slug: string | null): string => {
+  if (!slug) return '—'
+  const map: Record<string, string> = {
+    SUPERADMINISTRATOR: 'Superadmin',
+    ADMINISTRATOR_UNION: 'Admin Unión',
+    ADMINISTRATOR_ASSOCIATION: 'Admin Asociación',
+    TREASURER: 'Tesorero',
+    WORKER: 'Obrero',
+    SECRETARY: 'Secretario'
+  }
+  return map[slug] ?? slug
 }
 
 const payloadSize = (payload: Record<string, unknown> | null): string => {
