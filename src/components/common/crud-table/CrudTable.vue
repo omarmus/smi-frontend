@@ -319,11 +319,13 @@ const getSelectedString = () => {
 }
 
 const setValuesFilter = () => {
-  props.filters?.forEach(item => {
-    if (item.value) {
-      filter.value[item.name] = item.value
-    }
-  })
+  if (props?.filters && Array.isArray(props.filters)) {
+    props.filters.forEach(item => {
+      if (item.value) {
+        filter.value[item.name] = item.value
+      }
+    })
+  }
 }
 
 watch(() => JSON.parse(JSON.stringify(filter.value)) as Record<string, string>, async () => {
