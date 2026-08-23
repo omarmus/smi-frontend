@@ -534,7 +534,10 @@
               color="primary"
               false-value="INACTIVE"
               true-value="ACTIVE"
-              @click="changeState(props.update, props.row, `${url}/${props.row.id}`)" />
+              tooltip="Cambiar estado del usuario"
+              @click="changeState(props.update, props.row, `${url}/${props.row.id}`)">
+              <q-tooltip>Dar acceso al sistema</q-tooltip>
+            </q-toggle>
             <q-btn-dropdown
               color="primary"
               dropdown-icon="more_vert"
@@ -574,7 +577,17 @@
                     <q-item-label>Imprimir</q-item-label>
                   </q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup @click="deleteItem(props.update, `${url}/${props.row.id}`)">
+                <q-item v-if="isSuperAdmin || isAdmin" clickable v-close-popup @click="openChangePassword(props.row)">
+                  <q-item-section avatar class="datatable-menu-item">
+                    <q-icon name="lock" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Cambiar contraseña</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item
+                  v-if="$store.state.user?.permissions?.includes('user:delete') && props.row.username !== $store.state.user?.user?.username"
+                  clickable v-close-popup @click="deleteItem(props.update, `${url}/${props.row.id}`)">
                   <q-item-section avatar class="datatable-menu-item">
                     <q-icon name="delete" />
                   </q-item-section>
@@ -607,7 +620,7 @@
               />
             </span>
           </q-td>
-          <q-td class="text-right">
+          <q-td class="text-right" v-if="isSuperAdmin || isAdmin">
             <q-chip
               square
               dense
@@ -626,6 +639,25 @@
     </CrudTable>
     <q-dialog v-model="dialogMemberPhoto" persistent transition-show="scale" transition-hide="scale">
       <MemberPhoto v-if="dialogMemberPhoto" :id="idUser" />
+    </q-dialog>
+    <q-dialog v-model="dialogChangePassword" persistent>
+      <q-card style="min-width: 400px">
+        <q-toolbar>
+          <q-icon name="lock" size="md" />
+          <q-toolbar-title>Cambiar contraseña de {{ passwordTargetName }}</q-toolbar-title>
+          <q-btn flat round dense icon="close" @click="dialogChangePassword = false" />
+        </q-toolbar>
+        <q-form @submit.prevent="savePassword">
+          <q-card-section>
+            <q-input filled label="Nueva contraseña" v-model="newPassword" type="password" :rules="[validation.required]" />
+            <q-input filled label="Repetir contraseña" v-model="confirmPassword" type="password" :rules="[v => v === newPassword || 'Las contraseñas no coinciden']" class="q-mt-sm" />
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn label="Cancelar" v-close-popup />
+            <q-btn type="submit" label="Guardar" color="primary" />
+          </q-card-actions>
+        </q-form>
+      </q-card>
     </q-dialog>
   </div>
 </template>
@@ -691,9 +723,12 @@ const columns = [
   // { label: 'Nombre de usuario', align: 'left', name: 'user.username', sortable: true },
   // { label: 'Correo electrónico', name: 'user.email', sortable: true },
   { label: (isAdmin ? 'Iglesia' : 'Fecha de nacimiento'), align: 'left', name: (isAdmin ? 'company.id' : 'person.birthday'), sortable: true },
-  { label: 'Tipo/estado de membresia', align: 'left', name: 'user.type', sortable: true },
-  { label: 'Estado del usuario', align: 'right', name: 'user.state', sortable: true }
+  { label: 'Tipo/estado de membresia', align: 'left', name: 'user.type', sortable: true }
 ]
+
+if (isSuperAdmin || isAdmin) {
+  columns.push({ label: 'Acceso al sistema', align: 'right', name: 'user.state', sortable: true })
+}
 
 const filters = ref([
   {
@@ -786,6 +821,11 @@ const disablePassword = ref<boolean>(false)
 const myForm = ref(null)
 const viewPassword = ref<boolean>(true)
 const dialogMemberPhoto = ref<boolean>(false)
+const dialogChangePassword = ref<boolean>(false)
+const passwordTargetId = ref<number>()
+const passwordTargetName = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
 const selected = ref<boolean>(true)
 
 const openModal = async (open: () => void, id?: number, tabDefault = 'personal') => {
@@ -886,6 +926,32 @@ const openAddPhoto = (item: User) => {
     dialogMemberPhoto.value = true
     idUser.value = item.id
   })
+}
+
+const openChangePassword = (row: User) => {
+  passwordTargetId.value = row.id
+  passwordTargetName.value = row.person?.fullname || row.username
+  newPassword.value = ''
+  confirmPassword.value = ''
+  dialogChangePassword.value = true
+}
+
+const savePassword = async () => {
+  if (newPassword.value !== confirmPassword.value) {
+    message.warning('Las contraseñas no coinciden')
+    return
+  }
+  if (passwordTargetId.value === undefined) {
+    message.error('Error al cambiar la contraseña')
+    return
+  }
+  try {
+    await http.post(`users/${passwordTargetId.value}/password`, { newPassword: newPassword.value })
+    message.success('Contraseña actualizada correctamente')
+    dialogChangePassword.value = false
+  } catch (error) {
+    message.error('Error al cambiar la contraseña')
+  }
 }
 
 const now = new Date()
