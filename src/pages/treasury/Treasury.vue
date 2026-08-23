@@ -25,14 +25,14 @@
         />
       </div>
       <div
-        v-if="$store.state.user?.permissions?.includes('entry:read')"
+        v-if="isAdmin && $store.state.user?.permissions?.includes('entry:read')"
         class="col-xs-12 col-sm-6 col-md-3 card-button">
         <q-btn
           flat
           color="secondary"
           padding="lg"
           icon="church"
-          label="Gestión financiera"
+          label="Aportes a la asociación"
           no-caps
           @click="$router.push('/treasury/entries/association')"
           class="full-width btn-block"
@@ -79,10 +79,12 @@ import { http } from 'boot/http'
 import { Result } from '../../components/entities/Entity'
 import { Entry } from '../../components/entities/Entry'
 import { Expense } from '../../components/entities/Expense'
+import { RoleSlug } from '../../components/entities/Permission'
 import { useStore } from '../../store'
 
 const store = useStore()
 const idCompany = Number(store.state.user?.user?.company?.id)
+const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
 
 const router = useRouter()
 const entries = ref<Result<Entry>>()
