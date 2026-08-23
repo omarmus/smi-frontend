@@ -18,6 +18,7 @@ export interface ExpenseDetail {
   document_type: string
   documentNumber: string
   supplier: string
+  responsible: string
   expense: Expense
   department?: Department
   idDepartment: number

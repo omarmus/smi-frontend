@@ -113,8 +113,16 @@
           <div class="col-xs-12">
             <q-input
               filled
-              label="Proveedor o responsable"
-              v-model="form.supplier" />
+              label="Proveedor"
+              v-model="form.supplier"
+              placeholder="Persona o empresa que emite el comprobante (factura, recibo o nota de venta)" />
+          </div>
+          <div class="col-xs-12">
+            <q-input
+              filled
+              label="Responsable"
+              v-model="form.responsible"
+              placeholder="Persona interna que autoriza, solicita o gestiona este gasto" />
           </div>
           <div class="col-xs-12">
             <q-btn
@@ -176,6 +184,7 @@
                     <li v-if="item.document_type"><strong>Tipo de documento:</strong> {{ item.document_type }}</li>
                     <li v-if="item.document_number"><strong>Número de documento:</strong> {{ item.document_number }}</li>
                     <li v-if="item.supplier"><strong>Proveedor:</strong> {{ item.supplier }}</li>
+                    <li v-if="item.responsible"><strong>Responsable:</strong> {{ item.responsible }}</li>
                   </ul>
                 </td>
                 <td class="text-right total">{{ item.value }}</td>
@@ -240,6 +249,7 @@ const form = ref<ExpenseDetail>({
   documentType: '',
   document_number: '',
   supplier: '',
+  responsible: '',
   expense: null,
   department: null,
   idDepartment: null
@@ -326,6 +336,7 @@ const cleanExpenseDetail = async () => {
       documentType: '',
       document_number: '',
       supplier: '',
+      responsible: '',
       expense: null,
       department: null,
       idDepartment: null
