@@ -87,7 +87,7 @@
                 @click="props.expand = !props.expand" />
             </template>
             <template v-else-if="col.name === 'actorUsername'">
-              <div class="text-weight-medium">{{ props.row.actorFullname || props.row.actorUsername || '—' }}</div>
+              <div class="text-weight-medium">{{ props.row.actorFullname || props.row.actorUsername || props.row.payload?.username || props.row.payload?.reopened_by_username || '—' }}</div>
               <div class="text-caption text-grey">@{{ props.row.actorUsername }} · #{{ props.row.actorIdUser }}</div>
             </template>
             <template v-else-if="col.name === 'actorRoleSlug'">{{ roleLabel(props.row.actorRoleSlug) }}</template>
