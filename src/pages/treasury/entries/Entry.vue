@@ -511,7 +511,6 @@ const saveDetail = async () => {
   loadingSend.value = true
   const item: EntryDetail = {
     id: idEntryDetail.value,
-    concepts: conceptsItems.value,
     type: type.value,
     paymentType: paymentType.value as EntryDetail['paymentType'],
     id_entry: entry.value.id,
@@ -519,6 +518,7 @@ const saveDetail = async () => {
     week: week as number
   }
   if (type.value === 'MEMBER') {
+    item.concepts = conceptsItems.value
     item.value = totalConcept.value
     item.id_user = name.value.value
     if (!item.id_user) {
@@ -670,6 +670,19 @@ watch(concept, (val: string) => {
       document.querySelector('#entry-value input').focus()
     })
   }
+})
+
+// Limpia los campos compartidos al alternar entre Persona y Congregación,
+// para no mezclar conceptos/usuario/monto del modo anterior en el guardado.
+// No se dispara durante editEntryDetails() porque ahí idEntryDetail ya está seteado.
+watch(type, () => {
+  if (idEntryDetail.value) return
+  conceptsItems.value = []
+  name.value = { value: '', label: '' }
+  concept.value = null
+  observation.value = ''
+  value.value = ''
+  index.value = -1
 })
 
 // select customize
