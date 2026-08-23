@@ -51,6 +51,20 @@
           class="full-width btn-block"
         />
       </div>
+      <div
+        v-if="$store.state.user?.permissions?.includes('position:read') && (isSuperAdmin || isAdmin)"
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          icon="work"
+          label="Cargos"
+          no-caps
+          @click="$router.push('/secretary/positions')"
+          class="full-width btn-block"
+        />
+      </div>
     </div>
   </div>
 </template>
