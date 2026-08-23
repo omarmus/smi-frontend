@@ -33,5 +33,6 @@ yarn-error.log*
 *.sln
 
 .env.local
+.env
 
 # package-lock.json
