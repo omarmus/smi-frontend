@@ -44,7 +44,17 @@
     <div
       v-if="flows.length && (type === 'GENERAL' || type === 'INITIAL')"
       class="row flow-items q-col-gutter-x-lg q-pt-md">
-      <h3 class="flow-title col-12">Flujo de caja {{ type === 'GENERAL' ? 'General' : 'Inicial' }}</h3>
+      <h3 class="flow-title col-12">
+        Flujo de caja {{ type === 'GENERAL' ? 'General' : 'Inicial' }}
+        <q-btn
+          v-if="type === 'INITIAL' && initialEditable && isAdmin"
+          label="Editar"
+          no-caps
+          color="warning"
+          icon="edit"
+          class="q-ml-md"
+          @click="isEditingInitial = !isEditingInitial" />
+      </h3>
       <div
         class="col-xs-12 col-sm-6"
         v-for="item in flows"
@@ -52,7 +62,18 @@
         <div class="row q-pb-xs">
           <div class="col-8">{{ item.department?.name }}</div>
           <div class="col-xs-4 col-sm-4">
+            <q-input
+              v-if="type === 'INITIAL' && isEditingInitial"
+              standout
+              class="text-right"
+              dense
+              placeholder="0"
+              :suffix="$store.state.user?.user.company.money"
+              v-model="item.total"
+              type="number"
+              step="0.01" />
             <q-field
+              v-else
               standout
               class="text-right"
               dense
@@ -64,6 +85,14 @@
             </q-field>
           </div>
         </div>
+      </div>
+      <div v-if="type === 'INITIAL' && isEditingInitial" class="col-12 text-right q-pt-md">
+        <q-btn
+          label="Guardar cambios"
+          no-caps
+          color="primary"
+          icon="check"
+          @click="updateInitial" />
       </div>
     </div>
     <div
@@ -206,13 +235,103 @@
     </div>
     </div>
     <div v-else-if="flows.length === 0 && type === 'MONTH'" class="q-pa-sm text-primary">No existe datos para el mes de <strong>{{ monthsLiteral[month - 1] }}</strong>.</div>
+
+    <div v-if="isAssociationAdmin && type === 'INITIAL'" class="q-mt-xl">
+      <q-card flat bordered class="danger-zone">
+        <q-card-section>
+          <div class="row items-center q-gutter-sm">
+            <q-icon name="warning" size="28px" color="negative" />
+            <div class="text-h6 text-negative">Zona peligrosa</div>
+          </div>
+          <div class="q-mt-sm text-body2 text-grey-8">
+            Esta acción elimina de forma <strong>permanente e irreversible</strong> todos los datos
+            de tesorería de la/el <strong>{{ companyName }}</strong>: entradas, detalles de entrada, gastos, detalles de gasto
+            y balances (incluido el balance inicial). Tras la purga, la iglesia volverá al estado
+            de "sin inicializar" y deberá cargar nuevamente el saldo acumulado de cada departamento.
+          </div>
+          <div class="q-mt-md text-caption text-grey-7">
+            Solo el <strong>administrador de la asociación</strong> puede ejecutar esta acción.
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn
+            label="Eliminar todos los datos de tesorería"
+            no-caps
+            color="negative"
+            icon="delete_forever"
+            padding="10px 20px"
+            @click="openPurgeDialog" />
+        </q-card-actions>
+      </q-card>
+    </div>
+
+    <q-dialog v-model="showPurgeDialog" persistent>
+      <q-card style="min-width: 480px; max-width: 600px;">
+        <q-card-section class="row items-center q-pb-none">
+          <q-icon name="warning" size="32px" class="q-mr-sm" />
+          <div class="text-h6">Confirmar purga de tesorería</div>
+        </q-card-section>
+        <q-card-section class="q-pt-md">
+          <p class="q-mb-sm">
+            Vas a eliminar <strong>de forma permanente</strong>:
+          </p>
+          <ul class="q-pl-md">
+            <li>Todas las <strong>entradas</strong> (semanas de culto) y sus <strong>detalles</strong></li>
+            <li>Todos los <strong>gastos</strong> del año y sus <strong>detalles</strong></li>
+            <li>Todos los <strong>balances</strong>, incluido el <strong>balance inicial</strong></li>
+          </ul>
+          <q-banner dense class="bg-red-1 text-red-10 q-mt-sm q-mb-md">
+            <template #avatar>
+              <q-icon name="error" color="negative" />
+            </template>
+            <strong>Esta acción es irreversible.</strong> No hay respaldo automático. Deberás
+            volver a inicializar la caja local cargando el saldo de cada departamento.
+          </q-banner>
+          <p class="q-mb-xs">
+            Para confirmar, escribe exactamente el nombre de la iglesia
+            <strong class="text-uppercase">{{ companyName }}</strong> en el campo de abajo:
+          </p>
+          <q-input
+            v-model="purgeConfirmText"
+            dense
+            filled
+            :placeholder="companyName"
+            autofocus
+            class="q-mt-sm"
+            :rules="[v => (v || '').trim().toUpperCase() === companyName.toUpperCase() || 'El texto no coincide con el nombre de la iglesia']"
+            lazy-rules />
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn
+            label="Cancelar"
+            no-caps
+            flat
+            color="secondary"
+            padding="8px 20px"
+            v-close-popup />
+          <q-btn
+            label="Sí, eliminar todo"
+            no-caps
+            color="negative"
+            icon="delete_forever"
+            padding="8px 20px"
+            :disable="!isPurgeConfirmed"
+            :loading="purging"
+            @click="confirmPurge" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onBeforeMount, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { http } from 'boot/http'
+import { message } from 'boot/message'
+import { storage } from 'boot/storage'
 import { Result } from '../../../components/entities/Entity'
+import { RoleSlug } from '../../../components/entities/Permission'
 import { months as monthsLiteral, getYears } from '../../../components/plugins/datetime'
 import { Flow } from '../../../components/entities/Flow'
 import { Entry } from '../../../components/entities/Entry'
@@ -220,8 +339,16 @@ import { useStore } from '../../../store'
 import html2pdf from 'html2pdf.js'
 
 const store = useStore()
+const router = useRouter()
 
 const idCompany = store.state.user?.user?.company.id as number
+
+const initialEditable = ref(false)
+const isEditingInitial = ref(false)
+
+const isAdmin = computed(() =>
+  [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION, RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
+)
 
 const getCurrentFlow = async () => {
   const url = `entries?id_company=${idCompany}&state=ACTIVE`
@@ -229,6 +356,14 @@ const getCurrentFlow = async () => {
   if (items.count > 0) {
     month.value = items.rows[0].month === 1 ? 12 : items.rows[0].month - 1
     year.value = items.rows[0].month === 1 ? (items.rows[0].year - 1) : items.rows[0].year
+  }
+}
+
+const getInitialEditable = async () => {
+  if (type.value === 'INITIAL') {
+    const result = await http.get('flows/initial-editable') as { code: number, data?: { editable: boolean, reason?: string }, editable?: boolean }
+    // Backend returns { code, data: { editable } } or flat { editable }
+    initialEditable.value = result.data?.editable ?? result.editable ?? false
   }
 }
 
@@ -248,6 +383,18 @@ const types = [
 
 const flows = ref<[Flow]>([])
 
+const updateInitial = async () => {
+  const departments = flows.value.map((item: Flow) => ({
+    id: item.department.id,
+    total: item.total
+  }))
+  await http.put('flows/initial', {
+    id_company: idCompany,
+    departments
+  })
+  message.success('Balance inicial actualizado correctamente')
+}
+
 const getFlows = async () => {
   if (type.value === 'GENERAL') {
     const url = `expenses/report/${type.value as string}?id_company=${idCompany}`
@@ -262,6 +409,7 @@ const getFlows = async () => {
     const items = await http.get(url) as Result<Flow>
     flows.value = items.rows
   }
+  await getInitialEditable()
 }
 
 const nextMonth = () => {
@@ -361,6 +509,54 @@ watch(type, async () => (await getFlows()))
 watch(year, async () => (await getFlows()))
 watch(month, async () => (await getFlows()))
 
+// ─── Purga de datos de tesorería (solo ADMINISTRATOR_ASSOCIATION) ────────────
+
+const companyName = computed(() => store.state.user?.user?.company?.name || '')
+
+const isAssociationAdmin = computed(() =>
+  store?.state?.user?.role?.slug === RoleSlug.ADMINISTRATOR_ASSOCIATION
+)
+
+const showPurgeDialog = ref(false)
+const purgeConfirmText = ref('')
+const purging = ref(false)
+
+const isPurgeConfirmed = computed(() =>
+  (purgeConfirmText.value || '').trim().toUpperCase() === companyName.value.trim().toUpperCase()
+)
+
+const openPurgeDialog = () => {
+  purgeConfirmText.value = ''
+  showPurgeDialog.value = true
+}
+
+const confirmPurge = async () => {
+  if (!isPurgeConfirmed.value) return
+  purging.value = true
+  try {
+    // ponytail: http wrapper ya filtra errores y resuelve con response.data.data
+    // (el backend usa code=1 para éxito, no 200, y nunca llega al componente)
+    const result = await http.post('flows/purge', {}) as { purged: boolean, counts?: Record<string, number> }
+    if (result.purged) {
+      const counts = result.counts || {}
+      message.success(
+        `Datos purgados. Eliminados: ${counts.entries || 0} entradas, ${counts.entryDetails || 0} detalles de entrada, ${counts.transactions || 0} transacciones bancarias, ${counts.expenses || 0} gastos, ${counts.expenseDetails || 0} detalles de gasto, ${counts.balances || 0} balances.`
+      )
+      showPurgeDialog.value = false
+      // Marcar como no inicializada para que Treasury.vue redirija al formulario
+      storage.set('initial', true)
+      store.commit('global/setInitial', true)
+      return router.push('/treasury/flows/initial')
+    }
+    message.error('No se pudo purgar los datos de tesorería')
+  } catch (err) {
+    const errorMessage = typeof err === 'object' && err !== null && 'message' in err ? String(err.message) : 'Error al purgar los datos de tesorería'
+    message.error(errorMessage)
+  } finally {
+    purging.value = false
+  }
+}
+
 onBeforeMount(async () => {
   await getCurrentFlow()
 })
@@ -372,5 +568,10 @@ onBeforeMount(async () => {
   justify-content: space-between;
   align-items: center;
   margin: 15px 0;
+}
+
+.danger-zone {
+  border-left: 4px solid #c10015;
+  background-color: #fff8f8;
 }
 </style>
