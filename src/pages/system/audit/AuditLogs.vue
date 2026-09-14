@@ -5,96 +5,43 @@
       Bitácora de auditoría
     </h2>
 
-    <!-- Filters -->
-    <div class="q-pb-md">
-      <div class="row q-col-gutter-sm">
-        <div class="col-xs-12 col-sm-4 col-md-3">
-          <q-select
-            v-model="filters.eventName"
-            :options="eventOptions"
-            label="Evento"
-            filled
-            dense
-            clearable
-            emit-value
-            map-options
-            @update:model-value="loadData" />
-        </div>
-        <div class="col-xs-12 col-sm-4 col-md-3">
-          <q-input
-            v-model="filters.actorUsername"
-            label="Usuario actor"
-            filled
-            dense
-            clearable
-            debounce="500"
-            @update:model-value="loadData" />
-        </div>
-        <div class="col-xs-12 col-sm-4 col-md-3">
-          <q-input v-model="filters.startDate" label="Desde" filled dense clearable>
-            <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy>
-                  <q-date v-model="filters.startDate" mask="YYYY-MM-DD" @update:model-value="loadData" />
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
-        </div>
-        <div class="col-xs-12 col-sm-4 col-md-3">
-          <q-input v-model="filters.endDate" label="Hasta" filled dense clearable>
-            <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy>
-                  <q-date v-model="filters.endDate" mask="YYYY-MM-DD" @update:model-value="loadData" />
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
-        </div>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <q-table
-      flat
-      :rows="rows"
+    <CrudTable
+      url="audit-logs"
       :columns="columns"
-      :loading="loading"
-      :pagination="pagination"
-      :rows-per-page-options="[15, 30, 50]"
-      row-key="id"
-      @update:pagination="onPagination"
-      @request="onRequest">
-      <template v-slot:body="props">
-        <q-tr :props="props">
-          <q-td v-for="col in props.cols" :key="col.name" :props="props">
-            <template v-if="col.name === 'createAt'">{{ formatDate(props.row.createAt) }}</template>
-            <template v-else-if="col.name === 'eventName'">
-              <q-badge :color="eventColor(props.row.eventName)" :label="eventLabel(props.row.eventName)" />
-            </template>
-            <template v-else-if="col.name === 'severity'">
-              <q-badge :color="severityColor(props.row.severity)" :label="severityLabel(props.row.severity)" />
-            </template>
-            <template v-else-if="col.name === 'payload'">
-              <q-badge color="grey-7" :label="payloadSize(props.row.payload)" />
-              <q-btn
-                size="sm"
-                round
-                dense
-                class="q-ml-md"
-                :icon="props.expand ? 'remove' : 'add'"
-                @click="props.expand = !props.expand" />
-            </template>
-            <template v-else-if="col.name === 'actorUsername'">
-              <div class="text-weight-medium">{{ props.row.actorFullname || props.row.actorUsername || props.row.payload?.username || props.row.payload?.reopened_by_username || '—' }}</div>
-              <div class="text-caption text-grey">@{{ props.row.actorUsername }} · #{{ props.row.actorIdUser }}</div>
-            </template>
-            <template v-else-if="col.name === 'actorRoleSlug'">{{ roleLabel(props.row.actorRoleSlug) }}</template>
-            <template v-else>{{ col.value }}</template>
+      :filters="filters"
+      order="-createAt"
+      :open-filter="true"
+      buttons-hidden
+    >
+      <template v-slot:row="props">
+        <q-tr>
+          <q-td>{{ formatDate(props.row.createAt) }}</q-td>
+          <q-td>
+            <q-badge :color="eventColor(props.row.eventName)" :label="eventLabel(props.row.eventName)" />
+          </q-td>
+          <q-td>
+            <q-badge :color="severityColor(props.row.severity)" :label="severityLabel(props.row.severity)" />
+          </q-td>
+          <q-td>
+            <div class="text-weight-medium">{{ props.row.actorFullname || props.row.actorUsername || '—' }}</div>
+            <div class="text-caption text-grey">@{{ props.row.actorUsername }} · #{{ props.row.actorIdUser }}</div>
+          </q-td>
+          <q-td>{{ roleLabel(props.row.actorRoleSlug) }}</q-td>
+          <q-td>{{ props.row.targetType }}</q-td>
+          <q-td class="text-center">{{ props.row.targetId }}</q-td>
+          <q-td>{{ props.row.ip }}</q-td>
+          <q-td class="text-center">
+            <q-badge color="grey-7" :label="payloadSize(props.row.payload)" />
+            <q-btn
+              size="sm"
+              round
+              dense
+              class="q-ml-md"
+              :icon="expanded[props.row.id] ? 'remove' : 'add'"
+              @click="toggleExpand(props.row.id)" />
           </q-td>
         </q-tr>
-        <q-tr v-if="props.expand" :props="props">
+        <q-tr v-if="expanded[props.row.id]">
           <q-td colspan="100%">
             <div class="q-pa-md">
               <div class="text-caption text-grey q-mb-sm">Payload</div>
@@ -110,37 +57,13 @@
       <template v-slot:no-data>
         <div class="full-width text-center q-pa-md text-grey">No hay registros de auditoría</div>
       </template>
-    </q-table>
+    </CrudTable>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { http } from 'boot/http'
-
-interface AuditRow {
-  id: number
-  eventName: string
-  severity: string
-  actorIdUser: number | null
-  actorUsername: string | null
-  actorFullname: string | null
-  actorRoleSlug: string | null
-  actorIdCompany: number | null
-  targetType: string | null
-  targetId: number | null
-  idCompany: number | null
-  payload: Record<string, unknown> | null
-  ip: string | null
-  userAgent: string | null
-  requestId: string | null
-  createAt: string
-}
-
-interface AuditResult {
-  rows: AuditRow[]
-  count: number
-}
+import { reactive } from 'vue'
+import CrudTable from 'src/components/common/crud-table/CrudTable.vue'
 
 const columns = [
   { name: 'createAt', label: 'Fecha/Hora', field: 'createAt', align: 'left' as const, sortable: true },
@@ -154,10 +77,42 @@ const columns = [
   { name: 'payload', label: 'Payload', field: 'payload', align: 'center' as const }
 ]
 
-const rows = ref<AuditRow[]>([])
-const loading = ref(false)
-const pagination = ref({ page: 1, rowsPerPage: 30, sortBy: 'createAt', descending: true })
-const filters = ref({ eventName: null as string | null, actorUsername: '', startDate: '', endDate: '' })
+const filters = [
+  {
+    label: 'Evento',
+    name: 'eventName',
+    type: 'select',
+    options: [
+      { value: 'treasury_purged', label: 'Tesorería purgada' },
+      { value: 'month_reopened', label: 'Mes reabierto' },
+      { value: 'month_closed', label: 'Mes cerrado' },
+      { value: 'manual_contribution_saved', label: 'Aporte manual guardado' },
+      { value: 'initial_balance_created', label: 'Balance inicial creado' },
+      { value: 'initial_balance_updated', label: 'Balance inicial actualizado' },
+      { value: 'cross_church_report_viewed', label: 'Reporte cruzado visualizado' },
+      { value: 'login_failed', label: 'Login fallido' },
+      { value: 'login_succeeded', label: 'Login exitoso' },
+      { value: 'login_denied_inactive', label: 'Login denegado (inactivo)' },
+      { value: 'context_switched', label: 'Cambio de contexto' },
+      { value: 'user_password_changed', label: 'Contraseña cambiada' },
+      { value: 'user_roles_changed', label: 'Roles de usuario cambiados' },
+      { value: 'user_state_changed', label: 'Estado de usuario cambiado' },
+      { value: 'user_deleted', label: 'Usuario eliminado' },
+      { value: 'company_deleted', label: 'Compañía eliminada' },
+      { value: 'company_state_changed', label: 'Estado de compañía cambiado' },
+      { value: 'role_permissions_changed', label: 'Permisos de rol cambiados' }
+    ]
+  },
+  { label: 'Usuario actor', name: 'actorUsername', type: 'input' },
+  { label: 'Desde', name: 'startDate', type: 'date' },
+  { label: 'Hasta', name: 'endDate', type: 'date' }
+]
+
+const expanded = reactive<Record<number, boolean>>({})
+
+const toggleExpand = (id: number) => {
+  expanded[id] = !expanded[id]
+}
 
 const severityColor = (severity: string): string => {
   const map: Record<string, string> = {
@@ -221,27 +176,6 @@ const eventColor = (eventName: string): string => {
   return map[eventName] ?? 'grey'
 }
 
-const eventOptions = [
-  { value: 'treasury_purged', label: 'Tesorería purgada' },
-  { value: 'month_reopened', label: 'Mes reabierto' },
-  { value: 'month_closed', label: 'Mes cerrado' },
-  { value: 'manual_contribution_saved', label: 'Aporte manual guardado' },
-  { value: 'initial_balance_created', label: 'Balance inicial creado' },
-  { value: 'initial_balance_updated', label: 'Balance inicial actualizado' },
-  { value: 'cross_church_report_viewed', label: 'Reporte cruzado visualizado' },
-  { value: 'login_failed', label: 'Login fallido' },
-  { value: 'login_succeeded', label: 'Login exitoso' },
-  { value: 'login_denied_inactive', label: 'Login denegado (inactivo)' },
-  { value: 'context_switched', label: 'Cambio de contexto' },
-  { value: 'user_password_changed', label: 'Contraseña cambiada' },
-  { value: 'user_roles_changed', label: 'Roles de usuario cambiados' },
-  { value: 'user_state_changed', label: 'Estado de usuario cambiado' },
-  { value: 'user_deleted', label: 'Usuario eliminado' },
-  { value: 'company_deleted', label: 'Compañía eliminada' },
-  { value: 'company_state_changed', label: 'Estado de compañía cambiado' },
-  { value: 'role_permissions_changed', label: 'Permisos de rol cambiados' }
-]
-
 const roleLabel = (slug: string | null): string => {
   if (!slug) return '—'
   const map: Record<string, string> = {
@@ -271,53 +205,6 @@ const formatPayload = (payload: Record<string, unknown> | null): string => {
   if (!payload) return '{}'
   return JSON.stringify(payload, null, 2)
 }
-
-const buildQuery = (): Record<string, string> => {
-  const q: Record<string, string> = {}
-  if (filters.value.eventName) q.eventName = filters.value.eventName
-  if (filters.value.actorUsername) q.actorUsername = filters.value.actorUsername
-  if (filters.value.startDate) q.startDate = filters.value.startDate
-  if (filters.value.endDate) q.endDate = filters.value.endDate
-  q.page = String(pagination.value.page)
-  q.limit = String(pagination.value.rowsPerPage)
-  if (pagination.value.sortBy) {
-    q.order = `${pagination.value.sortBy}`
-    if (pagination.value.descending) q.order += ' DESC'
-  }
-  return q
-}
-
-const loadData = async () => {
-  loading.value = true
-  try {
-    const q = buildQuery()
-    const result = await http.get('audit-logs?' + new URLSearchParams(q).toString()) as AuditResult
-    rows.value = result.rows ?? []
-    pagination.value.rowsNumber = result.count ?? 0
-  } finally {
-    loading.value = false
-  }
-}
-
-const onPagination = (p: Record<string, unknown>) => {
-  pagination.value.page = p.page as number
-  pagination.value.rowsPerPage = p.rowsPerPage as number
-  pagination.value.sortBy = p.sortBy as string
-  pagination.value.descending = p.descending as boolean
-  void loadData()
-}
-
-const onRequest = (props: { pagination: Record<string, unknown> }) => {
-  pagination.value = {
-    page: props.pagination.page as number,
-    rowsPerPage: props.pagination.rowsPerPage as number,
-    sortBy: props.pagination.sortBy as string,
-    descending: props.pagination.descending as boolean
-  }
-  void loadData()
-}
-
-onMounted(() => void loadData())
 </script>
 
 <style scoped>
