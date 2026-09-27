@@ -47,7 +47,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'departments', component: () => import('pages/secretary/departments/Departament.vue') },
       { path: 'positions', component: () => import('pages/secretary/positions/Position.vue') },
       { path: 'report-templates', component: () => import('pages/secretary/reports/ReportTemplate.vue') },
-      { path: 'form-reports', component: () => import('pages/secretary/reports/FormReports.vue') }
+      { path: 'form-reports', component: () => import('pages/secretary/reports/FormReports.vue') },
+      { path: 'form-reports/:id', component: () => import('pages/secretary/reports/FormReportFill.vue') }
     ]
   },
   {
