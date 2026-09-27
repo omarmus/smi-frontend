@@ -26,4 +26,6 @@ export interface FormReportDetail extends FormReport {
   totals: Record<string, number>
   /** Días del mes derivados en el server (leap-aware). */
   daysInMonth: number
+  /** Nombre completo del dueño del informe (línea NOMBRE de la impresión). */
+  ownerName: string
 }

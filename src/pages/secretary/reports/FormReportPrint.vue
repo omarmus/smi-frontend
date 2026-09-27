@@ -35,7 +35,8 @@
         ASOCIACION BOLIVIANA DE LA MISION ADVENTISTA DEL SEPTIMO DIA MOVIMIENTO DE REFORMA
       </div>
       <div class="print-title">{{ formTitle }}</div>
-      <div class="print-name">NOMBRE: ____________________________________</div>
+      <!-- C5: el server devuelve el nombre completo del dueño del informe -->
+      <div class="print-name">NOMBRE: {{ detail.ownerName || '____________________________________' }}</div>
       <div class="print-month">{{ monthYear }}</div>
 
       <table class="print-table">

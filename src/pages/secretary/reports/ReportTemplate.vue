@@ -72,17 +72,20 @@
                     class="column-row q-pa-sm q-mb-sm">
                     <div class="row q-col-gutter-sm items-start">
                       <div class="col-12 col-sm-3">
+                        <!-- C3: la clave la genera el server; aquí solo se lee -->
                         <q-input
-                          v-model="column.key"
-                          label="Clave (inglés)"
+                          :model-value="column.key"
+                          label="Clave (generada)"
                           filled
                           dense
-                          hint="minúsculas: hours_worked" />
+                          readonly
+                          placeholder="Se genera al guardar" />
                       </div>
                       <div class="col-12 col-sm-4">
                         <q-input
                           v-model="column.label"
-                          label="Etiqueta (español)"
+                          label="Nombre de la columna"
+                          placeholder="Ej.: Horas de viaje, Hogares visitados, Reuniones…"
                           filled
                           dense />
                       </div>
@@ -280,24 +283,15 @@ const validate = (): boolean => {
     message.error('Debe tener al menos una columna.')
     return false
   }
-  const keys = list.map(column => column.key.trim())
-  for (const key of keys) {
-    if (!/^[a-z][a-z0-9_]{0,39}$/.test(key)) {
-      message.error(`Clave de columna inválida: ${key}`)
-      return false
-    }
-  }
-  if (new Set(keys).size !== keys.length) {
-    message.error('Hay claves de columna repetidas.')
-    return false
-  }
+  // C3: las claves las genera el server (y ahí también se garantiza que no se
+  // repitan), así que el formulario solo exige etiqueta/tipo/total coherentes.
   for (const column of list) {
     if (!column.label.trim()) {
-      message.error(`La columna ${column.key} necesita una etiqueta`)
+      message.error('Cada columna necesita un nombre.')
       return false
     }
     if (column.total && column.kind !== 'number') {
-      message.error(`Solo las columnas numéricas pueden ser total: ${column.key}`)
+      message.error(`Solo las columnas numéricas pueden ser total: ${column.label}`)
       return false
     }
   }

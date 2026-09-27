@@ -5,14 +5,22 @@
 
 export type ColumnKind = 'number' | 'text'
 
+/**
+ * Origen de la columna en un informe: `template` = vino con la plantilla
+ * (solo lectura para quien llena), `custom` = la agregó el usuario.
+ */
+export type ColumnSource = 'template' | 'custom'
+
 export interface ReportColumn {
-  /** Slug inglés, único dentro de la plantilla. */
+  /** Slug generado por el server; el usuario nunca lo escribe. */
   key: string
   /** Etiqueta visible en español. */
   label: string
   kind: ColumnKind
   /** Participa en la suma de totales (solo columnas numéricas). */
   total: boolean
+  /** Lo decide el server al crear/editar; ausente ⇒ plantilla. */
+  source?: ColumnSource
 }
 
 export enum FormKind {
@@ -42,6 +50,13 @@ export interface ReportTemplate {
 /** Claves derivadas: nunca se guardan, se calculan al render. */
 export const DERIVED_KEYS = ['day', 'date', 'total']
 
+/**
+ * Quién gestiona la columna. Un valor ausente o desconocido cuenta como
+ * plantilla: el lado seguro (solo lectura) igual que en el server.
+ */
+export const columnSource = (column: Partial<ReportColumn>): ColumnSource =>
+  column?.source === 'custom' ? 'custom' : 'template'
+
 export const formLabels: Record<string, string> = {
   [FormKind.WORK]: 'Trabajo',
   [FormKind.EXPENSE]: 'Descargo'
@@ -63,6 +78,7 @@ export const kindLabels: Record<ColumnKind, string> = {
   text: 'Texto'
 }
 
+/** Columna en blanco: `key` vacía porque la genera el server al guardarla. */
 export const emptyColumn = (): ReportColumn => ({
   key: '',
   label: '',

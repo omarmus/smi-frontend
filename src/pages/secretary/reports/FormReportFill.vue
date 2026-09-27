@@ -89,31 +89,46 @@
       <q-card class="day-dialog">
         <q-toolbar class="q-pa-md">
           <q-icon name="edit_calendar" size="md" />
-          <q-toolbar-title>Día {{ selectedDay }}</q-toolbar-title>
+          <!-- C4: la cabecera ES la fecha del día que se llena, no un input -->
+          <q-toolbar-title>{{ selectedDateLabel }}</q-toolbar-title>
           <q-btn flat round dense icon="close" @click="dayDialog = false" />
         </q-toolbar>
         <q-card-section>
           <q-form @submit="saveDay">
             <div class="row q-col-gutter-sm">
               <div
-                v-for="column in detail?.columns || []"
+                v-for="column in editableColumns"
                 :key="column.key"
                 class="col-12">
                 <q-input
-                  v-if="isDerived(column)"
-                  :label="column.label"
-                  filled
-                  dense
-                  readonly
-                  :model-value="derivedValue(column)" />
-                <q-input
-                  v-else-if="column.kind === 'number'"
-                  v-model="formValues[column.key]"
+                  v-if="column.kind === 'number'"
+                  :model-value="formValues[column.key]"
                   :label="column.label"
                   filled
                   dense
                   type="number"
-                  inputmode="decimal" />
+                  inputmode="decimal"
+                  :rules="rules.nonNegative"
+                  @update:model-value="value => setNumber(column.key, value)">
+                  <!-- C4: +/− a la derecha; el valor nunca baja de 0 -->
+                  <template #append>
+                    <q-btn
+                      dense
+                      flat
+                      round
+                      size="sm"
+                      icon="remove"
+                      :disable="!(Number(formValues[column.key]) > 0)"
+                      @click="stepNumber(column.key, -1)" />
+                    <q-btn
+                      dense
+                      flat
+                      round
+                      size="sm"
+                      icon="add"
+                      @click="stepNumber(column.key, 1)" />
+                  </template>
+                </q-input>
                 <q-input
                   v-else
                   v-model="formValues[column.key]"
@@ -158,18 +173,32 @@
                   {{ column.key }} · {{ kindName(column) }}
                   <span v-if="column.total"> · total</span>
                   <span v-if="isDerived(column)"> · derivada</span>
+                  <span v-else-if="columnSource(column) === 'template'"> · plantilla</span>
                 </q-item-label>
               </q-item-section>
-              <q-item-section side>
-                <q-btn
-                  flat
-                  round
-                  color="negative"
-                  icon="delete"
-                  :disable="!canUpdate"
-                  @click="askRemoveColumn(column.key)">
-                  <q-tooltip>Quitar columna</q-tooltip>
-                </q-btn>
+              <!-- C2: las columnas de la plantilla son de solo lectura acá;
+                   quien llena edita y quita SOLO las suyas (custom) -->
+              <q-item-section v-if="columnSource(column) === 'custom'" side>
+                <div class="row items-center no-wrap">
+                  <q-btn
+                    flat
+                    round
+                    color="primary"
+                    icon="edit"
+                    :disable="!canUpdate"
+                    @click="openEditColumn(column)">
+                    <q-tooltip>Editar columna</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="negative"
+                    icon="delete"
+                    :disable="!canUpdate"
+                    @click="askRemoveColumn(column.key)">
+                    <q-tooltip>Quitar columna</q-tooltip>
+                  </q-btn>
+                </div>
               </q-item-section>
             </q-item>
           </q-list>
@@ -177,12 +206,12 @@
       </q-card>
     </q-dialog>
 
-    <!-- Agregar columna -->
+    <!-- Agregar / editar columna (la clave la genera el server: C3) -->
     <q-dialog v-model="addColumnDialog" persistent>
       <q-card class="day-dialog">
         <q-toolbar class="q-pa-md">
-          <q-icon name="playlist_add" size="md" />
-          <q-toolbar-title>Agregar columna</q-toolbar-title>
+          <q-icon :name="editingKey ? 'edit' : 'playlist_add'" size="md" />
+          <q-toolbar-title>{{ editingKey ? 'Editar columna' : 'Agregar columna' }}</q-toolbar-title>
           <q-btn flat round dense icon="close" @click="addColumnDialog = false" />
         </q-toolbar>
         <q-card-section>
@@ -190,17 +219,9 @@
             <div class="row q-col-gutter-sm">
               <div class="col-12">
                 <q-input
-                  v-model="newColumn.key"
-                  label="Clave (inglés)"
-                  filled
-                  dense
-                  hint="minúsculas: hours_worked"
-                  :rules="rules.key" />
-              </div>
-              <div class="col-12">
-                <q-input
                   v-model="newColumn.label"
-                  label="Etiqueta (español)"
+                  label="Nombre de la columna"
+                  placeholder="Ej.: Horas de viaje, Hogares visitados, Reuniones…"
                   filled
                   dense
                   :rules="rules.required" />
@@ -221,9 +242,13 @@
                   label="Marcar como total"
                   :disable="newColumn.kind !== 'number'" />
               </div>
+              <div class="col-12 text-caption text-grey">
+                Se sumará automáticamente en la fila de totales del mes.
+                Aplica solo a columnas numéricas.
+              </div>
               <div class="col-12 text-right q-gutter-sm q-mt-sm">
                 <q-btn icon="close" label="Cancelar" type="button" @click="addColumnDialog = false" />
-                <q-btn icon="check" color="secondary" label="Agregar" type="submit" />
+                <q-btn icon="check" color="secondary" :label="editingKey ? 'Guardar' : 'Agregar'" type="submit" />
               </div>
             </div>
           </q-form>
@@ -246,6 +271,7 @@ import { FormReportDetail } from '../../../components/entities/FormReport'
 import {
   DERIVED_KEYS,
   ReportColumn,
+  columnSource,
   emptyColumn,
   formLabels,
   kindLabels
@@ -266,13 +292,17 @@ const detail = ref<FormReportDetail>()
 const dayDialog = ref(false)
 const columnsDialog = ref(false)
 const addColumnDialog = ref(false)
+/** Clave de la columna que se está editando; null ⇒ el diálogo agrega una. */
+const editingKey = ref<string | null>(null)
 const selectedDay = ref<number>()
 const formValues = ref<Record<string, string | number>>({})
 const newColumn = ref<ReportColumn>(emptyColumn())
 
 const rules = {
   required: [validation.required],
-  key: [(v: string) => /^[a-z][a-z0-9_]{0,39}$/.test(v || '') || 'Clave inválida (minúsculas y guiones bajos)']
+  // C4: el campo numérico rechaza negativos aunque se escriban a mano
+  nonNegative: [(v: string | number) =>
+    v === '' || v === null || v === undefined || Number(v) >= 0 || 'No se permiten valores negativos']
 }
 
 const kindOptions = Object.entries(kindLabels).map(([value, label]) => ({ value, label }))
@@ -288,6 +318,17 @@ const title = computed(() => {
   const month = months[Number(report.month) - 1] || ''
   const form = formLabels[report.form] || report.form
   return `INFORME ${form.toUpperCase()} — ${month.toUpperCase()} ${report.year}`
+})
+
+/** C4: fecha completa del día que se está llenando (cabecera del diálogo). */
+const selectedDateLabel = computed(() => {
+  const report = detail.value
+  const day = selectedDay.value
+  if (!report || !day) {
+    return ''
+  }
+  const month = months[Number(report.month) - 1] || ''
+  return `${day} de ${month.toLowerCase()} de ${report.year}`
 })
 
 const editableColumns = computed(() =>
@@ -327,20 +368,28 @@ const isDerived = (column: ReportColumn) => DERIVED_KEYS.includes(column.key)
 
 const kindName = (column: ReportColumn) => kindLabels[column.kind] || column.kind
 
-const derivedValue = (column: ReportColumn): string => {
-  const report = detail.value
-  const day = selectedDay.value
-  if (!report || !day) {
-    return ''
+/**
+ * C4 — el valor numérico nunca baja de 0, ni escribiendo ni con los botones.
+ * Se conserva el texto crudo si es válido (para poder teclear "1.5"), y un
+ * negativo o un texto no numérico se corrige de inmediato.
+ */
+const setNumber = (key: string, value: unknown) => {
+  const text = value === null || value === undefined ? '' : String(value)
+  if (text === '') {
+    formValues.value[key] = ''
+    return
   }
-  if (column.key === 'day') {
-    return String(day)
+  const numeric = Number(text)
+  if (!Number.isFinite(numeric)) {
+    formValues.value[key] = ''
+    return
   }
-  if (column.key === 'date') {
-    const pad = (value: number) => String(value).padStart(2, '0')
-    return `${pad(day)}/${pad(Number(report.month))}/${report.year}`
-  }
-  return ''
+  formValues.value[key] = numeric < 0 ? 0 : text
+}
+
+const stepNumber = (key: string, delta: number) => {
+  const current = Number(formValues.value[key])
+  formValues.value[key] = Math.max(0, (Number.isFinite(current) ? current : 0) + delta)
 }
 
 const dayChips = (row: DayRow) => {
@@ -418,22 +467,41 @@ const clearDay = async () => {
 
 const openAddColumn = () => {
   newColumn.value = emptyColumn()
+  editingKey.value = null
   addColumnDialog.value = true
 }
 
+const openEditColumn = (column: ReportColumn) => {
+  newColumn.value = { ...column }
+  editingKey.value = column.key
+  addColumnDialog.value = true
+}
+
+/**
+ * C3: el body solo lleva `label`/`kind`/`total` — la clave la genera el server
+ * (al agregar) y la identidad de la columna no cambia (al editar).
+ */
 const saveColumn = async () => {
   const report = detail.value
   if (!report) {
     return
   }
-  await http.post(`form-reports/${String(report.id)}/columns`, {
-    key: newColumn.value.key.trim(),
+  const payload = {
     label: newColumn.value.label.trim(),
     kind: newColumn.value.kind,
     total: newColumn.value.kind === 'number' && newColumn.value.total
-  })
-  message.success('¡Columna agregada!')
+  }
+  const url = `form-reports/${String(report.id)}/columns`
+
+  if (editingKey.value) {
+    await http.put(`${url}/${editingKey.value}`, payload)
+    message.success('¡Columna actualizada!')
+  } else {
+    await http.post(url, payload)
+    message.success('¡Columna agregada!')
+  }
   addColumnDialog.value = false
+  editingKey.value = null
   await load()
 }
 
