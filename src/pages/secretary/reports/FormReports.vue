@@ -8,6 +8,12 @@
         @click="$router.push('/secretary')" />
       Informes mensuales
     </h2>
+    <q-banner v-if="blocked" dense class="bg-red-1 text-red-10 q-mb-md">
+      <template #avatar>
+        <q-icon name="error" color="negative" />
+      </template>
+      {{ blockedMessage }}
+    </q-banner>
     <CrudTable
       :url="url"
       :filters="filters"
@@ -16,7 +22,7 @@
     >
       <template v-slot:buttons="props">
         <q-btn
-          v-if="can('form_report:create')"
+          v-if="canCreate"
           class="q-ml-none q-mr-xs"
           icon="add"
           no-caps
@@ -36,6 +42,17 @@
           <q-card-section>
             <q-form @submit="create(props)">
               <div class="row q-col-gutter-md">
+                <div class="col-xs-12">
+                  <q-select
+                    label="Tipo"
+                    filled
+                    v-model="selectedType"
+                    :options="typeOptions"
+                    :disable="typeLocked"
+                    :rules="rules.required"
+                    emit-value
+                    map-options />
+                </div>
                 <div class="col-xs-12">
                   <q-select
                     label="Plantilla"
@@ -114,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
@@ -162,16 +179,54 @@ const form = ref<{ idTemplate?: number, month?: number, year?: number }>({
   month: new Date().getMonth() + 1,
   year: new Date().getFullYear()
 })
-const templateOptions = ref<{ value: number, label: string }[]>([])
+
+/** Respuesta de `GET form-reports/my-report-type` (motivos en inglés). */
+interface ReportTypeAccess {
+  unrestricted: boolean
+  type: string | null
+  reason: string | null
+}
+
+/** El backend devuelve el código; la frase en español vive acá (R5/R6). */
+const blockedMessage = 'No tiene un cargo asignado para generar informes. Contacte con el administrador para que le asigne un cargo.'
+
+const access = ref<ReportTypeAccess>()
+const allTemplates = ref<ReportTemplate[]>([])
+const selectedType = ref<string>()
+
+const typeOptions = Object.entries(typeLabels).map(([value, label]) => ({ value, label }))
+/** No-admin: el tipo sale de su cargo y queda fijado (selector deshabilitado). */
+const typeLocked = computed(() => !!access.value && !access.value.unrestricted)
+const blocked = computed(() => !!access.value && !access.value.unrestricted && !access.value.type)
+const canCreate = computed(() => can('form_report:create') && !blocked.value)
+
+const templateOptions = computed(() =>
+  allTemplates.value
+    .filter(template => !selectedType.value || template.type === selectedType.value)
+    .map(template => ({
+      value: Number(template.id),
+      label: `${formLabels[template.form] || template.form} — ${typeLabels[template.type] || template.type}`
+    }))
+)
+
+// cambiar de tipo invalida la plantilla elegida (pertenecía al tipo anterior)
+watch(selectedType, () => { form.value.idTemplate = undefined })
+
+onMounted(async () => {
+  access.value = await http.get('form-reports/my-report-type', false) as ReportTypeAccess
+  if (blocked.value) {
+    message.error(blockedMessage)
+  }
+})
 
 const monthName = (month: number) => months[Number(month) - 1] || month
 
 const openCreateModal = async (open: () => void) => {
-  const templates = await http.get('report-templates?limit=100&state=ACTIVE', false) as Result<ReportTemplate>
-  templateOptions.value = (templates.rows || []).map(template => ({
-    value: Number(template.id),
-    label: `${formLabels[template.form] || template.form} — ${typeLabels[template.type] || template.type}`
-  }))
+  // la lista sale de form-reports/templates (no de report-templates): el
+  // WORKER ya no tiene `report_template:read` y ese 403 lo mandaría a /404
+  const templates = await http.get('form-reports/templates', false) as Result<ReportTemplate>
+  allTemplates.value = templates.rows || []
+  selectedType.value = typeLocked.value ? (access.value?.type ?? undefined) : undefined
   form.value = {
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear()

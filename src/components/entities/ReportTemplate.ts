@@ -50,7 +50,7 @@ export const formLabels: Record<string, string> = {
 export const typeLabels: Record<string, string> = {
   [FormType.PASTOR]: 'Pastor',
   [FormType.ADMINISTRATIVE]: 'Administrativo',
-  [FormType.BIBLICAL_WORKER]: 'Trabajador bíblico'
+  [FormType.BIBLICAL_WORKER]: 'Obrero bíblico'
 }
 
 export const stateLabels: Record<string, string> = {
