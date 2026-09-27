@@ -100,35 +100,46 @@
                 v-for="column in editableColumns"
                 :key="column.key"
                 class="col-12">
-                <q-input
+                <!-- B6-2: los −/+ son botones PROPIOS junto al input (la fila
+                     crece con el input, los botones quedan fijos a la derecha) -->
+                <div
                   v-if="column.kind === 'number'"
-                  :model-value="formValues[column.key]"
-                  :label="column.label"
-                  filled
-                  dense
-                  type="number"
-                  inputmode="decimal"
-                  :rules="rules.nonNegative"
-                  @update:model-value="value => setNumber(column.key, value)">
-                  <!-- C4: +/− a la derecha; el valor nunca baja de 0 -->
-                  <template #append>
-                    <q-btn
+                  class="row no-wrap items-center q-col-gutter-xs cell-row">
+                  <div class="col">
+                    <q-input
+                      class="cell-number"
+                      :model-value="formValues[column.key]"
+                      :label="column.label"
+                      filled
                       dense
-                      flat
+                      type="number"
+                      inputmode="decimal"
+                      :rules="rules.nonNegative"
+                      @update:model-value="value => setNumber(column.key, value)" />
+                  </div>
+                  <!-- C4/B6-2: el valor nunca baja de 0 (el − queda deshabilitado en 0) -->
+                  <div class="col-auto row no-wrap q-gutter-xs">
+                    <q-btn
+                      color="primary"
+                      dense
                       round
                       size="sm"
                       icon="remove"
                       :disable="!(Number(formValues[column.key]) > 0)"
-                      @click="stepNumber(column.key, -1)" />
+                      @click="stepNumber(column.key, -1)">
+                      <q-tooltip>Restar 1</q-tooltip>
+                    </q-btn>
                     <q-btn
+                      color="primary"
                       dense
-                      flat
                       round
                       size="sm"
                       icon="add"
-                      @click="stepNumber(column.key, 1)" />
-                  </template>
-                </q-input>
+                      @click="stepNumber(column.key, 1)">
+                      <q-tooltip>Sumar 1</q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
                 <q-input
                   v-else
                   v-model="formValues[column.key]"
@@ -146,7 +157,7 @@
                   label="Limpiar día"
                   type="button"
                   @click="clearDay" />
-                <q-btn icon="check" color="secondary" label="Guardar" type="submit" />
+                <q-btn icon="check" color="primary" label="Guardar" type="submit" />
               </div>
             </div>
           </q-form>
@@ -248,7 +259,7 @@
               </div>
               <div class="col-12 text-right q-gutter-sm q-mt-sm">
                 <q-btn icon="close" label="Cancelar" type="button" @click="addColumnDialog = false" />
-                <q-btn icon="check" color="secondary" :label="editingKey ? 'Guardar' : 'Agregar'" type="submit" />
+                <q-btn icon="check" color="primary" :label="editingKey ? 'Guardar' : 'Agregar'" type="submit" />
               </div>
             </div>
           </q-form>
@@ -563,5 +574,23 @@ onMounted(() => {
 .column-total {
   display: flex;
   align-items: center;
+}
+
+/*
+ * B6-4 — ponytail: los botones −/+ son los ÚNICOS controles de estos campos;
+ * las flechas nativas del `input[type=number]` además permiten bajar de 0.
+ * El bloque `<style>` de este SFC NO está scoped (los dialogs viven en un
+ * portal a `body`), así que el alcance lo pone la clase `.cell-number` y no
+ * se tocan los inputs numéricos de Tesorería.
+ */
+.cell-number input[type='number']::-webkit-inner-spin-button,
+.cell-number input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cell-number input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>

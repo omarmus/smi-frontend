@@ -43,6 +43,8 @@ export interface ReportTemplate {
   id?: number
   form: string
   type: string
+  /** B6-6 — nombre visible, p.ej. `Informe de Trabajo - Pastor`. */
+  name: string
   columns: ReportColumn[]
   state?: TemplateState
 }
@@ -89,6 +91,7 @@ export const emptyColumn = (): ReportColumn => ({
 export const newTemplate = (): ReportTemplate => ({
   form: FormKind.WORK,
   type: FormType.PASTOR,
+  name: '',
   columns: [],
   state: TemplateState.ACTIVE
 })

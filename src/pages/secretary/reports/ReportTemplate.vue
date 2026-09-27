@@ -38,6 +38,15 @@
           <q-card-section>
             <q-form @submit="save(props)">
               <div class="row q-col-gutter-md">
+                <!-- B6-6: nombre visible de la plantilla (identificador `name`) -->
+                <div class="col-xs-12">
+                  <q-input
+                    v-model="template.name"
+                    label="Nombre"
+                    placeholder="Ej.: Informe de Trabajo - Pastor"
+                    filled
+                    :rules="rules.required" />
+                </div>
                 <div class="col-xs-12 col-md-6">
                   <q-select
                     label="Formulario"
@@ -71,17 +80,8 @@
                     :key="index"
                     class="column-row q-pa-sm q-mb-sm">
                     <div class="row q-col-gutter-sm items-start">
-                      <div class="col-12 col-sm-3">
-                        <!-- C3: la clave la genera el server; aquí solo se lee -->
-                        <q-input
-                          :model-value="column.key"
-                          label="Clave (generada)"
-                          filled
-                          dense
-                          readonly
-                          placeholder="Se genera al guardar" />
-                      </div>
-                      <div class="col-12 col-sm-4">
+                      <!-- B6-6: sin campo de clave — la genera el server al guardar -->
+                      <div class="col-12 col-sm-5">
                         <q-input
                           v-model="column.label"
                           label="Nombre de la columna"
@@ -89,7 +89,7 @@
                           filled
                           dense />
                       </div>
-                      <div class="col-6 col-sm-2">
+                      <div class="col-6 col-sm-3">
                         <q-select
                           v-model="column.kind"
                           label="Tipo"
@@ -105,7 +105,7 @@
                           label="Total"
                           :disable="column.kind !== 'number'" />
                       </div>
-                      <div class="col-12 col-sm-1 text-right column-actions">
+                      <div class="col-12 col-sm-2 text-right column-actions">
                         <q-btn
                           flat
                           round
@@ -150,7 +150,7 @@
                 </div>
                 <div class="col-xs-12 text-right q-gutter-sm">
                   <q-btn icon="close" label="Cancelar" @click="props.close" />
-                  <q-btn icon="check" color="secondary" label="Guardar" type="submit" />
+                  <q-btn icon="check" color="primary" label="Guardar" type="submit" />
                 </div>
               </div>
             </q-form>
@@ -178,6 +178,7 @@
               <q-tooltip>Eliminar registro</q-tooltip>
             </q-btn>
           </q-td>
+          <q-td>{{ props.row.name }}</q-td>
           <q-td>{{ formLabels[props.row.form] || props.row.form }}</q-td>
           <q-td>{{ typeLabels[props.row.type] || props.row.type }}</q-td>
           <q-td>{{ props.row.columns?.length || 0 }}</q-td>
@@ -222,6 +223,8 @@ const can = (permission: string) =>
 
 const columns = [
   { label: 'Acciones', align: 'center', sortable: false },
+  // B6-6: el nombre visible encabeza la fila (el form/type ya van dentro)
+  { name: 'name', label: 'Nombre', align: 'left', sortable: true },
   { name: 'form', label: 'Formulario', align: 'left', sortable: true },
   { name: 'type', label: 'Tipo', align: 'left', sortable: true },
   { name: 'columns', label: 'Columnas', align: 'center', sortable: false },
@@ -312,6 +315,8 @@ const save = async (crud: { update: () => void, close: () => void }) => {
   const payload = {
     form: template.value.form,
     type: template.value.type,
+    // B6-6: el nombre viaja en crear y en editar (lo valida el server)
+    name: (template.value.name || '').trim(),
     columns: list,
     state: template.value.state || TemplateState.ACTIVE
   }

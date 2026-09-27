@@ -42,23 +42,27 @@
           <q-card-section>
             <q-form @submit="create(props)">
               <div class="row q-col-gutter-md">
-                <div class="col-xs-12">
+                <!-- B6-5: el tipo es dato interno del obrero (lo resuelve el
+                     server vía my-report-type); solo la administración lo elige -->
+                <div v-if="!typeLocked" class="col-xs-12">
                   <q-select
                     label="Tipo"
                     filled
                     v-model="selectedType"
                     :options="typeOptions"
-                    :disable="typeLocked"
                     :rules="rules.required"
                     emit-value
                     map-options />
                 </div>
                 <div class="col-xs-12">
+                  <!-- B6-5: vacío y deshabilitado hasta elegir tipo (admin);
+                       el obrero ve directamente las de su tipo resuelto -->
                   <q-select
-                    label="Plantilla"
+                    label="Informe"
                     filled
                     v-model="form.idTemplate"
                     :options="templateOptions"
+                    :disable="informeDisabled"
                     :rules="rules.required"
                     emit-value
                     map-options />
@@ -83,7 +87,7 @@
                 </div>
                 <div class="col-xs-12 text-right q-gutter-sm">
                   <q-btn icon="close" label="Cancelar" @click="props.close" />
-                  <q-btn icon="check" color="secondary" label="Crear" type="submit" />
+                  <q-btn icon="check" color="primary" label="Crear" type="submit" />
                 </div>
               </div>
             </q-form>
@@ -202,12 +206,19 @@ const canCreate = computed(() => can('form_report:create') && !blocked.value)
 
 const templateOptions = computed(() =>
   allTemplates.value
-    .filter(template => !selectedType.value || template.type === selectedType.value)
+    // B6-5: sin tipo elegido NO hay plantillas (el admin ve el campo vacío y
+    // deshabilitado hasta elegir; el obrero ya recibe las de su tipo del server)
+    .filter(template => !!selectedType.value && template.type === selectedType.value)
     .map(template => ({
       value: Number(template.id),
-      label: `${formLabels[template.form] || template.form} — ${typeLabels[template.type] || template.type}`
+      // B6-6: la opción muestra el nombre de la plantilla
+      label: template.name ||
+        `${formLabels[template.form] || template.form} — ${typeLabels[template.type] || template.type}`
     }))
 )
+
+/** B6-5: el campo `Informe` solo se habilita cuando ya hay un tipo elegido. */
+const informeDisabled = computed(() => !typeLocked.value && !selectedType.value)
 
 // cambiar de tipo invalida la plantilla elegida (pertenecía al tipo anterior)
 watch(selectedType, () => { form.value.idTemplate = undefined })

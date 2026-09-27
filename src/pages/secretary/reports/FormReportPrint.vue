@@ -216,7 +216,10 @@ const doPdf = () => {
     jsPDF: {
       unit: 'mm' as const,
       format: 'letter' as const,
-      orientation: 'portrait' as const
+      // B6-1: el PDF sale apaisado (15 columnas no caben en retrito).
+      // html2pdf.js reenvía estas opciones a jsPDF; la vista de impresión
+      // (printHTML) no cambia.
+      orientation: 'landscape' as const
     }
   }
   void html2pdf().set(opt).from(element).save()
