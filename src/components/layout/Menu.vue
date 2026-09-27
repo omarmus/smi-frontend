@@ -261,17 +261,17 @@ const renderMenu = () => {
     // nunca ven los reportes aunque el permiso venga en el JWT.
     const canSeeReports = isSuperAdmin || isAdmin ||
       [RoleSlug.WORKER].includes(store?.state?.user?.role?.slug as RoleSlug)
+    // UNA sola entrada "Informes": la landing (Reports.vue) muestra las
+    // tarjetas — plantillas solo para la administración, informes mensuales
+    // para todos los perfiles con acceso. Se ve con cualquiera de los dos
+    // permisos.
     const reportItems: Menu[] = []
-    if (canSeeReports && store.state.user?.permissions?.includes('report_template:read')) {
+    const canSeeAnyReport = store.state.user?.permissions?.includes('report_template:read') ||
+      store.state.user?.permissions?.includes('form_report:read')
+    if (canSeeReports && canSeeAnyReport) {
       reportItems.push({
-        path: '/secretary/report-templates',
-        label: 'Plantillas de reporte'
-      })
-    }
-    if (canSeeReports && store.state.user?.permissions?.includes('form_report:read')) {
-      reportItems.push({
-        path: '/secretary/form-reports',
-        label: 'Informes mensuales'
+        path: '/secretary/reports',
+        label: 'Informes'
       })
     }
     if (reportItems.length > 0) {

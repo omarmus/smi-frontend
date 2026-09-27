@@ -46,6 +46,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'churchs', component: () => import('pages/system/companies/Church.vue') },
       { path: 'departments', component: () => import('pages/secretary/departments/Departament.vue') },
       { path: 'positions', component: () => import('pages/secretary/positions/Position.vue') },
+      // landing de informes: dos tarjetas (plantillas + informes mensuales)
+      { path: 'reports', component: () => import('pages/secretary/reports/Reports.vue') },
       { path: 'report-templates', component: () => import('pages/secretary/reports/ReportTemplate.vue') },
       { path: 'form-reports', component: () => import('pages/secretary/reports/FormReports.vue') },
       // print ANTES de form-reports/:id (diseño: evitar capturas por :id)
