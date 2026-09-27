@@ -59,15 +59,18 @@
         :key="item.path"
       >
         <q-list padding class="menu-list menu-sublist" v-if="item.items">
-          <q-item
-            v-for="subitem in item.items"
-            :key="subitem.path"
-            @click="goPath(subitem)" :active="$route.path.indexOf(subitem.path) !== -1" clickable v-ripple>
-            <q-item-section avatar class="layout-menu-icon"></q-item-section>
-            <q-item-section>
-              {{ subitem.label }}
-            </q-item-section>
-          </q-item>
+          <template v-for="subitem in item.items">
+            <q-separator v-if="subitem.separator" :key="subitem.path" />
+            <q-item
+              v-else
+              :key="subitem.path"
+              @click="goPath(subitem)" :active="$route.path.indexOf(subitem.path) !== -1" clickable v-ripple>
+              <q-item-section avatar class="layout-menu-icon"></q-item-section>
+              <q-item-section>
+                {{ subitem.label }}
+              </q-item-section>
+            </q-item>
+          </template>
         </q-list>
       </q-expansion-item>
     </q-list>
@@ -112,6 +115,7 @@ interface Menu {
   path: string
   label: string
   icon?: string
+  separator?: boolean
   items?: Menu []
 }
 
@@ -253,17 +257,29 @@ const renderMenu = () => {
         label: 'Cargos'
       })
     }
-    if (store.state.user?.permissions?.includes('report_template:read')) {
-      secretary.items?.push({
+    // Rol autorizado explícito (chequeo positivo): SECRETARY y TREASURER
+    // nunca ven los reportes aunque el permiso venga en el JWT.
+    const canSeeReports = isSuperAdmin || isAdmin ||
+      [RoleSlug.WORKER].includes(store?.state?.user?.role?.slug as RoleSlug)
+    const reportItems: Menu[] = []
+    if (canSeeReports && store.state.user?.permissions?.includes('report_template:read')) {
+      reportItems.push({
         path: '/secretary/report-templates',
         label: 'Plantillas de reporte'
       })
     }
-    if (store.state.user?.permissions?.includes('form_report:read')) {
-      secretary.items?.push({
+    if (canSeeReports && store.state.user?.permissions?.includes('form_report:read')) {
+      reportItems.push({
         path: '/secretary/form-reports',
         label: 'Informes mensuales'
       })
+    }
+    if (reportItems.length > 0) {
+      // separador: los informes se leen como un bloque al final de Secretaría
+      if (secretary.items?.length) {
+        secretary.items.push({ path: '/secretary/_reports-divider', label: '', separator: true })
+      }
+      reportItems.forEach((entry) => secretary.items?.push(entry))
     }
     menu.value.push(secretary)
   }
