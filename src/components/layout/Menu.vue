@@ -253,6 +253,18 @@ const renderMenu = () => {
         label: 'Cargos'
       })
     }
+    if (store.state.user?.permissions?.includes('report_template:read')) {
+      secretary.items?.push({
+        path: '/secretary/report-templates',
+        label: 'Plantillas de reporte'
+      })
+    }
+    if (store.state.user?.permissions?.includes('form_report:read')) {
+      secretary.items?.push({
+        path: '/secretary/form-reports',
+        label: 'Informes mensuales'
+      })
+    }
     menu.value.push(secretary)
   }
 
