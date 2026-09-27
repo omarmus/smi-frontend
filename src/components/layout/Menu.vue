@@ -277,7 +277,7 @@ const renderMenu = () => {
     if (reportItems.length > 0) {
       // separador: los informes se leen como un bloque al final de Secretaría
       if (secretary.items?.length) {
-        secretary.items.push({ path: '/secretary/_reports-divider', label: '', separator: true })
+        // secretary.items.push({ path: '/secretary/_reports-divider', label: '', separator: true })
       }
       reportItems.forEach((entry) => secretary.items?.push(entry))
     }

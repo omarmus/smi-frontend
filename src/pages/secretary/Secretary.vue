@@ -65,6 +65,20 @@
           class="full-width btn-block"
         />
       </div>
+      <div
+        v-if="canSeeReports"
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          icon="description"
+          label="Informes"
+          no-caps
+          @click="$router.push('/secretary/reports')"
+          class="full-width btn-block"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -76,6 +90,11 @@ const store = useStore()
 
 const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store?.state?.user?.role?.slug as RoleSlug)
 const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug)
+const isWorker = [RoleSlug.WORKER].includes(store?.state?.user?.role?.slug as RoleSlug)
+
+const permissions = store?.state?.user?.permissions || []
+const canSeeReports = (isSuperAdmin || isAdmin || isWorker) &&
+  (permissions.includes('report_template:read') || permissions.includes('form_report:read'))
 </script>
 
 <style lang="scss">
