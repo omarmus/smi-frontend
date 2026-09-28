@@ -5,7 +5,7 @@
         icon="arrow_back"
         round
         flat
-        @click="$router.push('/secretary')" />
+        @click="$router.push('/secretary/reports')" />
       Informes mensuales
     </h2>
     <q-banner v-if="blocked" dense class="bg-red-1 text-red-10 q-mb-md">
@@ -46,7 +46,7 @@
                      server vía my-report-type); solo la administración lo elige -->
                 <div v-if="!typeLocked" class="col-xs-12">
                   <q-select
-                    label="Tipo"
+                    label="Cargo"
                     filled
                     v-model="selectedType"
                     :options="typeOptions"
@@ -124,7 +124,7 @@
               <q-tooltip>Eliminar informe</q-tooltip>
             </q-btn>
           </q-td>
-          <q-td>{{ formLabels[props.row.form] || props.row.form }}</q-td>
+          <q-td>{{ templateNameOf(props.row) }}</q-td>
           <q-td>{{ typeLabels[props.row.type] || props.row.type }}</q-td>
           <q-td>{{ monthName(props.row.month) }}</q-td>
           <q-td>{{ props.row.year }}</q-td>
@@ -157,18 +157,25 @@ const can = (permission: string) =>
 
 const columns = [
   { label: 'Acciones', align: 'center', sortable: false },
-  { name: 'form', label: 'Formulario', align: 'left', sortable: true },
-  { name: 'type', label: 'Tipo', align: 'left', sortable: true },
+  // sin `form`: la plantilla ya dice "Informe de Trabajo - Pastor".
+  // sortable false: el orden se manda al server, que no puede ordenar por template.name
+  { name: 'templateName', label: 'Nombre de plantilla', align: 'left', sortable: false },
+  { name: 'type', label: 'Cargo', align: 'left', sortable: true },
   { name: 'month', label: 'Mes', align: 'left', sortable: true },
   { name: 'year', label: 'Año', align: 'center', sortable: true }
 ]
+
+/** Nombre de la plantilla de origen; si se eliminó, fallback a form — cargo. */
+const templateNameOf = (row: FormReport): string =>
+  row.template?.name ||
+  `${formLabels[row.form] || row.form} — ${typeLabels[row.type] || row.type}`
 
 const monthOptions = months.map((label, index) => ({ label, value: index + 1 }))
 const yearOptions = getYears(1, 2024)
 
 const filters = [
   { label: 'Formulario', name: 'form', type: 'select', options: formOptionsOf(formLabels) },
-  { label: 'Tipo', name: 'type', type: 'select', options: formOptionsOf(typeLabels) },
+  { label: 'Cargo', name: 'type', type: 'select', options: formOptionsOf(typeLabels) },
   { label: 'Mes', name: 'month', type: 'select', options: monthOptions },
   { label: 'Año', name: 'year', type: 'input' }
 ]
@@ -204,6 +211,16 @@ const typeLocked = computed(() => !!access.value && !access.value.unrestricted)
 const blocked = computed(() => !!access.value && !access.value.unrestricted && !access.value.type)
 const canCreate = computed(() => can('form_report:create') && !blocked.value)
 
+/** Nombre de la plantilla para el select. Todo se fuerza a `string`: el label
+ *  nunca debe quedar tipeado como `any` aunque el checker resuelva mal la interfaz. */
+const templateLabel = (template: ReportTemplate): string => {
+  const name = String(template.name ?? '').trim()
+  if (name !== '') return name
+  const form = String(formLabels[template.form] ?? template.form)
+  const type = String(typeLabels[template.type] ?? template.type)
+  return `${form} — ${type}`
+}
+
 const templateOptions = computed(() =>
   allTemplates.value
     // B6-5: sin tipo elegido NO hay plantillas (el admin ve el campo vacío y
@@ -212,8 +229,7 @@ const templateOptions = computed(() =>
     .map(template => ({
       value: Number(template.id),
       // B6-6: la opción muestra el nombre de la plantilla
-      label: template.name ||
-        `${formLabels[template.form] || template.form} — ${typeLabels[template.type] || template.type}`
+      label: templateLabel(template)
     }))
 )
 

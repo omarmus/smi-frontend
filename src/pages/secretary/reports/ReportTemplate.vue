@@ -5,7 +5,7 @@
         icon="arrow_back"
         round
         flat
-        @click="$router.push('/secretary')" />
+        @click="$router.push('/secretary/reports')" />
       Plantillas de reporte
     </h2>
     <CrudTable
@@ -59,7 +59,7 @@
                 </div>
                 <div class="col-xs-12 col-md-6">
                   <q-select
-                    label="Tipo"
+                    label="Cargo"
                     filled
                     v-model="template.type"
                     :options="typeOptions"
@@ -226,7 +226,7 @@ const columns = [
   // B6-6: el nombre visible encabeza la fila (el form/type ya van dentro)
   { name: 'name', label: 'Nombre', align: 'left', sortable: true },
   { name: 'form', label: 'Formulario', align: 'left', sortable: true },
-  { name: 'type', label: 'Tipo', align: 'left', sortable: true },
+  { name: 'type', label: 'Cargo', align: 'left', sortable: true },
   { name: 'columns', label: 'Columnas', align: 'center', sortable: false },
   { name: 'state', label: 'Estado', sortable: true }
 ]
@@ -237,7 +237,7 @@ const kindOptions = Object.entries(kindLabels).map(([value, label]) => ({ value,
 
 const filters = [
   { label: 'Formulario', name: 'form', type: 'select', options: formOptions },
-  { label: 'Tipo', name: 'type', type: 'select', options: typeOptions },
+  { label: 'Cargo', name: 'type', type: 'select', options: typeOptions },
   {
     label: 'Estado',
     name: 'state',

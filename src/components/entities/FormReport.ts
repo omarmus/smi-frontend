@@ -12,6 +12,8 @@ export interface FormReport {
   year: number
   /** Snapshot de columnas copiado de la plantilla al crear. */
   columns: ReportColumn[]
+  /** Plantilla de origen (solo id+nombre en la lista); null si se eliminó. */
+  template?: { id?: number, name?: string } | null
 }
 
 export interface FormReportDay {
