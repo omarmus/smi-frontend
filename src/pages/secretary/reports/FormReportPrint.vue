@@ -42,21 +42,31 @@
       <table class="print-table">
         <thead>
           <tr>
-            <th v-for="column in detail.columns" :key="column.key">
+            <!-- números a la derecha, textos a la izquierda -->
+            <th
+              v-for="column in detail.columns"
+              :key="column.key"
+              :class="cellAlign(column)">
               {{ column.label }}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="row in rows" :key="row.day">
-            <td v-for="column in detail.columns" :key="column.key">
+            <td
+              v-for="column in detail.columns"
+              :key="column.key"
+              :class="cellAlign(column)">
               {{ cellValue(column, row) }}
             </td>
           </tr>
         </tbody>
         <tfoot>
           <tr class="print-totals">
-            <td v-for="column in detail.columns" :key="column.key">
+            <td
+              v-for="column in detail.columns"
+              :key="column.key"
+              :class="cellAlign(column)">
               {{ totalValue(column) }}
             </td>
           </tr>
@@ -167,6 +177,10 @@ const rowTotal = (row: FormReportDay): number => {
     .reduce((sum, column) => sum + numberValue(row.values[column.key]), 0)
 }
 
+/** Números a la derecha, textos a la izquierda — cabecera, celdas y totales. */
+const cellAlign = (column: ReportColumn): string =>
+  column.kind === 'number' ? 'is-num' : 'is-text'
+
 const cellValue = (column: ReportColumn, row: FormReportDay): string => {
   if (column.key === 'day') {
     return String(row.day)
@@ -275,8 +289,15 @@ onMounted(() => {
     td {
       border: 1px solid #000;
       padding: 3px 4px;
-      text-align: center;
       word-break: break-word;
+    }
+
+    .is-num {
+      text-align: right;
+    }
+
+    .is-text {
+      text-align: left;
     }
 
     th {
