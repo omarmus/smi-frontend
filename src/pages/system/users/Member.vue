@@ -27,25 +27,49 @@
           <q-tooltip>Agregar registro</q-tooltip>
         </q-btn>
         <q-btn-dropdown
-          icon="print"
+          icon="badge"
           no-caps
-          label="Imprimir"
+          label="Imprimir Kardex"
           class="q-ml-none q-mr-xs"
           padding="6px 7px 6px 9px">
           <q-list>
             <q-item clickable v-close-popup @click="printAllMembers">
               <q-item-section>
-                <q-item-label>Imprimir miembros activos</q-item-label>
+                <q-item-label>Miembros activos</q-item-label>
               </q-item-section>
             </q-item>
             <q-item clickable v-close-popup @click.prevent="print(props.getSelected())">
               <q-item-section>
-                <q-item-label>Imprimir seleccionados</q-item-label>
+                <q-item-label>Seleccionados</q-item-label>
               </q-item-section>
             </q-item>
             <q-item clickable v-close-popup @click="printAll">
               <q-item-section>
-                <q-item-label>Imprimir todo</q-item-label>
+                <q-item-label>Todo</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+        <q-btn-dropdown
+          icon="list_alt"
+          no-caps
+          label="Imprimir listas"
+          class="q-ml-none q-mr-xs"
+          padding="6px 7px 6px 9px">
+          <q-list>
+            <q-item clickable v-close-popup @click="printListAllMembers">
+              <q-item-section>
+                <q-item-label>Miembros activos</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click.prevent="printList(props.getSelected())">
+              <q-item-section>
+                <q-item-label>Seleccionados</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="printListAll">
+              <q-item-section>
+                <q-item-label>Todo</q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
@@ -901,22 +925,49 @@ const save = async (crud: { update: () => void, close: () => void }) => {
   crud.close()
 }
 
-const print = async (items: User[]) => {
+const sendPrint = async (
+  endpoint: 'users/print' | 'users/print/list',
+  body: Record<string, unknown>,
+  prefix: string
+) => {
+  const pdf = await http.post(endpoint, body) as string
+  createPdf(pdf, `${prefix}-${Date.now()}.pdf`)
+}
+
+const warnEmptySelection = (items: User[]) => {
   if (items.length === 0) {
-    return message.warning('Debe seleccionar por lo menos un registro para poder imprimir.')
+    void message.warning('Debe seleccionar por lo menos un registro para poder imprimir.')
+    return true
   }
-  const pdf = await http.post('users/print', { ids: items.map(item => item.id) }) as string
-  createPdf(pdf, `kardex-${Date.now()}.pdf`)
+  return false
+}
+
+// Imprimir Kardex (una ficha por miembro)
+const print = async (items: User[]) => {
+  if (warnEmptySelection(items)) return
+  await sendPrint('users/print', { ids: items.map(item => item.id) }, 'kardex')
 }
 
 const printAll = async () => {
-  const pdf = await http.post('users/print', { ids: [] }) as string
-  createPdf(pdf, `kardex-${Date.now()}.pdf`)
+  await sendPrint('users/print', { ids: [] }, 'kardex')
 }
 
 const printAllMembers = async () => {
-  const pdf = await http.post('users/print', { ids: [], memberStatus: 'ALL_ACTIVE' }) as string
-  createPdf(pdf, `kardex-miembros-${Date.now()}.pdf`)
+  await sendPrint('users/print', { ids: [], memberStatus: 'ALL_ACTIVE' }, 'kardex-miembros')
+}
+
+// Imprimir listas (LISTA DE FELIGRESÍA: varios miembros por hoja)
+const printList = async (items: User[]) => {
+  if (warnEmptySelection(items)) return
+  await sendPrint('users/print/list', { ids: items.map(item => item.id) }, 'lista')
+}
+
+const printListAll = async () => {
+  await sendPrint('users/print/list', { ids: [] }, 'listas')
+}
+
+const printListAllMembers = async () => {
+  await sendPrint('users/print/list', { ids: [], memberStatus: 'ALL_ACTIVE' }, 'listas-miembros')
 }
 
 const openAddPhoto = (item: User) => {
