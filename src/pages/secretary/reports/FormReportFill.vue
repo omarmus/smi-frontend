@@ -104,7 +104,7 @@
                      crece con el input, los botones quedan fijos a la derecha) -->
                 <div
                   v-if="column.kind === 'number'"
-                  class="row no-wrap items-center q-col-gutter-xs cell-row">
+                  class="row no-wrap items-start q-col-gutter-xs cell-row">
                   <div class="col">
                     <q-input
                       class="cell-number"
@@ -120,20 +120,16 @@
                   <!-- C4/B6-2: el valor nunca baja de 0 (el − queda deshabilitado en 0) -->
                   <div class="col-auto row no-wrap q-gutter-xs">
                     <q-btn
+                      class="fill-step-btn"
                       color="primary"
-                      dense
-                      round
-                      size="sm"
                       icon="remove"
                       :disable="!(Number(formValues[column.key]) > 0)"
                       @click="stepNumber(column.key, -1)">
                       <q-tooltip>Restar 1</q-tooltip>
                     </q-btn>
                     <q-btn
+                      class="fill-step-btn"
                       color="primary"
-                      dense
-                      round
-                      size="sm"
                       icon="add"
                       @click="stepNumber(column.key, 1)">
                       <q-tooltip>Sumar 1</q-tooltip>
@@ -462,18 +458,25 @@ const saveDay = async () => {
   await load()
 }
 
-const clearDay = async () => {
+const clearDay = () => {
   const report = detail.value
-  if (!report || !selectedDay.value) {
+  const day = selectedDay.value
+  if (!report || !day) {
     return
   }
-  await http.post(`form-reports/${String(report.id)}/days`, {
-    day: selectedDay.value,
-    values: {}
-  })
-  message.success('Día sin datos')
-  dayDialog.value = false
-  await load()
+  // Confirm, no alert: la acción borra todos los valores del día.
+  Confirm(
+    `Se borrarán todos los registros del día ${selectedDateLabel.value}. ¿Desea continuar?`,
+    async () => {
+      await http.post(`form-reports/${String(report.id)}/days`, {
+        day,
+        values: {}
+      })
+      message.success('Día sin datos')
+      dayDialog.value = false
+      await load()
+    }
+  )
 }
 
 const openAddColumn = () => {
@@ -592,5 +595,18 @@ onMounted(() => {
 .cell-number input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+/* Los ± ocupan exactamente la altura del q-input dense junto a él:
+ * Quasar fija .q-field--dense .q-field__control a 40px. Alineados al top de
+ * la fila (items-start): con items-center se desplazaban hacia abajo porque
+ * el campo crece con el área de mensajes. Cuadrados y sin padding horizontal.
+ * Clase con prefijo porque este style es global. */
+.fill-step-btn.q-btn {
+  height: 40px;
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+  border-radius: 4px;
 }
 </style>
