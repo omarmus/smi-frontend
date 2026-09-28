@@ -468,7 +468,8 @@ const getDepartments: DepartmentOption[] = async () => {
 }
 
 const getUsers = async (query: string, association?: boolean) => {
-  let url = 'users?order=fullname'
+  // memberStatus=ALL_ACTIVE: los fallecidos (DEATH) no se listan para registrar ofrendas
+  let url = 'users?order=fullname&memberStatus=ALL_ACTIVE'
   if (query) {
     if (association) {
       url += `&fullname=${query}&all_association=true`

@@ -68,7 +68,8 @@ const emit = defineEmits(['name'])
 
 const props = defineProps<Props>()
 
-const url = 'users?all_association=true'
+// memberStatus=ALL_ACTIVE: los fallecidos (DEATH) no se listan para registrar ofrendas
+const url = 'users?all_association=true&memberStatus=ALL_ACTIVE'
 const columns = [
   { label: 'Nombre completo:', align: 'left', name: 'person.fullname', sortable: true },
   // { label: 'Fecha de nacimiento', align: 'left', name: 'person.birthday', sortable: true },
