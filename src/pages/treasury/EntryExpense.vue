@@ -95,12 +95,11 @@
         class="btn-close-month"
         @click="revertMonth" />
       <q-btn
-        v-if="isAdmin"
+        v-if="canRectify"
         label="Rectificar el mes"
         no-caps
         color="secondary"
         icon="edit"
-        :disable="!canRectify"
         class="btn-close-month"
         @click="rectifyMonth" />
     </div>
@@ -145,7 +144,8 @@ const canReopen = computed(() => {
 })
 
 // Solo se puede rectificar un mes cerrado, y hace falta un mes abierto donde
-// registrar el movimiento.
+// registrar el movimiento. Cuando el mes que se está viendo es el abierto, el
+// botón no se muestra: ese mes se edita directamente, no se rectifica.
 const canRectify = computed(() => {
   if (!isAdmin.value || entry.value?.state !== 'CLOSED') return false
   return !!activeMonth.value
@@ -202,7 +202,7 @@ const revertMonth = () => {
 }
 
 const rectifyMonth = () => {
-  return router.push(`/treasury/adjustments?year=${entry.value.year}&month=${entry.value.month}`)
+  return router.push(`/treasury/adjustments/${entry.value.year}/${entry.value.month}`)
 }
 
 onBeforeMount(async () => {

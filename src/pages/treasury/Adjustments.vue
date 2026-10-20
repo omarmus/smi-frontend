@@ -377,8 +377,8 @@ watch(() => [form.value.kind, form.value.type, form.value.year, form.value.month
 })
 
 onBeforeMount(async () => {
-  const year = route.query.year ? Number(route.query.year) : null
-  const month = route.query.month ? Number(route.query.month) : null
+  const year = route.params.year ? Number(route.params.year) : null
+  const month = route.params.month ? Number(route.params.month) : null
   if (year) form.value.year = year
   if (month) form.value.month = month
 
