@@ -6,172 +6,179 @@
         round
         flat
         @click="$router.push('/treasury/months')" />
-      Rectificaciones de períodos anteriores
+      Rectificaciones - {{ months[form.month - 1] }} {{ form.year }}
     </h2>
-
-    <div class="alert alert-info">
-      Los meses ya cerrados no se modifican. La corrección queda registrada en el
-      mes abierto con la referencia del período al que corresponde.
-    </div>
-
-    <div class="row q-col-gutter-md">
-      <div class="col-xs-12 col-md-5">
-        <q-card flat bordered>
-          <q-card-section>
-            <div class="text-h6">Nueva rectificación</div>
-          </q-card-section>
-          <q-card-section>
+    <div class="row">
+      <div class="col-xs-12 col-sm-5">
+        <q-form
+          class="q-gutter-md"
+          @submit="save">
+          <div class="col-xs-12">
+            <q-btn-group spread outline>
+              <q-btn
+                :outline="form.type !== AdjustmentType.ENTRY"
+                padding="12px"
+                color="primary"
+                label="Ingreso"
+                @click="form.type = AdjustmentType.ENTRY"
+                no-caps />
+              <q-btn
+                :outline="form.type !== AdjustmentType.EXPENSE"
+                padding="12px"
+                color="primary"
+                label="Gasto"
+                @click="form.type = AdjustmentType.EXPENSE"
+                no-caps />
+            </q-btn-group>
+          </div>
+          <div class="col-xs-12">
             <q-select
-              v-model="form.type"
-              :options="typeOptions"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              label="¿Ingreso o gasto?"
-              outlined
-              dense />
-
-            <q-select
+              filled
+              label="¿Qué pasó?"
               v-model="form.kind"
               :options="kindOptions"
               option-value="value"
               option-label="label"
               emit-value
-              map-options
-              label="¿Qué pasó?"
-              outlined
-              dense />
-
+              map-options />
+          </div>
+          <div class="row">
+            <div class="col-xs-6 q-pr-xs">
+              <q-select
+                filled
+                label="Gestión"
+                v-model="form.year"
+                :options="years" />
+            </div>
+            <div class="col-xs-6 q-pr-xs">
+              <q-select
+                filled
+                label="Mes"
+                v-model="form.month"
+                :options="monthOptions"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options />
+            </div>
+          </div>
+          <div class="col-xs-12">
             <q-select
-              v-model="form.year"
-              :options="years"
-              label="Gestión"
-              outlined
-              dense />
-
-            <q-select
-              v-model="form.month"
-              :options="monthOptions"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              label="Mes"
-              outlined
-              dense />
-
-            <q-select
+              filled
+              label="Departamento"
               v-model="form.id_department"
               :options="departments"
               option-value="value"
               option-label="label"
               emit-value
-              map-options
-              label="Departamento"
-              outlined
-              dense />
-
+              map-options />
+          </div>
+          <div
+            class="col-xs-12"
+            v-if="form.kind === AdjustmentKind.CORRECTION">
             <q-select
-              v-if="form.kind === AdjustmentKind.CORRECTION"
+              filled
+              label="Línea que se corrigió"
               v-model="form.original_detail_id"
               :options="originalLines"
               option-value="value"
               option-label="label"
               emit-value
               map-options
-              label="Línea que se corrigió"
-              outlined
-              dense
               :loading="loadingLines"
               hint="Elegí la línea del mes que tiene el valor equivocado" />
-
+          </div>
+          <div class="row">
+            <div class="col-xs-6 q-pr-xs">
+              <q-input
+                filled
+                :label="form.kind === AdjustmentKind.CORRECTION ? 'Monto correcto' : 'Monto que faltaba'"
+                v-model.number="form.value"
+                type="number" />
+            </div>
+            <div class="col-xs-6 q-pr-xs">
+              <q-input
+                filled
+                label="Comprobante"
+                v-model="form.reference" />
+            </div>
+          </div>
+          <div class="col-xs-12">
             <q-input
-              v-if="form.kind === AdjustmentKind.CORRECTION"
-              v-model.number="form.value"
-              type="number"
-              label="Monto correcto"
-              outlined
-              dense />
-
-            <q-input
-              v-else
-              v-model.number="form.value"
-              type="number"
-              label="Monto que faltaba"
-              outlined
-              dense />
-
-            <q-input
-              v-model="form.reason"
+              filled
               label="Motivo"
-              outlined
-              dense
-              hint="Por ejemplo: se cargó con un cero de más" />
-
-            <q-input
-              v-model="form.reference"
-              label="Comprobante o documento"
-              outlined
-              dense
-              hint="Número y fecha del recibo, factura o acta" />
-          </q-card-section>
-          <q-card-actions align="right">
+              v-model="form.reason" />
+          </div>
+          <div class="col-xs-12">
             <q-btn
+              padding="10px"
               label="Guardar rectificación"
+              icon="check"
               color="primary"
+              type="submit"
               no-caps
+              class="full-width"
               :disable="!canSave"
-              :loading="saving"
-              @click="save" />
-          </q-card-actions>
-        </q-card>
+              :loading="saving" />
+          </div>
+        </q-form>
       </div>
-
-      <div class="col-xs-12 col-md-7">
-        <q-card flat bordered>
-          <q-card-section>
-            <div class="text-h6">Rectificaciones registradas</div>
-          </q-card-section>
-          <q-separator />
-          <q-list separator>
-            <q-item v-for="item in adjustments" :key="item.id">
-              <q-item-section>
-                <q-item-label>
-                  {{ kindLabel(item.kind) }} — {{ months[item.month - 1] }} {{ item.year }}
-                  <q-badge
-                    v-if="item.state === AdjustmentState.REVERSED"
-                    color="negative"
-                    label="Anulada" />
-                </q-item-label>
-                <q-item-label caption>
-                  {{ item.reference }} — {{ item.reason }}
-                </q-item-label>
-                <q-item-label caption>
-                  Registrada en {{ months[(item.applied_month || 1) - 1] }} {{ item.applied_year }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <div class="text-right">
-                  <div class="text-weight-bold">
-                    {{ totalOf(item) }} {{ $store.state.user?.user?.company?.money }}
+      <div class="col-xs-12 col-sm-7">
+        <h3 class="text-secondary treasury-subtitle">Rectificaciones registradas</h3>
+        <div class="q-table-simple q-table__container q-table--horizontal-separator column q-table--dense">
+          <table class="q-table">
+            <thead>
+              <tr>
+                <th class="text-left"><strong>Período</strong></th>
+                <th class="text-left"><strong>Motivo</strong></th>
+                <th class="text-right"><strong>Valor</strong></th>
+                <th class="text-left"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="item in adjustments"
+                :key="item.id">
+                <td class="text-left">
+                  {{ kindLabel(item.kind) }} - {{ months[item.month - 1] }} {{ item.year }}
+                  <div class="treasury-observation">
+                    {{ item.reference }} - registrada en {{ months[(item.applied_month || 1) - 1] }} {{ item.applied_year }}
                   </div>
+                </td>
+                <td class="text-left">
+                  {{ item.reason }}
+                  <div
+                    class="treasury-observation"
+                    v-if="item.state === AdjustmentState.REVERSED">
+                    Anulada
+                  </div>
+                </td>
+                <td class="text-right">{{ totalOf(item) }}</td>
+                <td class="width-120">
                   <q-btn
                     v-if="item.state === AdjustmentState.APPLIED && item.kind !== AdjustmentKind.REVERSAL"
-                    label="Anular"
-                    color="negative"
+                    size="sm"
+                    icon="cancel"
+                    round
                     flat
-                    dense
-                    no-caps
                     @click="revert(item)" />
-                </div>
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <q-card-section v-if="!adjustments.length" class="text-grey">
-            Todavía no hay rectificaciones registradas.
-          </q-card-section>
-        </q-card>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot v-if="adjustments.length">
+              <tr>
+                <th class="text-left" colspan="2"><strong>Total</strong></th>
+                <th class="text-right"><strong>{{ totalAdjustments }}</strong></th>
+                <th></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div
+          class="alert alert-info q-mt-md"
+          v-if="!adjustments.length">
+          Todavía no hay rectificaciones registradas.
+        </div>
       </div>
     </div>
   </div>
@@ -239,11 +246,6 @@ const form = ref<AdjustmentForm>({
   reference: ''
 })
 
-const typeOptions = [
-  { label: 'Ingreso', value: AdjustmentType.ENTRY },
-  { label: 'Gasto', value: AdjustmentType.EXPENSE }
-]
-
 const kindOptions = [
   { label: 'Se olvidó registrar (entró algo que no estaba)', value: AdjustmentKind.OMISSION },
   { label: 'Se registró mal (el valor está equivocado)', value: AdjustmentKind.CORRECTION }
@@ -272,6 +274,13 @@ const totalOf = (item: Adjustment) => {
   const total = (item.adjustmentsDetails || []).reduce((sum, detail) => sum + Number(detail.value), 0)
   return total.toFixed(2)
 }
+
+const totalAdjustments = computed(() =>
+  adjustments.value
+    .filter(item => item.state === AdjustmentState.APPLIED)
+    .reduce((sum, item) => sum + Number(totalOf(item)), 0)
+    .toFixed(2)
+)
 
 const getAdjustments = async () => {
   const items = await http.get(`adjustments?id_company=${idCompany}&order=-id`) as Result<Adjustment>
@@ -306,7 +315,7 @@ const getOriginalLines = async () => {
       const details = await http.get(`entriesdetails?id_entry=${entry.id as string}&order=id`) as Result<EntryDetail>
       originalLines.value = details.rows.map(detail => ({
         value: detail.id as number,
-        label: [String(detail.department?.name ?? ''), String(detail.observations ?? 'sin observación'), Number(detail.value).toFixed(2)].join(' — '),
+        label: [String(detail.department?.name ?? ''), String(detail.observations ?? 'sin observación'), Number(detail.value).toFixed(2)].join(' - '),
         amount: Number(detail.value)
       }))
       return
@@ -318,7 +327,7 @@ const getOriginalLines = async () => {
     const details = await http.get(`expensesdetails?id_expense=${expense.id as string}&order=id`) as Result<ExpenseDetail>
     originalLines.value = details.rows.map(detail => ({
       value: detail.id as number,
-      label: [String(detail.department?.name ?? ''), String(detail.concept ?? 'sin concepto'), Number(detail.value).toFixed(2)].join(' — '),
+      label: [String(detail.department?.name ?? ''), String(detail.concept ?? 'sin concepto'), Number(detail.value).toFixed(2)].join(' - '),
       amount: Number(detail.value)
     }))
   } finally {
