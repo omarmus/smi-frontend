@@ -1,3 +1,4 @@
+import { Adjustment } from './Adjustment'
 import { Department } from './Department'
 
 export interface Expense {
@@ -23,6 +24,5 @@ export interface ExpenseDetail {
   department?: Department
   idDepartment: number
   type?: string
-  /* eslint-disable camelcase */
-  id_adjustment?: number
+  adjustment?: Adjustment
 }

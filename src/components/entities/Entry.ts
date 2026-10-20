@@ -1,3 +1,4 @@
+import { Adjustment } from './Adjustment'
 import { Department } from './Department'
 import { User } from './User'
 export interface Offering {
@@ -34,8 +35,7 @@ export type PaymentType = 'CASH' | 'QR' | 'DEPOSIT' | 'BANK_TRANSFER'
 export interface EntryDetail {
   id?: number
   entry: Entry
-  /* eslint-disable camelcase */
-  id_adjustment?: number
+  adjustment?: Adjustment
   department?: Department
   user?: User
   code: string

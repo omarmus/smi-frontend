@@ -28,12 +28,11 @@ export enum AdjustmentState {
 export interface AdjustmentDetail {
   id?: number
   id_adjustment: number
-  id_department: number
   value: number
-  original_value?: number
+  originalValue?: number
+  originalDetailId?: number
   concept?: string
   observations?: string
-  original_detail_id?: number
   department?: Department
 }
 
