@@ -71,7 +71,16 @@
               option-value="value"
               option-label="label"
               emit-value
-              map-options />
+              map-options>
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label caption>{{ scope.opt.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
           <div
             class="col-xs-12"
@@ -86,7 +95,16 @@
               emit-value
               map-options
               :loading="loadingLines"
-              hint="Elegí la línea del mes que tiene el valor equivocado" />
+              hint="Elegí la línea del mes que tiene el valor equivocado">
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label caption>{{ scope.opt.type === 'GLOBAL' ? 'Asociación' : 'Iglesia local' }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
           <div class="row">
             <div class="col-xs-6 q-pr-xs">
@@ -220,6 +238,7 @@ interface LineOption {
   value: number
   label: string
   amount: number
+  type: string
 }
 
 const store = useStore()
@@ -316,7 +335,8 @@ const getOriginalLines = async () => {
       originalLines.value = details.rows.map(detail => ({
         value: detail.id as number,
         label: [String(detail.department?.name ?? ''), String(detail.observations ?? 'sin observación'), Number(detail.value).toFixed(2)].join(' - '),
-        amount: Number(detail.value)
+        amount: Number(detail.value),
+        type: String(detail.department?.type ?? 'LOCAL')
       }))
       return
     }
