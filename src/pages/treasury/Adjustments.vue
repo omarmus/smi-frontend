@@ -8,13 +8,13 @@
         @click="$router.push('/treasury/months')" />
       Rectificaciones - {{ months[form.month - 1] }} {{ form.year }}
     </h2>
-    <div class="row">
+    <div class="row q-col-gutter-md">
       <div class="col-xs-12 col-sm-5">
         <q-form
           class="q-gutter-md"
           @submit="save">
           <div class="col-xs-12">
-            <q-btn-group spread outline>
+            <q-btn-group spread outline class="full-width">
               <q-btn
                 :outline="form.type !== AdjustmentType.ENTRY"
                 padding="12px"
