@@ -96,7 +96,7 @@
         @click="revertMonth" />
       <q-btn
         v-if="canRectify"
-        label="Rectificar el mes"
+        label="Ajustar el mes"
         no-caps
         color="secondary"
         icon="edit"

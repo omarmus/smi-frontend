@@ -6,7 +6,7 @@
         round
         flat
         @click="$router.push('/treasury/months')" />
-      Rectificaciones - {{ months[form.month - 1] }} {{ form.year }}
+      Ajustes de meses cerrados - {{ months[form.month - 1] }} {{ form.year }}
     </h2>
     <div class="row q-col-gutter-md">
       <div class="col-xs-12 col-sm-5">
@@ -40,7 +40,16 @@
               option-value="value"
               option-label="label"
               emit-value
-              map-options />
+              map-options>
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label caption>{{ scope.opt.technical }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
           <div class="row">
             <div class="col-xs-6 q-pr-xs">
@@ -130,7 +139,7 @@
           <div class="col-xs-12">
             <q-btn
               padding="10px"
-              label="Guardar rectificación"
+              label="Guardar ajuste"
               icon="check"
               color="primary"
               type="submit"
@@ -142,7 +151,7 @@
         </q-form>
       </div>
       <div class="col-xs-12 col-sm-7">
-        <h3 class="text-secondary treasury-subtitle">Rectificaciones registradas</h3>
+        <h3 class="text-secondary treasury-subtitle">Ajustes registrados</h3>
         <div class="q-table-simple q-table__container q-table--horizontal-separator column q-table--dense">
           <table class="q-table">
             <thead>
@@ -195,7 +204,7 @@
         <div
           class="alert alert-info q-mt-md"
           v-if="!adjustments.length">
-          Todavía no hay rectificaciones registradas.
+          Todavía no hay ajustes registrados.
         </div>
       </div>
     </div>
@@ -266,8 +275,16 @@ const form = ref<AdjustmentForm>({
 })
 
 const kindOptions = [
-  { label: 'Se olvidó registrar (entró algo que no estaba)', value: AdjustmentKind.OMISSION },
-  { label: 'Se registró mal (el valor está equivocado)', value: AdjustmentKind.CORRECTION }
+  {
+    label: 'Se olvidó registrar (entró algo que no estaba)',
+    technical: 'Registro omitido',
+    value: AdjustmentKind.OMISSION
+  },
+  {
+    label: 'Se registró mal (el valor está equivocado)',
+    technical: 'Corrección de un error',
+    value: AdjustmentKind.CORRECTION
+  }
 ]
 
 const monthOptions = months.map((label, index) => ({ label, value: index + 1 }))
@@ -376,7 +393,7 @@ const save = async () => {
     }
 
     await http.post('adjustments', payload)
-    message.success('Rectificación registrada')
+    message.success('Ajuste registrado')
     form.value.value = null
     form.value.reason = ''
     form.value.reference = ''
@@ -390,15 +407,15 @@ const save = async () => {
 }
 
 const revert = (item: Adjustment) => {
-  Confirm('Va a <strong>anular</strong> la rectificación con un contra-asiento. El registro original no se borra.', async () => {
+  Confirm('Va a <strong>anular</strong> el ajuste con un contra-asiento. El registro original no se borra.', async () => {
     try {
       await http.put(`adjustments/${item.id as string}/revert`)
-      message.success('Rectificación anulada')
+      message.success('Ajuste anulado')
       await getAdjustments()
     } catch (error) {
       // el boot de http ya muestra el mensaje del error
     }
-  }, null, 'Anular rectificación', 'Anular')
+  }, null, 'Anular el ajuste', 'Anular')
 }
 
 watch(() => [form.value.kind, form.value.type, form.value.year, form.value.month], () => {

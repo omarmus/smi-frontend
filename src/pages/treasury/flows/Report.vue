@@ -296,7 +296,7 @@
         </div>
         <div v-if="monthAdjustments.length" class="row q-col-gutter-sm q-pt-lg">
           <div class="col-12">
-            <h3 class="text-primary flow-title">Rectificaciones de períodos anteriores</h3>
+            <h3 class="text-primary flow-title">Ajustes de períodos anteriores</h3>
             <q-markup-table flat dense wrap-cells>
               <thead>
                 <tr>
@@ -792,7 +792,7 @@ const getExpenseDetails = async () => {
 }
 
 /**
- * Rectificaciones imputadas a este mes: son movimientos del mes (ya están en
+ * Ajustes imputados a este mes: son movimientos del mes (ya están en
  * los totales) pero su período original es otro, así que se listan aparte.
  */
 const getMonthAdjustments = async () => {
