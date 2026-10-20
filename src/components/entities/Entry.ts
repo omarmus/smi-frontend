@@ -34,6 +34,8 @@ export type PaymentType = 'CASH' | 'QR' | 'DEPOSIT' | 'BANK_TRANSFER'
 export interface EntryDetail {
   id?: number
   entry: Entry
+  /* eslint-disable camelcase */
+  id_adjustment?: number
   department?: Department
   user?: User
   code: string

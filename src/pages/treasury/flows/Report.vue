@@ -294,6 +294,29 @@
             </div>
           </div>
         </div>
+        <div v-if="monthAdjustments.length" class="row q-col-gutter-sm q-pt-lg">
+          <div class="col-12">
+            <h3 class="text-primary flow-title">Rectificaciones de períodos anteriores</h3>
+            <q-markup-table flat dense wrap-cells>
+              <thead>
+                <tr>
+                  <th>Período</th>
+                  <th>Comprobante</th>
+                  <th>Motivo</th>
+                  <th class="text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in monthAdjustments" :key="row.id">
+                  <td>{{ months[row.month - 1] }} {{ row.year }}</td>
+                  <td>{{ row.reference }}</td>
+                  <td>{{ row.reason }}</td>
+                  <td class="text-right">{{ row.amount }}</td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </div>
+        </div>
       </q-tab-panel>
       <q-tab-panel name="expense">
         <div class="row">
@@ -410,6 +433,7 @@ import { Flow } from '../../../components/entities/Flow'
 import { months, getWeeks, format, normalize } from '../../../components/plugins/datetime'
 import { EntryDetail, Entry } from '../../../components/entities/Entry'
 import { ExpenseDetail } from '../../../components/entities/Expense'
+import { Adjustment } from '../../../components/entities/Adjustment'
 import { useStore } from '../../../store'
 import html2pdf from 'html2pdf.js'
 
@@ -424,6 +448,7 @@ const flowsEntriesLocal = ref<[Flow]>([])
 const expensesDetails = ref<[ExpenseDetail]>([])
 const entry = ref<Entry>()
 const weeks = ref([])
+const monthAdjustments = ref<any[]>([])
 const total = ref<number>(0)
 const totalDeposited = ref<number>()
 const dateDeposited = ref<string>('')
@@ -766,6 +791,19 @@ const getExpenseDetails = async () => {
   expensesDetails.value = items.rows
 }
 
+/**
+ * Rectificaciones imputadas a este mes: son movimientos del mes (ya están en
+ * los totales) pero su período original es otro, así que se listan aparte.
+ */
+const getMonthAdjustments = async () => {
+  if (!entry.value) return
+  const items = await http.get(`adjustments?id_company=${idCompany}&applied_year=${entry.value.year}&applied_month=${entry.value.month}&order=-id`) as Result<Adjustment>
+  monthAdjustments.value = items.rows.map(item => {
+    const total = (item.adjustmentsDetails || []).reduce((sum, detail) => sum + Number(detail.value), 0)
+    return { ...item, amount: total.toFixed(2) }
+  })
+}
+
 // const totalFlowEntry = computed(() => {
 //   let total = 0
 //   flowsEntriesGlobal.value.forEach(item => {
@@ -875,6 +913,7 @@ const printMonthReportLocal = async () => {
 
 onMounted(async () => {
   await getEntry()
+  await getMonthAdjustments()
   await getFlowsEntriesGlobal()
   await getFlowsEntriesLocal()
   await getExpenseDetails()

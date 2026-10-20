@@ -23,4 +23,6 @@ export interface ExpenseDetail {
   department?: Department
   idDepartment: number
   type?: string
+  /* eslint-disable camelcase */
+  id_adjustment?: number
 }
