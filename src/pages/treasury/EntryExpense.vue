@@ -91,6 +91,7 @@
         no-caps
         color="red"
         :icon="'warning'"
+        :disable="!canReopen"
         class="btn-close-month"
         @click="revertMonth" />
     </div>
@@ -98,7 +99,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, computed, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { months } from '../../components/plugins/datetime'
 import { http } from 'boot/http'
@@ -120,9 +121,30 @@ const router = useRouter()
 const { entryId, expenseId } = route.params
 
 const isAdmin = ref<boolean>([RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store?.state?.user?.role?.slug as RoleSlug))
+const idCompany = store.state.user?.user?.company?.id as number
+
+const activeMonth = ref<Entry>()
+
+// Solo el mes inmediatamente anterior al mes activo es reabrible, sin importar
+// la gestión: si enero 2026 está activo, el único reabrible es diciembre 2025.
+const canReopen = computed(() => {
+  const active = activeMonth.value
+  if (!isAdmin.value || entry.value?.state !== 'CLOSED' || !active) return false
+  const expectedMonth = active.month === 1 ? 12 : active.month - 1
+  const expectedYear = active.month === 1 ? active.year - 1 : active.year
+  return entry.value.year === expectedYear && entry.value.month === expectedMonth
+})
 
 const getEntry = async () => {
   entry.value = await http.get(`entries/${parseInt(entryId)}`) as Entry
+}
+
+const getActiveMonth = async () => {
+  // El mes activo se busca en la company de la propia entrada: un admin de
+  // asociación puede estar mirando la gestión de otra iglesia.
+  const companyId = entry.value?.company?.id ?? idCompany
+  const result = await http.get(`entries?state=ACTIVE&id_company=${companyId}`) as Result<Entry>
+  activeMonth.value = result.count === 1 ? result.rows[0] : undefined
 }
 
 const getEntryDetails = async () => {
@@ -153,7 +175,7 @@ const closeMonth = () => {
 }
 
 const revertMonth = () => {
-  if (entry.value.state !== 'ACTIVE') {
+  if (canReopen.value) {
     const msg = `Va a <strong>reabrir</strong> el mes de <strong>${months[entry.value.month - 1]}</strong>. ¿Está seguro de continuar?`
 
     Confirm(msg, async () => {
@@ -167,5 +189,6 @@ onBeforeMount(async () => {
   await getEntry()
   await getEntryDetails()
   await getExpenseDetails()
+  await getActiveMonth()
 })
 </script>

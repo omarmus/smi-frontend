@@ -17,6 +17,7 @@ export interface Concept {
 
 export interface Entry {
   id?: number
+  company?: { id: number }
   year: number
   month: number
   total: number
