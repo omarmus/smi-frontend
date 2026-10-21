@@ -18,6 +18,7 @@
       buttons-hidden>
       <template v-slot:row="props">
         <q-tr>
+          <q-td class="text-center text-weight-bold">{{ props.row.rank }}</q-td>
           <q-td class="text-weight-medium">{{ props.row.fullname }}</q-td>
           <q-td>{{ props.row.church }}</q-td>
           <q-td>{{ memberTypeLabel(props.row.type) }}</q-td>
@@ -57,6 +58,7 @@ const churchOptions = ref<Array<{ label: string; value: string | number }>>([
 ])
 
 const columns = [
+  { name: 'rank', label: 'N°', field: 'rank', align: 'center' as const, sortable: true },
   { name: 'fullname', label: 'Nombre completo', field: 'fullname', align: 'left' as const, sortable: true },
   { name: 'church', label: 'Iglesia', field: 'church', align: 'left' as const, sortable: true },
   { name: 'type', label: 'Tipo', field: 'type', align: 'left' as const, sortable: true },
@@ -104,6 +106,11 @@ const filters = ref([
     name: 'concept_group',
     type: 'select',
     options: groupOptions
+  },
+  {
+    label: 'Buscar por nombre',
+    name: 'fullname',
+    type: 'input'
   }
 ])
 
