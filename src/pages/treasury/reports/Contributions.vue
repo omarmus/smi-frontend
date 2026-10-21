@@ -99,7 +99,7 @@ const filters = ref([
       { value: ALL_YEARS, label: 'Todas las gestiones' },
       ...getYears().map(year => ({ value: year, label: String(year) }))
     ],
-    value: new Date().getFullYear()
+    value: ALL_YEARS
   },
   {
     label: 'Tipo de aporte',
