@@ -49,6 +49,8 @@ const url = 'entries/report/contributions-ranking'
 
 // 'ALL' = el reporte de todas las iglesias del alcance del usuario
 const ALL_CHURCHES = 'ALL'
+// 'ALL' = el reporte de todas las gestiones
+const ALL_YEARS = 'ALL'
 
 const churchOptions = ref<Array<{ label: string; value: string | number }>>([
   { label: 'Todas las iglesias', value: ALL_CHURCHES }
@@ -91,7 +93,10 @@ const filters = ref([
     label: 'Gestión',
     name: 'year',
     type: 'select',
-    options: getYears().map(year => ({ value: year, label: String(year) })),
+    options: [
+      { value: ALL_YEARS, label: 'Todas las gestiones' },
+      ...getYears().map(year => ({ value: year, label: String(year) }))
+    ],
     value: new Date().getFullYear()
   },
   {
