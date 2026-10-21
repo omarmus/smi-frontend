@@ -18,14 +18,8 @@
       buttons-hidden>
       <template v-slot:row="props">
         <q-tr>
-          <q-td>
-            <div class="text-weight-medium">{{ props.row.fullname }}</div>
-            <div
-              class="text-caption text-grey"
-              v-if="props.row.church">
-              {{ props.row.church }}
-            </div>
-          </q-td>
+          <q-td class="text-weight-medium">{{ props.row.fullname }}</q-td>
+          <q-td>{{ props.row.church }}</q-td>
           <q-td>{{ memberTypeLabel(props.row.type) }}</q-td>
           <q-td class="text-right text-weight-bold">{{ formatMoney(props.row.total) }}</q-td>
         </q-tr>
@@ -40,18 +34,29 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, onMounted } from 'vue'
+import { http } from 'boot/http'
 import CrudTable from 'src/components/common/crud-table/CrudTable.vue'
 import { getYears } from '../../../components/plugins/datetime'
+import { Result } from '../../../components/entities/Entity'
+import { Company } from '../../../components/entities/Company'
 import { useStore } from '../../../store'
 
 const store = useStore()
 
-const idCompany = store.state.user?.user?.company?.id as number
 const money = store.state.user?.user?.company?.money as string
-const url = `entries/report/contributions-ranking?id_company=${idCompany}`
+const url = 'entries/report/contributions-ranking'
+
+// 'ALL' = el reporte de todas las iglesias del alcance del usuario
+const ALL_CHURCHES = 'ALL'
+
+const churchOptions = ref<Array<{ label: string; value: string | number }>>([
+  { label: 'Todas las iglesias', value: ALL_CHURCHES }
+])
 
 const columns = [
   { name: 'fullname', label: 'Nombre completo', field: 'fullname', align: 'left' as const, sortable: true },
+  { name: 'church', label: 'Iglesia', field: 'church', align: 'left' as const, sortable: true },
   { name: 'type', label: 'Tipo', field: 'type', align: 'left' as const, sortable: true },
   { name: 'total', label: 'Total aportado', field: 'total', align: 'right' as const, sortable: true }
 ]
@@ -74,7 +79,14 @@ const groupOptions = [
   { value: 'OTHER', label: 'Otros' }
 ]
 
-const filters = [
+const filters = ref([
+  {
+    label: 'Iglesia',
+    name: 'id_company',
+    type: 'select',
+    options: churchOptions.value,
+    value: ALL_CHURCHES
+  },
   {
     label: 'Gestión',
     name: 'year',
@@ -88,7 +100,7 @@ const filters = [
     type: 'select',
     options: groupOptions
   }
-]
+])
 
 const memberTypeLabel = (type: string): string => {
   const map: Record<string, string> = {
@@ -102,4 +114,18 @@ const memberTypeLabel = (type: string): string => {
 
 const formatMoney = (value: number): string =>
   `${Number(value).toFixed(2)} ${money ?? ''}`
+
+// Iglesias que el usuario puede ver (el endpoint ya viene scopeado por rol)
+const getChurches = async () => {
+  const items = await http.get('companies') as Result<Company>
+  const churches = items.rows
+    .filter(item => ['CHURCH', 'GROUP'].includes(item.type))
+    .map(item => ({ label: item.name, value: item.id }))
+  churchOptions.value = [{ label: 'Todas las iglesias', value: ALL_CHURCHES }, ...churches]
+  filters.value[0].options = churchOptions.value
+}
+
+onMounted(async () => {
+  await getChurches()
+})
 </script>
