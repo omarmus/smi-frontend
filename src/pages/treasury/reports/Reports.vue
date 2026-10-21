@@ -79,9 +79,34 @@
           class="full-width btn-block"
         />
       </div>
+      <div
+        v-if="isAdmin"
+        class="col-xs-12 col-sm-6 col-md-3 card-button">
+        <q-btn
+          flat
+          color="secondary"
+          padding="lg"
+          icon="leaderboard"
+          label="Top de personas que aportan"
+          no-caps
+          @click="$router.push('/treasury/report/contributions')"
+          class="full-width btn-block"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { RoleSlug } from '../../../components/entities/Permission'
+import { useStore } from '../../../store'
+
+const store = useStore()
+
+// El reporte de aportes solo lo ven los administradores
+const isAdmin = [
+  RoleSlug.SUPERADMINISTRATOR,
+  RoleSlug.ADMINISTRATOR_UNION,
+  RoleSlug.ADMINISTRATOR_ASSOCIATION
+].includes(store.state.user?.role?.slug as RoleSlug)
 </script>

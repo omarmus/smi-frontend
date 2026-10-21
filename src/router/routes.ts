@@ -29,6 +29,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'report/quarter/:id', component: () => import('pages/treasury/reports/QuarterDetails.vue') },
       { path: 'report/month', component: () => import('pages/treasury/reports/MonthReport.vue') },
       { path: 'report/offerings', component: () => import('pages/treasury/reports/Offerings.vue') },
+      { path: 'report/contributions', component: () => import('pages/treasury/reports/Contributions.vue') },
       { path: 'report/offering', component: () => import('pages/treasury/reports/Offering.vue') },
       { path: 'expenses', component: () => import('pages/treasury/expenses/Expenses.vue') },
       { path: 'expense/:expenseId', component: () => import('pages/treasury/expenses/Expense.vue') },
