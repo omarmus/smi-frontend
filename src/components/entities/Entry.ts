@@ -45,6 +45,8 @@ export interface EntryDetail {
   date: Date
   value: number
   observation: string
+  observations?: string
+  state?: string
   concepts: Concept[]
   split?: boolean
 }

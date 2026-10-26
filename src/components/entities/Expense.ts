@@ -18,11 +18,13 @@ export interface ExpenseDetail {
   /* eslint-disable camelcase */
   document_type: string
   documentNumber: string
+  document_number?: string
   supplier: string
   responsible: string
   expense: Expense
   department?: Department
   idDepartment: number
   type?: string
+  state?: string
   adjustment?: Adjustment
 }
