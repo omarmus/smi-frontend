@@ -166,8 +166,24 @@
               <q-input
                 filled
                 label="Comprobante"
-                v-model="form.reference" />
+                v-model="form.reference"
+                hint="Opcional: número de recibo o factura" />
             </div>
+          </div>
+          <div class="col-xs-12">
+            <q-file
+              filled
+              v-model="referenceFile"
+              label="Comprobante (archivo)"
+              hint="Opcional: PDF, JPG o PNG de hasta 5 MB"
+              accept="application/pdf,image/jpeg,image/png"
+              :max-file-size="maxReferenceSize"
+              clearable
+              @rejected="onReferenceRejected">
+              <template v-slot:prepend>
+                <q-icon name="attach_file" />
+              </template>
+            </q-file>
           </div>
           <div class="col-xs-12">
             <q-input
@@ -211,6 +227,15 @@
                   <strong>{{ kindLabel(item.kind) }} · {{ months[item.month - 1] }} {{ item.year }}</strong>
                   <div class="treasury-observation">
                     {{ movementTypeLabel(item.type) }} · {{ item.reference || 'Sin comprobante' }}
+                  </div>
+                  <div class="treasury-observation" v-if="item.referenceFile">
+                    <a
+                      :href="`${filesBase}/files/adjustments/${item.referenceFile}`"
+                      target="_blank"
+                      rel="noopener"
+                      class="text-primary">
+                      <q-icon name="attach_file" size="xs" /> {{ item.referenceFile }}
+                    </a>
                   </div>
                   <div class="treasury-observation">
                     Aplicado en {{ months[(item.appliedMonth || 1) - 1] }} {{ item.appliedYear }}
@@ -281,7 +306,7 @@
 <script lang="ts" setup>
 import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { http } from 'boot/http'
+import { http, urlBase } from 'boot/http'
 import { message } from 'boot/message'
 import { Confirm } from 'boot/modal'
 import { months, getYears } from '../../components/plugins/datetime'
@@ -469,6 +494,45 @@ const stateColor = (state: AdjustmentState) => {
 }
 
 const money = store.state.user?.user?.company?.money ?? ''
+
+/** Base del backend (sin /api) para los archivos estáticos. */
+const filesBase = (urlBase as string ?? '').replace(/\/api\//g, '')
+
+/** Comprobante adjunto: máximo 5 MB, igual que el comprobante de depósito. */
+const maxReferenceSize = 5 * 1024 * 1024
+const referenceFile = ref<File | null>(null)
+
+const onReferenceRejected = () => {
+  message.error('El comprobante debe ser un PDF, JPG o PNG de hasta 5 MB')
+}
+
+/** Quita los puntos del nombre: el nombre final lo genera el servidor. */
+const sanitizeFileName = (originalName: string): string => {
+  const lastDot = originalName.lastIndexOf('.')
+  if (lastDot === -1) return originalName.replace(/\./g, '')
+  const base = originalName.slice(0, lastDot).replace(/\./g, '')
+  return base + originalName.slice(lastDot)
+}
+
+/**
+ * Sube el comprobante adjunto al ajuste ya creado. Devuelve false si la
+ * carga falla (el ajuste queda registrado igual).
+ */
+const uploadReferenceFile = async (idAdjustment: number, file: File): Promise<boolean> => {
+  try {
+    const formData = new FormData()
+    formData.append('file', file, sanitizeFileName(file.name))
+    const result = await http.post(
+      `adjustments/${idAdjustment}/upload`,
+      formData,
+      false,
+      { 'Content-Type': 'multipart/form-data' }
+    ) as { filename?: string }
+    return !!result?.filename
+  } catch (error) {
+    return false
+  }
+}
 
 const formatAmount = (value: number): string =>
   `${Number(value).toFixed(2)}${money ? ` ${money}` : ''}`
@@ -886,12 +950,23 @@ const save = async () => {
       }]
     }
 
-    await http.post('adjustments', payload)
+    const created = await http.post('adjustments', payload) as Adjustment
+
+    // El archivo se sube después de crear el ajuste: el id del ajuste recién
+    // existe en ese momento.
+    if (referenceFile.value) {
+      const uploaded = await uploadReferenceFile(created.id as number, referenceFile.value)
+      if (!uploaded) {
+        message.warning('El ajuste se registró, pero el comprobante no se pudo adjuntar')
+      }
+    }
+
     message.success('Ajuste registrado')
     form.value.value = null
     form.value.reason = ''
     form.value.reference = ''
     form.value.original_detail_id = null
+    referenceFile.value = null
     await getAdjustments()
   } catch (error) {
     // el boot de http ya muestra el mensaje del error

@@ -44,6 +44,8 @@ export interface Adjustment {
   kind: AdjustmentKind
   reason: string
   reference: string
+  /** Comprobante adjunto (nombre del archivo en el servidor). */
+  referenceFile?: string
   state: AdjustmentState
   /** Mes en el que se aplicó el movimiento (la API devuelve camelCase). */
   appliedYear?: number
