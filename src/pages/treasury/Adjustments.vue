@@ -195,9 +195,11 @@
           <table class="q-table">
             <thead>
               <tr>
-                <th class="text-left"><strong>Período</strong></th>
+                <th class="text-left"><strong>Ajuste</strong></th>
+                <th class="text-left"><strong>Imputación</strong></th>
                 <th class="text-left"><strong>Motivo</strong></th>
                 <th class="text-right"><strong>Valor</strong></th>
+                <th class="text-left"><strong>Estado</strong></th>
                 <th class="text-left"></th>
               </tr>
             </thead>
@@ -206,20 +208,46 @@
                 v-for="item in adjustments"
                 :key="item.id">
                 <td class="text-left">
-                  {{ kindLabel(item.kind) }} - {{ months[item.month - 1] }} {{ item.year }}
+                  <strong>{{ kindLabel(item.kind) }} · {{ months[item.month - 1] }} {{ item.year }}</strong>
                   <div class="treasury-observation">
-                    {{ item.reference }} - registrada en {{ months[(item.applied_month || 1) - 1] }} {{ item.applied_year }}
+                    {{ movementTypeLabel(item.type) }} · {{ item.reference || 'Sin comprobante' }}
+                  </div>
+                  <div class="treasury-observation">
+                    Aplicado en {{ months[(item.appliedMonth || 1) - 1] }} {{ item.appliedYear }}
+                    <span v-if="item.kind === AdjustmentKind.REVERSAL && item.reversalOf?.id">
+                      · del ajuste #{{ item.reversalOf.id }}
+                    </span>
+                  </div>
+                </td>
+                <td class="text-left">
+                  {{ departmentsOf(item).join(', ') || 'Sin departamento' }}
+                  <div
+                    class="treasury-observation"
+                    v-if="conceptsOf(item).length">
+                    Concepto: {{ conceptsOf(item).join(', ') }}
+                  </div>
+                  <div
+                    class="treasury-observation"
+                    v-if="hasOriginalValue(item)">
+                    Original: {{ formatAmount(originalTotalOf(item)) }}
                   </div>
                 </td>
                 <td class="text-left">
                   {{ item.reason }}
+                </td>
+                <td class="text-right">
+                  <strong>{{ valueLabelOf(item) }}</strong>
                   <div
                     class="treasury-observation"
-                    v-if="item.state === AdjustmentState.REVERSED">
-                    Anulada
+                    v-if="hasOriginalValue(item)">
+                    {{ formatAmount(originalTotalOf(item)) }} → {{ formatAmount(originalTotalOf(item) + totalValueOf(item)) }}
                   </div>
                 </td>
-                <td class="text-right">{{ totalOf(item) }}</td>
+                <td class="text-left">
+                  <q-badge
+                    :color="stateColor(item.state)"
+                    :label="stateLabel(item.state)" />
+                </td>
                 <td class="width-120">
                   <q-btn
                     v-if="item.state === AdjustmentState.APPLIED && item.kind !== AdjustmentKind.REVERSAL"
@@ -381,6 +409,63 @@ const kindLabel = (kind: AdjustmentKind) => {
 const totalOf = (item: Adjustment) => {
   const total = (item.adjustmentsDetails || []).reduce((sum, detail) => sum + Number(detail.value), 0)
   return total.toFixed(2)
+}
+
+const detailsOf = (item: Adjustment) => item.adjustmentsDetails || []
+
+/** Suma de los deltas de las líneas del ajuste (con signo). */
+const totalValueOf = (item: Adjustment): number =>
+  detailsOf(item).reduce((sum, detail) => sum + Number(detail.value), 0)
+
+const movementTypeLabel = (type: AdjustmentType) =>
+  type === AdjustmentType.EXPENSE ? 'Gasto' : 'Ingreso'
+
+/** Departamentos a los que se imputó el ajuste. */
+const departmentsOf = (item: Adjustment): string[] => {
+  const names = detailsOf(item)
+    .map(detail => String(detail.department?.name ?? '').trim())
+    .filter(Boolean)
+  return Array.from(new Set(names))
+}
+
+/** Conceptos corregidos (solo en correcciones por concepto). */
+const conceptsOf = (item: Adjustment): string[] => {
+  const names = detailsOf(item)
+    .map(detail => String(detail.concept ?? '').trim())
+    .filter(Boolean)
+  return Array.from(new Set(names))
+}
+
+/** Monto original contra el que se corrigió (concepto o línea). */
+const originalTotalOf = (item: Adjustment): number =>
+  detailsOf(item)
+    .filter(detail => detail.originalValue !== null && detail.originalValue !== undefined)
+    .reduce((sum, detail) => sum + Number(detail.originalValue), 0)
+
+const hasOriginalValue = (item: Adjustment): boolean =>
+  detailsOf(item).some(detail => detail.originalValue !== null && detail.originalValue !== undefined)
+
+/**
+ * Valor del ajuste: con signo cuando es una corrección (el delta) o una
+ * anulación (el contra-asiento); sin signo cuando es un registro omitido
+ * (el monto faltante).
+ */
+const valueLabelOf = (item: Adjustment): string => {
+  const total = totalValueOf(item)
+  if (item.kind === AdjustmentKind.OMISSION) return formatAmount(total)
+  return `${total > 0 ? '+' : ''}${formatAmount(total)}`
+}
+
+const stateLabel = (state: AdjustmentState) => {
+  if (state === AdjustmentState.REVERSED) return 'Anulada'
+  if (state === AdjustmentState.DRAFT) return 'Borrador'
+  return 'Aplicada'
+}
+
+const stateColor = (state: AdjustmentState) => {
+  if (state === AdjustmentState.REVERSED) return 'grey'
+  if (state === AdjustmentState.DRAFT) return 'orange'
+  return 'positive'
 }
 
 const money = store.state.user?.user?.company?.money ?? ''

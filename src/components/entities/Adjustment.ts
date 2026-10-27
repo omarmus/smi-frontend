@@ -45,11 +45,13 @@ export interface Adjustment {
   reason: string
   reference: string
   state: AdjustmentState
-  applied_year?: number
-  applied_month?: number
+  /** Mes en el que se aplicó el movimiento (la API devuelve camelCase). */
+  appliedYear?: number
+  appliedMonth?: number
   id_entry?: number
   id_expense?: number
-  id_reversal_of?: number
+  /** Ajuste que este contra-asiento revierte (solo en REVERSAL). */
+  reversalOf?: { id?: number }
   company?: { id: number }
   adjustmentsDetails?: AdjustmentDetail[]
 }
