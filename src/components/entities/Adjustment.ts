@@ -33,6 +33,8 @@ export interface AdjustmentDetail {
   originalDetailId?: number
   concept?: string
   observations?: string
+  /** La línea no genera diezmo de iglesia (queda exenta del 10%). */
+  noTithe?: boolean
   department?: Department
 }
 

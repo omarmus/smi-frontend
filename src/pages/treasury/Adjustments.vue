@@ -185,6 +185,19 @@
               </template>
             </q-file>
           </div>
+          <div class="col-xs-12" v-if="canExemptTithe">
+            <q-checkbox
+              v-model="form.no_tithe"
+              dense
+              class="q-mt-xs"
+              label="Este valor no genera diezmo de iglesia">
+              <q-tooltip>
+                El 100% queda en el departamento y no se cobra el 10% para la
+                asociación. Para ingresos de dinero físico que no cuadra con lo
+                registrado.
+              </q-tooltip>
+            </q-checkbox>
+          </div>
           <div class="col-xs-12">
             <q-input
               filled
@@ -255,6 +268,11 @@
                     class="treasury-observation"
                     v-if="hasOriginalValue(item)">
                     Original: {{ formatAmount(originalTotalOf(item)) }}
+                  </div>
+                  <div
+                    class="treasury-observation"
+                    v-if="isExemptOfTithe(item)">
+                    Sin diezmo de iglesia
                   </div>
                 </td>
                 <td class="text-left">
@@ -334,6 +352,8 @@ interface AdjustmentForm {
   value: number | null
   reason: string
   reference: string
+  /** La línea no genera diezmo de iglesia (exenta del 10%). */
+  no_tithe: boolean
 }
 
 interface LineDetail {
@@ -396,7 +416,8 @@ const form = ref<AdjustmentForm>({
   original_detail_id: null,
   value: null,
   reason: '',
-  reference: ''
+  reference: '',
+  no_tithe: false
 })
 
 const kindOptions = [
@@ -469,6 +490,10 @@ const originalTotalOf = (item: Adjustment): number =>
 
 const hasOriginalValue = (item: Adjustment): boolean =>
   detailsOf(item).some(detail => detail.originalValue !== null && detail.originalValue !== undefined)
+
+/** El ajuste quedó exento del diezmo de iglesia. */
+const isExemptOfTithe = (item: Adjustment): boolean =>
+  detailsOf(item).some(detail => detail.noTithe === true)
 
 /**
  * Valor del ajuste: con signo cuando es una corrección (el delta) o una
@@ -733,6 +758,27 @@ const departmentHint = computed<string>(() => {
   return 'Elegí el departamento donde se imputa la corrección'
 })
 
+/** Departamento elegido (con su tipo) en el select de departamento. */
+const selectedDepartmentChoice = computed<DepartmentChoice | null>(() => {
+  const id = form.value.id_department
+  if (id === null) return null
+  return availableDepartments.value.find(option => option.value === id) ?? null
+})
+
+/**
+ * La exención de diezmo solo tiene sentido en INGRESOS y en departamentos
+ * LOCAL (los GLOBAL no pagan el 10%).
+ */
+const canExemptTithe = computed<boolean>(() =>
+  form.value.type === AdjustmentType.ENTRY &&
+  selectedDepartmentChoice.value?.type === 'LOCAL'
+)
+
+// Si el movimiento deja de ser aplicable, la marca se limpia: no se manda.
+watch(canExemptTithe, allowed => {
+  if (!allowed) form.value.no_tithe = false
+})
+
 /** Rótulo del campo de monto: el concepto elegido o la línea completa. */
 const amountLabel = computed<string>(() => {
   if (form.value.kind !== AdjustmentKind.CORRECTION) return 'Monto que faltaba'
@@ -944,6 +990,7 @@ const save = async () => {
       details: [{
         id_department: form.value.id_department as number,
         value: Number(form.value.value),
+        no_tithe: canExemptTithe.value ? form.value.no_tithe : false,
         original_detail_id: form.value.kind === AdjustmentKind.CORRECTION
           ? form.value.original_detail_id as number
           : undefined
@@ -966,6 +1013,7 @@ const save = async () => {
     form.value.reason = ''
     form.value.reference = ''
     form.value.original_detail_id = null
+    form.value.no_tithe = false
     referenceFile.value = null
     await getAdjustments()
   } catch (error) {
