@@ -47,6 +47,8 @@ export interface EntryDetail {
   observation: string
   observations?: string
   state?: string
+  /** La línea no genera diezmo de iglesia (exenta del 10%). */
+  noTithe?: boolean
   concepts: Concept[]
   split?: boolean
 }

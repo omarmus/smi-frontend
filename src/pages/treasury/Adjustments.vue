@@ -197,6 +197,11 @@
                 registrado.
               </q-tooltip>
             </q-checkbox>
+            <div
+              class="text-caption"
+              v-if="selectedLine?.noTithe">
+              La línea que se corrige ya estaba exenta de diezmo.
+            </div>
           </div>
           <div class="col-xs-12">
             <q-input
@@ -390,6 +395,8 @@ interface LineOption {
   candidateDepartments: number[]
   /** Conceptos de la línea con su monto (aportes de persona). */
   conceptAmounts: ConceptAmount[]
+  /** La línea original estaba exenta de diezmo (S19). */
+  noTithe: boolean
   details: LineDetail[]
 }
 
@@ -803,11 +810,16 @@ const applyDepartmentFromLine = () => {
   const line = selectedLine.value
   if (form.value.kind !== AdjustmentKind.CORRECTION || !line) {
     form.value.id_department = null
+    form.value.no_tithe = false
     return
   }
   form.value.id_department = line.candidateDepartments.length === 1
     ? line.candidateDepartments[0]
     : null
+  // Si la línea que se corrige ya estaba exenta de diezmo, la corrección
+  // nace exenta (es la misma plata): el backend hereda la marca cuando el
+  // payload no la manda.
+  form.value.no_tithe = line.noTithe === true
 }
 
 const totalAdjustments = computed(() =>
@@ -898,6 +910,7 @@ const getOriginalLines = async () => {
             ? conceptDepartmentIds(detail.concepts)
             : (departmentId ? [departmentId] : conceptDepartmentIds(detail.concepts)),
           conceptAmounts: conceptAmountsOf(detail.concepts),
+          noTithe: detail.noTithe === true,
           search: [
             title,
             subtitle,
@@ -959,6 +972,7 @@ const getOriginalLines = async () => {
         subtitle,
         candidateDepartments: departmentId ? [departmentId] : [],
         conceptAmounts: [],
+        noTithe: false,
         search: [
           title,
           subtitle,
@@ -990,7 +1004,9 @@ const save = async () => {
       details: [{
         id_department: form.value.id_department as number,
         value: Number(form.value.value),
-        no_tithe: canExemptTithe.value ? form.value.no_tithe : false,
+        // Si la exención no aplica (gasto o departamento global), no se manda:
+        // el backend entonces hereda la marca de la línea original.
+        no_tithe: canExemptTithe.value ? form.value.no_tithe : undefined,
         original_detail_id: form.value.kind === AdjustmentKind.CORRECTION
           ? form.value.original_detail_id as number
           : undefined
