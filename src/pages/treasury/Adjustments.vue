@@ -449,7 +449,8 @@ const canSave = computed(() =>
   form.value.value !== null &&
   form.value.value !== '' &&
   !!form.value.reason.trim() &&
-  !!form.value.reference.trim() &&
+  // El comprobante es OPCIONAL (S17): puede ser un texto, un archivo adjunto
+  // o nada. Lo que no es opcional es el motivo.
   (form.value.kind !== AdjustmentKind.CORRECTION || !!form.value.original_detail_id)
 )
 
