@@ -14,9 +14,9 @@
         :update="updateList"></slot>
     </div>
     <div class="col-xs-12">
-      <q-toolbar
+      <div
         inset
-        class="q-gutter-md q-px-md q-pb-md"
+        class="full-width q-pb-md"
         v-if="props.buttonsHidden === false">
         <div class="col-xs-12 col-md-8">
           <slot
@@ -44,7 +44,7 @@
         <div class="col-xs-12 col-md-4 text-right">
           <slot name="buttons-end"></slot>
         </div>
-      </q-toolbar>
+      </div>
       <template v-if="enableFilter">
         <div class="q-pl-md full-width q-crud-filter">
           <q-icon name="search" size="md" class="icon-search" />
@@ -332,6 +332,22 @@ watch(() => JSON.parse(JSON.stringify(filter.value)) as Record<string, string>, 
   await onRequest({ pagination: pagination.value })
 })
 
+// Un filtro que desaparece (cambio de rol: el obrero no ve "Cargo" ni
+// "Buscar por nombre") no debe seguir aplicando su valor antigo en la consulta.
+watch(() => props.filters, (filters) => {
+  const names = new Set((filters || []).map(item => item.name))
+  let changed = false
+  Object.keys(filter.value).forEach(key => {
+    if (!names.has(key)) {
+      delete filter.value[key]
+      changed = true
+    }
+  })
+  if (changed) {
+    void onRequest({ pagination: pagination.value })
+  }
+}, { deep: true })
+
 onMounted(async () => {
   setValuesFilter()
   await onRequest({ pagination: pagination.value })
@@ -347,7 +363,7 @@ onMounted(async () => {
   }
 
   .icon-search {
-    color: $texto;
+    color: $texto-claro;
     margin-top: 4px;
   }
 
@@ -398,7 +414,7 @@ onMounted(async () => {
 // }
 .q-crud-filter {
   position: relative;
-  background: #EBF0F2;
+  background: var(--app-banda);
   padding: 5px 5px 5px 33px;
 
   &::before {
@@ -408,7 +424,7 @@ onMounted(async () => {
     top: 0;
     bottom: 0;
     left: 4px;
-    background: #EBF0F2;
+    background: var(--app-banda);
     width: 30px;
   }
 
@@ -417,6 +433,17 @@ onMounted(async () => {
     top: 50%;
     left: 6px;
     transform: translateY(-50%);
+  }
+}
+
+// Modo oscuro: los fondos de la barra de filtros y de los campos.
+body.body--dark {
+  .q-crud-filter {
+    background-color: $dark;
+  }
+
+  .icon-search {
+    color: $dark-texto-suave;
   }
 }
 </style>

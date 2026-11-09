@@ -141,16 +141,16 @@
                   </div>
 
                   <q-btn
-                    outline
-                    color="primary"
+                    flat
+                    color="secondary"
                     icon="add"
-                    label="Agregar columna"
+                    label="Agregar columna" no-caps
                     dense
                     @click="addColumn" />
                 </div>
                 <div class="col-xs-12 text-right q-gutter-sm">
-                  <q-btn icon="close" label="Cancelar" @click="props.close" />
-                  <q-btn icon="check" color="primary" label="Guardar" type="submit" />
+                  <q-btn icon="close" label="Cancelar" color="secondary" flat no-caps @click="props.close" />
+                  <q-btn icon="check" color="primary" label="Guardar" no-caps type="submit" />
                 </div>
               </div>
             </q-form>

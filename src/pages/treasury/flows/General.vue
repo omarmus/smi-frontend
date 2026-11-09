@@ -99,14 +99,14 @@
       v-if="type === 'MONTH'"
       class="row flow-navitagor">
       <q-btn
-        label="Anterior"
+        label="Anterior" no-caps
         flat
         icon="chevron_left"
         @click="prevMonth" />
       <strong v-if="month > 0">{{ monthsLiteral[month - 1].toUpperCase() }}</strong>
       <!-- <strong>{{ month?.label?.toUpperCase() }}</strong> -->
       <q-btn
-        label="Siguiente"
+        label="Siguiente" no-caps
         flat
         icon-right="chevron_right"
         @click="nextMonth" />
@@ -571,7 +571,7 @@ onBeforeMount(async () => {
 }
 
 .danger-zone {
-  border-left: 4px solid #c10015;
-  background-color: #fff8f8;
+  border-left: 4px solid $negative-oscuro;
+  background-color: var(--app-banda-error);
 }
 </style>

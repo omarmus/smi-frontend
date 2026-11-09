@@ -814,7 +814,7 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .pivot-container {
   overflow-x: auto;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -894,7 +894,7 @@ onMounted(async () => {
 }
 .pivot-cell--manual {
   background-color: rgba(255, 152, 0, 0.18);
-  color: #b35a00;
+  color: $warning;
   font-weight: 500;
 }
 .pivot-cell--manual:hover {
@@ -939,5 +939,70 @@ onMounted(async () => {
 .treasury-empty {
   color: #666;
   font-style: italic;
+}
+
+/*
+ * Modo oscuro: la tabla pivote usa negro/blanco sobre fondo claro en varios
+ * puntos (columna fija con el nombre de la iglesia, cabeceras, celdas vacías,
+ * leyenda). Sin esto, la columna de la iglesia queda blanca con el texto en
+ * claro: ilegible.
+ */
+body.body--dark {
+  .sticky-col {
+    background-color: $dark;
+    border-right-color: $dark-borde;
+  }
+
+  .pivot-table thead th {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  .pivot-table tfoot td {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-top-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .row-num-col {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .pivot-cell--empty {
+    color: rgba(255, 255, 255, 0.28);
+  }
+
+  .pivot-cell--manual {
+    background-color: rgba(217, 160, 94, 0.18);
+    color: #E0C58F;
+  }
+
+  .pivot-cell--manual:hover {
+    background-color: rgba(217, 160, 94, 0.28);
+  }
+
+  .pivot-legend {
+    color: rgba(255, 255, 255, 0.68);
+  }
+
+  .manual-total {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  .pivot-total {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-left-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .sortable:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .pivot-cell:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  .treasury-observation,
+  .treasury-empty {
+    color: $dark-texto-suave;
+  }
 }
 </style>

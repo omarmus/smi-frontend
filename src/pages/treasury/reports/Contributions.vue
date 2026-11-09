@@ -6,7 +6,7 @@
         round
         flat
         @click="$router.push('/treasury/reports')" />
-      Top de personas que aportan
+      Informe de aportes por persona
     </h2>
 
     <CrudTable

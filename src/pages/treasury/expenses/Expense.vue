@@ -80,7 +80,7 @@
                       v-model="form.date"
                       minimal>
                       <div class="row items-center justify-end">
-                        <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                        <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                       </div>
                     </q-date>
                   </q-popup-proxy>
@@ -129,7 +129,7 @@
               v-if="form.id"
               type="reset"
               padding="10px"
-              label="Cancelar"
+              label="Cancelar" color="secondary" flat
               no-caps
               icon="cancel"
               class="full-width q-mb-sm" />

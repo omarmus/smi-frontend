@@ -23,7 +23,7 @@
     <q-select
       v-if="roles && roles?.length > 1"
       square standout
-      color="teal"
+      color="white"
       label="Rol seleccionado"
       v-model="role"
       :options="roles"
@@ -48,6 +48,19 @@
         @filter="filterCompaniesFn"
         dark />
     </template>
+    <q-separator />
+    <q-list padding class="menu-list">
+      <q-item
+        to="/"
+        exact
+        clickable
+        v-ripple>
+        <q-item-section avatar class="layout-menu-icon">
+          <q-icon name="dashboard" class="color-texto" />
+        </q-item-section>
+        <q-item-section>Dashboard</q-item-section>
+      </q-item>
+    </q-list>
     <q-separator />
     <q-list>
       <q-expansion-item
@@ -76,15 +89,15 @@
     </q-list>
     <q-separator />
     <q-list padding class="menu-list">
-      <!-- <q-item
+      <q-item
         @click="darkModeChange" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
-          <q-icon name="dark_mode" class="color-texto" />
+          <q-icon :name="darkMode ? 'light_mode' : 'dark_mode'" class="color-texto" />
         </q-item-section>
         <q-item-section>
-          {{ darkMode ? `Desactivar modo oscuro` : `Activar modo oscuro` }}
+          {{ darkMode ? 'Desactivar modo oscuro' : 'Activar modo oscuro' }}
         </q-item-section>
-      </q-item> -->
+      </q-item>
       <q-item
         @click="logout" clickable v-ripple>
         <q-item-section avatar class="layout-menu-icon">
@@ -99,10 +112,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { useQuasar } from 'quasar'
 // import { useQuasar } from 'quasar'
 import { auth, initStorage, UserResponse } from 'boot/auth'
 import { http, urlBase } from 'boot/http'
 import { storage } from 'boot/storage'
+import { setDark } from 'boot/dark'
 import { useRouter } from 'vue-router'
 import { Role, RoleSlug } from '../entities/Permission'
 import { useStore } from '../../store'
@@ -126,8 +141,14 @@ const router = useRouter()
 //   store.commit('global/setOpen', false)
 // }
 
-// const $q = useQuasar()
-// const darkMode = ref($q.dark.isActive)
+const $q = useQuasar()
+const darkMode = ref($q.dark.isActive)
+
+/** Modo oscuro: la preferencia se guarda y se aplica al instante. */
+const darkModeChange = () => {
+  darkMode.value = !darkMode.value
+  setDark(darkMode.value)
+}
 
 const role = ref<Role>()
 const roles = ref<Role[]>()
@@ -187,6 +208,8 @@ const filterCompaniesFn = (val: string, update: (func: () => void) => void) : vo
 }
 
 const year = new Date().getUTCFullYear()
+
+watch(() => $q.dark.isActive, value => { darkMode.value = value })
 
 watch(role, async () => {
   if (typeof role.value === 'number') {
@@ -353,6 +376,14 @@ onMounted(async () => {
   background-color: $primary;
   color: #ffffff;
 }
+
+// En modo oscuro la barra lateral deja de ser la superficie de marca azul:
+// pasa a un plano más profundo que la página, con el azul de marca reservado
+// para el ítem activo.
+body.body--dark .sidebar {
+  background-color: $dark-menu;
+  border-right: 1px solid $dark-borde;
+}
 .personal-datos {
   padding-left: 15px;
 }
@@ -377,12 +408,13 @@ onMounted(async () => {
 }
 .layout-menu {
   h1.header-icon {
-    background-image: url(../../assets/images/logo-white.png);
+    background-image: url(../../assets/brand/logos/isotipo-blanco.png);
     background-size: 32px;
     background-repeat: no-repeat;
     background-position: 6px 6px;
     padding-left: 48px;
     margin: 0;
+    font-family: $fuente-display, $fuente-titulos, sans-serif;
     font-size: 1.15rem;
     letter-spacing: -.05rem;
     line-height: 50px;
@@ -423,6 +455,9 @@ onMounted(async () => {
   .q-item {
     min-height: 40px;
 
+    // El ítem activo se marca con el amarillo corporativo (#B2A675, 3.05:1
+    // sobre el azul de la barra) y el texto en blanco corporativo (6:1):
+    // el amarillo no alcanza 4.5:1 para texto de 15px.
     &:hover,
     &.active,
     &:hover
@@ -430,7 +465,11 @@ onMounted(async () => {
     &.q-router-link--active,
     &.q-router-link--active .color-texto {
       font-weight: bolder;
-      color: $warning-light;
+      color: #ffffff;
+    }
+
+    &.q-router-link--active {
+      box-shadow: inset 3px 0 0 0 $amarillo-corporativo;
     }
 
     & > .q-focus-helper {

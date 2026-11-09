@@ -97,12 +97,12 @@
                 <div class="col-xs-12 text-right q-gutter-sm">
                   <q-btn
                     icon="close"
-                    label="Cancelar"
+                    label="Cancelar" color="secondary" flat no-caps
                     @click="props.close" />
                   <q-btn
                     icon="check"
-                    color="secondary"
-                    label="Guardar"
+                    color="primary"
+                    label="Guardar" no-caps
                     type="submit" />
                 </div>
               </div>

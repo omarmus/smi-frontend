@@ -98,7 +98,7 @@
                     <q-item-section>
                       <q-btn
                         color="secondary"
-                        label="Agregar como visita"
+                        label="Agregar como visita" no-caps
                         @click="saveUser(name.label, 'VISIT')" />
                     </q-item-section>
                   </q-item>
@@ -106,7 +106,7 @@
                     <q-item-section>
                       <q-btn
                         color="warning"
-                        label="Buscar en otra Asociación"
+                        label="Buscar en otra Asociación" no-caps
                         @click="saveUser(name.label, 'SEARCH')" />
                     </q-item-section>
                   </q-item>
@@ -772,7 +772,7 @@ onBeforeMount(async () => {
   position: relative;
 
   .q-menu {
-    background-color: white;
+    background-color: var(--app-superficie);
     position: absolute !important;
     left: 0;
     right: 0;

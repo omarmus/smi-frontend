@@ -34,7 +34,8 @@ module.exports = configure(function (ctx) {
       'storage',
       'message',
       'modal',
-      'auth'
+      'auth',
+      'dark'
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
@@ -95,7 +96,12 @@ module.exports = configure(function (ctx) {
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
     framework: {
-      config: {},
+      config: {
+        // Modo oscuro: 'auto' deja que el sistema operativo marque el punto de
+        // partida; la preferencia guardada por el usuario se aplica DESPUÉS en
+        // el boot (src/boot/dark.ts), que corre más tarde que este plugin.
+        dark: 'auto'
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack

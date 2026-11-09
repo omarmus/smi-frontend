@@ -49,7 +49,7 @@
       </CrudTable>
     </q-card-section>
     <!-- <q-card-actions align="right" class="q-pa-md">
-      <q-btn label="Cancelar" icon="close" v-close-popup />
+      <q-btn label="Cancelar" color="secondary" flat no-caps icon="close" v-close-popup />
     </q-card-actions> -->
   </q-card>
 </template>

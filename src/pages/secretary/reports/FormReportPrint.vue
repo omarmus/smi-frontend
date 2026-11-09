@@ -20,7 +20,6 @@
       </div>
       <div class="col-auto">
         <q-btn
-          outline
           color="primary"
           icon="picture_as_pdf"
           label="Descargar PDF"
@@ -247,8 +246,16 @@ onMounted(() => {
 
 <style lang="scss">
 .print-sheet {
-  background: #fff;
-  color: #000;
+  // La hoja sigue el tema en pantalla; al imprimir (ver `@media print`) se
+  // vuelve a papel blanco con tinta negra.
+  --print-fondo: #ffffff;
+  --print-texto: #000000;
+  --print-borde: #000000;
+  --print-cabecera: #F0F1F4;
+  --print-total: #F5F8FA;
+
+  background: var(--print-fondo);
+  color: var(--print-texto);
   padding: 24px;
   font-family: Arial, Helvetica, sans-serif;
 
@@ -287,7 +294,7 @@ onMounted(() => {
 
     th,
     td {
-      border: 1px solid #000;
+      border: 1px solid var(--print-borde);
       padding: 3px 4px;
       word-break: break-word;
     }
@@ -301,13 +308,13 @@ onMounted(() => {
     }
 
     th {
-      background: #f0f0f0;
+      background: var(--print-cabecera);
       font-weight: bold;
     }
 
     tfoot .print-totals td {
       font-weight: bold;
-      background: #fafafa;
+      background: var(--print-total);
     }
   }
 
@@ -323,7 +330,7 @@ onMounted(() => {
     span {
       flex: 1;
       text-align: center;
-      border-top: 1px solid #000;
+      border-top: 1px solid var(--print-borde);
       padding-top: 4px;
     }
   }
@@ -332,6 +339,30 @@ onMounted(() => {
 @media print {
   .no-print {
     display: none;
+  }
+}
+
+// Modo oscuro: la hoja se ve oscura en PANTALLA (el papel no es una
+// pantalla: al imprimir vuelve a blanco, más abajo).
+body.body--dark .print-sheet {
+  --print-fondo: #1C2333;
+  --print-texto: #E6E7E8;
+  --print-borde: #3a4257;
+  --print-cabecera: #232B3D;
+  --print-total: #1B2740;
+}
+
+// Al imprimir: papel blanco y tinta negra, en los dos temas. La misma
+// especificidad que la regla oscura (y más abajo) para que gane también
+// cuando el navegador está en modo oscuro.
+@media print {
+  body .print-sheet,
+  body.body--dark .print-sheet {
+    --print-fondo: #ffffff;
+    --print-texto: #000000;
+    --print-borde: #000000;
+    --print-cabecera: #F0F1F4;
+    --print-total: #F5F8FA;
   }
 }
 </style>

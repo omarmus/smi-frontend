@@ -116,7 +116,7 @@ const toggleExpand = (id: number) => {
 
 const severityColor = (severity: string): string => {
   const map: Record<string, string> = {
-    LOW: 'green-9', MEDIUM: 'amber-9', HIGH: 'deep-orange-7', CRITICAL: 'red-10'
+    LOW: 'green-9', MEDIUM: 'brown-8', HIGH: 'deep-orange-10', CRITICAL: 'red-10'
   }
   return map[severity] ?? 'grey'
 }
@@ -155,17 +155,17 @@ const eventLabel = (eventName: string): string => {
 const eventColor = (eventName: string): string => {
   const map: Record<string, string> = {
     treasury_purged: 'red-10',
-    month_reopened: 'orange-9',
+    month_reopened: 'deep-orange-10',
     month_closed: 'green-9',
-    manual_contribution_saved: 'amber-9',
+    manual_contribution_saved: 'brown-8',
     initial_balance_created: 'teal-10',
     initial_balance_updated: 'teal-8',
     cross_church_report_viewed: 'purple-10',
     login_failed: 'red-10',
     login_succeeded: 'green-9',
-    login_denied_inactive: 'orange-9',
+    login_denied_inactive: 'deep-orange-10',
     context_switched: 'blue-10',
-    user_password_changed: 'amber-9',
+    user_password_changed: 'brown-8',
     user_roles_changed: 'indigo-9',
     user_state_changed: 'indigo-8',
     user_deleted: 'red-10',
@@ -209,7 +209,7 @@ const formatPayload = (payload: Record<string, unknown> | null): string => {
 
 <style scoped>
 .audit-payload {
-  background: #f5f5f5;
+  background: var(--app-banda);
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 0.75rem;

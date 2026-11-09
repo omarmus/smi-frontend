@@ -215,7 +215,7 @@
                               :options="validateDateOptions"
                               >
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                                <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -350,7 +350,7 @@
                               :options="validateDateOptions"
                               >
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                                <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -396,7 +396,7 @@
                               :options="validateDateOptions"
                               >
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                                <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -424,7 +424,7 @@
                               :options="validateDateOptions"
                               >
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                                <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -452,7 +452,7 @@
                               :options="validateDateOptions"
                               >
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                                <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -529,10 +529,10 @@
               </q-tab-panel>
             </q-tab-panels>
             <q-card-actions align="right">
-              <q-btn v-if="tab !== 'personal'" label="Anterior" icon="navigate_before" @click="previous" />
-              <q-btn v-if="tab !== 'usuario'" label="Siguiente" icon="navigate_next" @click="next" />
-              <q-btn label="Cancelar" icon="cancel" v-close-popup />
-              <q-btn type="submit" label="Guardar" icon="check" color="primary" />
+              <q-btn v-if="tab !== 'personal'" label="Anterior" no-caps icon="navigate_before" @click="previous" />
+              <q-btn v-if="tab !== 'usuario'" label="Siguiente" no-caps icon="navigate_next" @click="next" />
+              <q-btn label="Cancelar" color="secondary" flat no-caps icon="cancel" v-close-popup />
+              <q-btn type="submit" label="Guardar" no-caps icon="check" color="primary" />
             </q-card-actions>
           </q-form>
         </q-card>
@@ -677,8 +677,8 @@
             <q-input filled label="Repetir contraseña" v-model="confirmPassword" type="password" :rules="[v => v === newPassword || 'Las contraseñas no coinciden']" class="q-mt-sm" />
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn label="Cancelar" v-close-popup />
-            <q-btn type="submit" label="Guardar" color="primary" />
+            <q-btn label="Cancelar" color="secondary" flat no-caps v-close-popup />
+            <q-btn type="submit" label="Guardar" no-caps color="primary" />
           </q-card-actions>
         </q-form>
       </q-card>

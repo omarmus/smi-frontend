@@ -28,6 +28,8 @@ interface UserResponse {
 
 export function initStorage (data: UserResponse) {
   const user = {
+    // el id del usuario: el front lo usa para saber si un informe es suyo
+    id: data.id,
     username: data.username,
     email: data.email,
     fullname: data.fullname,

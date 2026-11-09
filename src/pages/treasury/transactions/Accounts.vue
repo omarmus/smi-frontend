@@ -90,9 +90,9 @@
               :rules="[v => !!v || 'El campo es requerido']" />
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn label="Cancelar" icon="cancel" v-close-popup />
-            <q-btn v-if="account.id" label="Eliminar" icon="delete" color="negative" v-close-popup @click="deleteItem(getAccounts, `accounts/${account.id}`)" />
-            <q-btn type="submit" :label="account.id ? 'Actualizar' : 'Guardar'" icon="check" color="primary" />
+            <q-btn label="Cancelar" color="secondary" flat no-caps icon="cancel" v-close-popup />
+            <q-btn v-if="account.id" label="Eliminar" flat no-caps icon="delete" color="negative" v-close-popup @click="deleteItem(getAccounts, `accounts/${account.id}`)" />
+            <q-btn type="submit" :label="account.id ? 'Actualizar' : 'Guardar'" no-caps icon="check" color="primary" />
           </q-card-actions>
         </q-form>
       </q-card>

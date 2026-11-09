@@ -36,10 +36,10 @@
       </div>
     </q-card-section>
     <q-card-actions align="right" class="q-pa-md">
-      <q-btn label="Cancelar" icon="close" v-close-popup id="btn-photo" />
-      <q-btn label="Cambiar" icon="add_a_photo" @click="viewEditor = false" v-if="viewEditor" />
+      <q-btn label="Cancelar" color="secondary" flat no-caps icon="close" v-close-popup id="btn-photo" />
+      <q-btn label="Cambiar" no-caps icon="add_a_photo" @click="viewEditor = false" v-if="viewEditor" />
       <q-btn
-        label="Guardar"
+        label="Guardar" no-caps
         color="primary"
         icon="check"
         @click="sendPhoto"

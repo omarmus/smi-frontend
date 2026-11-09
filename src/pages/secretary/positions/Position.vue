@@ -107,13 +107,13 @@
                 <div class="col-xs-12 text-right q-gutter-sm">
                   <q-btn
                     icon="close"
-                    label="Cancelar"
+                    label="Cancelar" flat no-caps
                     color="negative"
                     @click="props.close" />
                   <q-btn
                     icon="save"
                     type="submit"
-                    label="Guardar"
+                    label="Guardar" no-caps
                     color="primary" />
                 </div>
               </div>

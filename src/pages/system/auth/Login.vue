@@ -20,9 +20,18 @@
           <q-input
             label="Contraseña"
             v-model="password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             filled
-            :rules="[v => !!v || 'El campo es requerido']" />
+            :rules="[v => !!v || 'El campo es requerido']">
+            <template #append>
+              <q-icon
+                :name="showPassword ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                size="20px"
+                :title="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                @click="showPassword = !showPassword" />
+            </template>
+          </q-input>
           <q-btn
             type="submit"
             label="Ingresar"
@@ -42,6 +51,7 @@ import { auth } from 'boot/auth'
 
 const username = ref()
 const password = ref()
+const showPassword = ref(false)
 
 const login = () => {
   auth.login(username.value, password.value)
@@ -58,7 +68,7 @@ const login = () => {
 
 .login-left {
   background-color: #fff;
-  background-image: url(../../../assets/images/bg-system.jpg);
+  background-image: url(../../../assets/brand/backgrounds/fotocomposicion-biblias.jpg);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: left center;
@@ -89,7 +99,7 @@ const login = () => {
 
   p {
     margin-bottom: 60px;
-    color: $texto;
+    color: $texto-claro;
     font-size: 1rem;
   }
 }
@@ -100,15 +110,16 @@ const login = () => {
   height: 100%;
 }
 .login-logo-title {
+  font-family: $fuente-display, $fuente-titulos, sans-serif;
   font-weight: bold;
   font-size: 2.8rem;
   margin: 0 0 64px 100px;
   line-height: 2.8rem;
-  color: #83A371;
+  color: $primary;
 }
 .login-logo-smi {
   display: inline-block;
-  background-image: url(../../../assets/images/logo-smi-blue.png);
+  background-image: url(../../../assets/brand/logos/isotipo-blanco.png);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
@@ -141,6 +152,21 @@ const login = () => {
     margin: 4px 0 0 12px;
     height: 64px;
     width: 38px;
+  }
+}
+
+// Modo oscuro: el formulario de acceso va sobre la superficie del tema.
+body.body--dark {
+  .login-right {
+    background: var(--app-fondo);
+  }
+
+  .login-form h2 {
+    color: $dark-texto;
+  }
+
+  .login-logo-title {
+    color: $dark-texto;
   }
 }
 </style>

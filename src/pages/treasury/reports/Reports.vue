@@ -87,7 +87,7 @@
           color="secondary"
           padding="lg"
           icon="leaderboard"
-          label="Top de personas que aportan"
+          label="Informe de aportes por persona"
           no-caps
           @click="$router.push('/treasury/report/contributions')"
           class="full-width btn-block"

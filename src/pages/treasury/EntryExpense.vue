@@ -89,7 +89,7 @@
         v-if="entry.state === 'CLOSED' && isAdmin"
         label="Reabrir el mes"
         no-caps
-        color="red"
+        color="negative"
         :icon="'warning'"
         :disable="!canReopen"
         class="btn-close-month"

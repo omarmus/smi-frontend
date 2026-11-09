@@ -13,24 +13,58 @@
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
 $primary   : #335781;
-$secondary : #323248;
-$accent    : #EB8338;
+$secondary : #373332;   // negro corporativo del manual de marca
+$accent    : #83A371;   // verde corporativo del manual de marca
+$amarillo-corporativo: #B2A675;   // amarillo corporativo del manual de marca
 
-$positive  : #0BB783;
-$negative  : #F64E60;
-$info      : #8950FC;
-$warning   : #EB8338;
-$warning-light   : #EEA101;
+$positive  : #83A371;   // verde corporativo (manual de marca, pág. 24)
+$negative  : #8C3A2A;   // rojo cálido armonizado con la marca (fuera de la paleta, por decisión)
+$info      : #5E5687;   // lila oscuro derivado del lila de ilustración (#9D98CA)
+$warning   : #B2A675;   // amarillo corporativo (manual de marca, pág. 24)
+$warning-light   : #B2A675;   // mismo valor: la marca no tiene un amarillo más claro
 
 $border: #E4E6EF;
-$texto: #9899AC;
+
+// $texto se usa sobre superficies OSCURAS (menú lateral, modo oscuro):
+// #9899AC daba 4.44:1 sobre #323248, apenas por debajo de AA. Este tono
+// claro queda en 4.67:1 sin cambiar la percepción del menú.
+$texto: #9C9DB0;
+
+// $texto (#9C9DB0) es el tono para fondos oscuros: sobre superficies claras
+// da 2.7:1 y no cumple AA (4.5:1). Para fondos claros se usa $texto-claro.
+$texto-claro: #63647A;      // 5.4:1 sobre #F5F8FA · 5.8:1 sobre blanco
+
+// Variantes oscuras de la paleta semántica: los tonos de marca dan 2.6:1
+// sobre blanco y no alcanzan ni el mínimo de 3:1 para iconos.
+// El verde de marca (#83A371) da 2.8:1 sobre blanco: no sirve como texto.
+// Se deriva de él (mismo tono, más oscuro) para texto y fondos con texto
+// blanco: #417623 → 5.5:1 sobre blanco.
+$positive-oscuro: #417623;
+$negative-oscuro: #8C3A2A;  // rojo cálido: la marca no tiene rojo (decisión del usuario)
+// El amarillo corporativo da 2.44:1 sobre blanco: no sirve como texto.
+// Sobre el amarillo (o su tinte) se usa el NEGRO corporativo, que sí alcanza.
+$negro-corporativo: #373332;
+
 $background-input: rgba(0, 0, 0, .05);
 
-// used by dark mode
-$dark      : #1e1e2d;
-$dark-page : #151521;
+// Modo oscuro: azul-negro de la familia del azul (el sistema se usa de noche
+// en la iglesia y se proyecta en la junta).
+$dark      : #1C2333;   // superficie elevada (tarjetas, campos, diálogos)
+$dark-page : #141A27;   // fondo de la página
+$dark-texto: #E6E7E8;   // texto principal (blanco corporativo)
+$dark-texto-suave: #A9AAB8;  // texto secundario
+$dark-borde: #2b2b40;   // separadores y bordes
+$dark-menu: #101625;    // barra lateral: plano más profundo que la página
+$dark-acento: #6E9BC8;  // azul claro para acentos y enlaces sobre oscuro
 $separator-color         : $texto;
 $separator-dark-color    : #2b2b40;
+// Jerarquía tipográfica del manual de marca (pág. 27):
+// Gilroy = principal (titulares y palabras cortas) · Agenor Neue = títulos de
+// comunicación informativa · Roboto = textos largos (cuerpo, tablas, datos).
+$fuente-display: 'Gilroy', 'Agenor Neue', sans-serif;
+$fuente-titulos: 'Agenor Neue', 'Roboto', sans-serif;
+$fuente-texto: 'Roboto', sans-serif;
+
 $button-border-radius: 4px;
 $table-border-color: $border;
 $table-dark-border-color: $primary;

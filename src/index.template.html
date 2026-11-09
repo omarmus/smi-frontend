@@ -16,6 +16,23 @@
     <link rel="icon" type="image/ico" href="favicon.ico">
   </head>
   <body>
+    <!--
+      Modo oscuro: se fija la clase del body ANTES del primer pintado para
+      que la página no aparezca un instante en claro. El plugin de Quasar
+      reescribe la clase más tarde; el boot (src/boot/dark.ts) vuelve a
+      aplicar la preferencia guardada.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('app_dark')
+          var dark = stored !== null
+            ? stored === 'true'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+          document.body.classList.add(dark ? 'body--dark' : 'body--light')
+        } catch (e) { document.body.classList.add('body--light') }
+      })()
+    </script>
     <!-- DO NOT touch the following DIV -->
     <div id="q-app"></div>
   </body>

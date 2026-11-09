@@ -146,7 +146,7 @@ onMounted(async () => {
 .member-info {
   font-size: .85rem;
   line-height: 1.5rem;
-  background-color: white;
+  background-color: var(--app-superficie);
   padding: 10px 15px 0;
 }
 .member-info-title {
@@ -166,7 +166,7 @@ onMounted(async () => {
   margin: 0 0 10px;
   padding: 0;
   list-style: none;
-  color: $secondary;
+  color: var(--app-texto);
   white-space: normal;
 }
 .member-info-photo {

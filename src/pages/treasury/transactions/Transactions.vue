@@ -114,7 +114,7 @@
                         :options="validateDateOptions"
                         >
                         <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                          <q-btn v-close-popup label="Cerrar" no-caps color="secondary" flat />
                         </div>
                       </q-date>
                     </q-popup-proxy>
@@ -134,8 +134,8 @@
                 :rules="[validation.required]" />
             </q-card-section>
             <q-card-actions align="right">
-              <q-btn label="Cancelar" icon="cancel" v-close-popup />
-              <q-btn type="submit" label="Guardar" icon="check" color="primary" />
+              <q-btn label="Cancelar" color="secondary" flat no-caps icon="cancel" v-close-popup />
+              <q-btn type="submit" label="Guardar" no-caps icon="check" color="primary" />
             </q-card-actions>
           </q-form>
         </q-card>
@@ -279,7 +279,7 @@ onBeforeMount(async () => {
 
 <style lang="scss">
 .transaction-sub {
-  color: $secondary;
+  color: var(--app-texto);
   font-size: .8rem;
   margin-top: -2px;
 }

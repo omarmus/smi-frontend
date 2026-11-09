@@ -9,30 +9,96 @@
       {{ title }}
     </h2>
 
+    <q-banner
+      v-if="detail?.reviewState === ReportReviewState.SUBMITTED"
+      dense
+      class="bg-blue-1 text-blue-10 q-mb-md">
+      <template #avatar>
+        <q-icon name="send" color="primary" />
+      </template>
+      Este informe está enviado a revisión: no se puede editar. Si tenés que corregir algo, reabrí el informe.
+    </q-banner>
+
+    <q-banner
+      v-if="readonly"
+      dense
+      class="bg-blue-1 text-blue-10 q-mb-md">
+      <template #avatar>
+        <q-icon name="verified" color="positive" />
+      </template>
+      Este informe está aprobado: es de solo lectura. La administración puede revertir la aprobación para volver a editarlo.
+    </q-banner>
+
+    <q-banner
+      v-if="detail?.reviewState === ReportReviewState.INHABILITADO"
+      dense
+      class="bg-grey-3 text-grey-9 q-mb-md">
+      <template #avatar>
+        <q-icon name="block" color="grey-8" />
+      </template>
+      Este informe está inhabilitado por la administración: quedó archivado y no se puede modificar.
+    </q-banner>
+
+    <q-banner
+      v-if="detail?.reviewComment"
+      dense
+      class="q-mb-md"
+      :class="detail?.reviewState === ReportReviewState.OBSERVED ? 'bg-orange-1 text-brown-9' : 'bg-blue-1 text-blue-10'">
+      <template #avatar>
+        <q-icon
+          :name="detail?.reviewState === ReportReviewState.OBSERVED ? 'error' : 'comment'"
+          :color="detail?.reviewState === ReportReviewState.OBSERVED ? 'warning' : 'primary'" />
+      </template>
+      <div class="text-weight-bold">
+        {{ detail?.reviewState === ReportReviewState.OBSERVED
+          ? 'La administración observó el informe: hay que corregir y volver a enviarlo'
+          : 'Observación de la administración' }}
+      </div>
+      <div>{{ detail?.reviewComment }}</div>
+      <div v-if="detail?.reviewerName || detail?.reviewCommentAt" class="text-caption">
+        {{ detail?.reviewerName }}
+        <span v-if="detail?.reviewCommentAt">
+          · {{ formatDate(detail?.reviewCommentAt) }}
+        </span>
+      </div>
+    </q-banner>
+
     <div class="row q-col-gutter-sm q-mb-md fill-toolbar">
       <div class="col-auto">
         <q-btn
           v-if="canUpdate"
-          outline
-          color="primary"
-          icon="view_column"
-          label="Columnas"
-          no-caps
-          @click="columnsDialog = true" />
-      </div>
-      <div class="col-auto">
-        <q-btn
-          v-if="canUpdate"
-          outline
-          color="primary"
           icon="playlist_add"
           label="Agregar columna"
+          color="primary"
           no-caps
           @click="openAddColumn" />
       </div>
       <div class="col-auto">
         <q-btn
-          color="secondary"
+          v-if="canUpdate"
+          icon="view_column"
+          label="Columnas"
+          no-caps
+          @click="columnsDialog = true" />
+      </div>
+      <div class="col-auto" v-if="canSend">
+        <q-btn
+          color="primary"
+          icon="send"
+          label="Enviar"
+          no-caps
+          @click="sendReport" />
+      </div>
+      <div class="col-auto" v-if="canReopen">
+        <q-btn
+          color="warning"
+          icon="undo"
+          label="Reabrir"
+          no-caps
+          @click="reopenReport" />
+      </div>
+      <div class="col-auto">
+        <q-btn
           icon="print"
           label="Imprimir"
           no-caps
@@ -40,35 +106,39 @@
       </div>
     </div>
 
-    <q-list bordered separator class="day-list">
-      <q-item
-        v-for="row in dayRows"
-        :key="row.day"
-        clickable
-        v-ripple
-        @click="openDay(row)">
-        <q-item-section avatar>
-          <q-badge color="primary" :label="row.day" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label v-if="dayChips(row).length">
-            <q-chip
-              v-for="chip in dayChips(row)"
-              :key="chip.label"
-              dense
-              size="sm"
-              color="grey-3"
-              text-color="black">
-              {{ chip.label }}: {{ chip.value }}
-            </q-chip>
-          </q-item-label>
-          <q-item-label v-else caption>Sin datos</q-item-label>
-        </q-item-section>
-        <q-item-section side>
-          <q-icon name="chevron_right" color="grey" />
-        </q-item-section>
-      </q-item>
-    </q-list>
+    <!-- Cabecera de la tabla de días: [Día | Actividades/Costos]. La segunda
+         columna cambia según el formulario (trabajo vs. descargo). -->
+    <table class="day-table">
+      <thead>
+        <tr>
+          <th class="day-col-day">Día</th>
+          <th>{{ contentLabel }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="row in dayRows"
+          :key="row.day"
+          class="day-row"
+          @click="openDay(row)">
+          <td class="day-col-day">{{ row.day }}</td>
+          <td>
+            <div v-if="dayChips(row).length" class="day-values">
+              <q-chip
+                v-for="chip in dayChips(row)"
+                :key="chip.label"
+                dense
+                size="sm"
+                color="grey-3"
+                text-color="black">
+                {{ chip.label }}: {{ chip.value }}
+              </q-chip>
+            </div>
+            <span v-else class="text-grey-7 text-caption">Sin datos</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <q-bar class="fill-totals">
       <div class="text-caption text-bold q-mr-sm">Totales:</div>
@@ -121,6 +191,7 @@
                   <div class="col-auto row no-wrap q-gutter-xs">
                     <q-btn
                       class="fill-step-btn"
+                      flat
                       color="primary"
                       icon="remove"
                       :disable="!(Number(formValues[column.key]) > 0)"
@@ -129,6 +200,7 @@
                     </q-btn>
                     <q-btn
                       class="fill-step-btn"
+                      flat
                       color="primary"
                       icon="add"
                       @click="stepNumber(column.key, 1)">
@@ -150,10 +222,10 @@
                   flat
                   color="negative"
                   icon="delete_sweep"
-                  label="Limpiar día"
+                  label="Limpiar día" no-caps
                   type="button"
                   @click="clearDay" />
-                <q-btn icon="check" color="primary" label="Guardar" type="submit" />
+                <q-btn icon="check" color="primary" label="Guardar" no-caps type="submit" />
               </div>
             </div>
           </q-form>
@@ -254,8 +326,8 @@
                 Aplica solo a columnas numéricas.
               </div>
               <div class="col-12 text-right q-gutter-sm q-mt-sm">
-                <q-btn icon="close" label="Cancelar" type="button" @click="addColumnDialog = false" />
-                <q-btn icon="check" color="primary" :label="editingKey ? 'Guardar' : 'Agregar'" type="submit" />
+                <q-btn icon="close" label="Cancelar" color="secondary" flat no-caps type="button" @click="addColumnDialog = false" />
+                <q-btn icon="check" color="primary" :label="editingKey ? 'Guardar' : 'Agregar'" no-caps type="submit" />
               </div>
             </div>
           </q-form>
@@ -271,12 +343,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
 import { Confirm } from 'boot/modal'
-import { months } from '../../../components/plugins/datetime'
+import { format as formatDate, months } from '../../../components/plugins/datetime'
 import validation from '../../../components/plugins/validation'
 import { useStore } from '../../../store'
-import { FormReportDetail } from '../../../components/entities/FormReport'
+import {
+  FormReportDetail,
+  isReadOnly,
+  ReportReviewState
+} from '../../../components/entities/FormReport'
 import {
   DERIVED_KEYS,
+  FormKind,
   ReportColumn,
   columnSource,
   emptyColumn,
@@ -317,6 +394,52 @@ const kindOptions = Object.entries(kindLabels).map(([value, label]) => ({ value,
 const canUpdate = computed(() =>
   !!store.state.user?.permissions?.includes('form_report:update'))
 
+/**
+ * Informe ENVIADO o APROBADO ⇒ SOLO LECTURA. La UI lo refleja (banner,
+ * campos bloqueados, sin guardar); el bloqueo real vive en el servidor.
+ */
+const readonly = computed(() => isReadOnly(detail.value))
+
+/** El estado de la revisión (DRAFT por defecto). */
+const reviewState = computed(() => detail.value?.reviewState || ReportReviewState.DRAFT)
+
+/** Sólo el dueño envía o reabre su informe. */
+const isOwner = computed(() =>
+  !!store.state.user?.user?.id && detail.value?.userCreated === store.state.user.user.id)
+
+/** Se puede enviar un borrador (o uno observado que ya se corrigió). */
+const canSend = computed(() =>
+  isOwner.value &&
+  [ReportReviewState.DRAFT, ReportReviewState.OBSERVED].includes(reviewState.value))
+
+/** Se puede reabrir un informe enviado para corregirlo. */
+const canReopen = computed(() =>
+  isOwner.value && reviewState.value === ReportReviewState.SUBMITTED)
+
+/** Enviar el informe a revisión. */
+const sendReport = () => {
+  Confirm(
+    '¿Desea enviar el informe a revisión? Enviado, no se puede editar hasta que se reabra.',
+    async () => {
+      await http.post(`form-reports/${reportId}/submit`)
+      message.success('¡Informe enviado a revisión!')
+      await load()
+    }
+  )
+}
+
+/** Reabrir el informe enviado para corregirlo y volver a enviarlo. */
+const reopenReport = () => {
+  Confirm(
+    '¿Desea reabrir el informe? Volverá a editable y después tendrás que enviarlo otra vez.',
+    async () => {
+      await http.post(`form-reports/${reportId}/reopen`)
+      message.success('¡Informe reabierto!')
+      await load()
+    }
+  )
+}
+
 const title = computed(() => {
   const report = detail.value
   if (!report) {
@@ -337,6 +460,10 @@ const selectedDateLabel = computed(() => {
   const month = months[Number(report.month) - 1] || ''
   return `${day} de ${month.toLowerCase()} de ${report.year}`
 })
+
+/** Segunda columna de la tabla: el formulario define si son costos o actividades. */
+const contentLabel = computed(() =>
+  detail.value?.form === FormKind.EXPENSE ? 'Costos' : 'Actividades')
 
 const editableColumns = computed(() =>
   (detail.value?.columns || []).filter(column => !isDerived(column)))
@@ -553,8 +680,49 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 
-.day-list {
-  background: rgba(255, 255, 255, 0.6);
+.day-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--app-superficie);
+  font-size: 0.9rem;
+
+  thead th {
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $texto-claro;
+    padding: 8px 10px;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: 6px 10px;
+    border-bottom: 1px solid $border;
+    color: $secondary;
+    vertical-align: top;
+  }
+
+  .day-col-day {
+    width: 64px;
+    color: $texto-claro;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.day-row {
+  cursor: pointer;
+
+  &:hover td {
+    background: rgba(51, 87, 129, 0.06);
+  }
+}
+
+.day-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .fill-totals {
@@ -608,5 +776,31 @@ onMounted(() => {
   min-width: 40px;
   padding: 0;
   border-radius: 4px;
+  // control de incremento: borde propio para que se lea como control
+  border: 1px solid $primary;
+}
+
+body.body--dark {
+  .day-table {
+    background: var(--app-superficie);
+  }
+
+  .day-table thead th,
+  .day-table .day-col-day {
+    color: $dark-texto-suave;
+  }
+
+  .day-table td {
+    color: $dark-texto;
+    border-bottom-color: $dark-borde;
+  }
+
+  .day-table thead th {
+    border-bottom-color: $dark-borde;
+  }
+
+  .day-row:hover td {
+    background: rgba(110, 155, 200, 0.12);
+  }
 }
 </style>
