@@ -187,6 +187,16 @@ body.body--dark {
     background-color: $dark;
   }
 
+  // Botones del diálogo: sobre la tarjeta oscura, la banda azul del tema
+  // oscuro (#1B2740) se confunde con el fondo y el botón deja de leerse como
+  // botón. Aquí va el azul de marca con texto blanco (8,6:1).
+  .q-card__actions {
+    .q-btn.bg-primary {
+      background-color: $primary !important;
+      color: #fff !important;
+    }
+  }
+
   .q-toolbar {
     background-color: $dark;
   }

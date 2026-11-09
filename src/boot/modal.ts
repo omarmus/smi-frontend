@@ -6,15 +6,20 @@ const Confirm = (message = 'Mensaje', callbackOk: ((() => Promise<void>) | (() =
     title,
     message,
     ok: {
-      // color: 'primary',
+      // Azul corporativo de la marca (el color por defecto del diálogo se
+      // deja explícito: los botones de acción son de marca).
+      color: 'primary',
       label: labelOk,
       noCaps: true,
       padding: '8px 20px',
       icon: 'check'
     },
     cancel: {
-      color: 'white',
-      'text-color': 'secondary',
+      // Negro corporativo de la marca. Antes era `color: 'white'` con
+      // `text-color: 'secondary'`: en dark mode el texto quedaba claro
+      // sobre fondo blanco (ilegible) y en claro tampoco era un color de
+      // marca.
+      color: 'secondary',
       label: labelCancel,
       noCaps: true,
       padding: '8px 20px',
