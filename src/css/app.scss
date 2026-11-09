@@ -1,8 +1,32 @@
 @import './font.scss';
 
 body {
-  font-family: "Poppins", "-apple-system", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  background-color: #F5F8FA;
+  font-family: $fuente-texto, "-apple-system", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: var(--app-fondo);
+
+  // Superficies propias del sistema, por tema: los componentes las toman de
+  // aquí para que el modo oscuro no deje ninguna a medio camino.
+  --app-fondo: #F5F8FA;
+  --app-banda: #E9EEF4;
+  --app-superficie: #FFFFFF;
+  --app-texto: #373332;
+  --app-texto-suave: #63647A;
+  --app-borde: #E4E6EF;
+  --app-banda-error: #FBECEB;
+}
+
+// Títulos: Agenor Neue (tipografía secundaria del manual para titulares).
+h1, h2, h3, h4, h5, h6 {
+  font-family: $fuente-titulos, $fuente-texto, sans-serif;
+}
+
+// Indicador de foco de teclado: el sistema no lo definía y el que trae
+// Quasar (tinte del 22% del color actual) es casi invisible sobre fondos
+// claros. Sólo aparece con navegación por teclado.
+:focus-visible {
+  outline: 2px solid $primary;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 a {
@@ -41,25 +65,267 @@ h6 {
   }
 }
 
+/*
+ * Modo oscuro.
+ *
+ * Quasar v2 sólo voltea el fondo de la página con `body--dark`: el resto de
+ * superficies (tarjetas, campos, tablas, banners) hay que adaptationlas. Se
+ * hace con las MISMAS clases del tema claro, para que ningún componente
+ * quede a medio camino.
+ */
 body.body--dark {
+  color: $dark-texto;
+  background-color: $dark-page;
+
+  --app-fondo: #{$dark-page};
+  --app-banda: #1B2740;
+  --app-superficie: #{$dark};
+  --app-texto: #{$dark-texto};
+  --app-texto-suave: #{$dark-texto-suave};
+  --app-borde: #{$dark-borde};
+  --app-banda-error: #33191B;
+
   .q-dark {
-    color: #92929f;
+    color: $dark-texto;
   }
+
   .q-page {
     background-color: $dark-page;
   }
+
+  // Texto principal: el negro corporativo no se lee sobre fondo oscuro.
+  .text-secondary {
+    color: $dark-texto !important;
+  }
+
+  .bg-secondary {
+    background-color: $dark-texto !important;
+    color: $dark-page !important;
+  }
+
+  a {
+    color: $dark-acento;
+  }
+
   .q-footer-main {
     .footer {
-      color: $grey-1;
+      color: $dark-texto-suave;
     }
   }
-  .bg-info {
-    background-color: #2f264f !important;
-    color: #8950fc;
+
+  // --- Superficies de Quasar -------------------------------------------
+  .q-card {
+    background-color: $dark;
+    border-color: $dark-borde;
   }
+
+  .q-card--bordered {
+    border-color: $dark-borde;
+  }
+
+  .q-table {
+    color: $dark-texto;
+
+    thead tr {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    thead th {
+      color: $dark-texto-suave;
+      border-color: $dark-borde;
+    }
+
+    tbody td {
+      border-color: $dark-borde;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  .q-field--outlined .q-field__control,
+  .q-field--filled .q-field__control {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+
+  .q-field__native,
+  .q-field__input,
+  .q-field__label,
+  .q-field__marginal {
+    color: $dark-texto;
+  }
+
+  .q-field__label,
+  .q-field__native::placeholder {
+    color: $dark-texto-suave;
+    opacity: 1;
+  }
+
+  .q-field--focused .q-field__control:after {
+    border-color: $dark-acento;
+  }
+
+  .q-field__native::selection {
+    background: rgba(110, 155, 200, 0.4);
+  }
+
+  .q-item {
+    color: $dark-texto;
+    border-color: $dark-borde;
+  }
+
+  .q-item__label--caption {
+    color: $dark-texto-suave;
+  }
+
+  .q-separator {
+    background-color: $dark-borde;
+  }
+
+  .q-dialog__inner > .q-card {
+    background-color: $dark;
+  }
+
+  .q-toolbar {
+    background-color: $dark;
+  }
+
+  .q-menu {
+    background-color: $dark;
+  }
+
+  .q-banner {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: $dark-texto;
+  }
+
+  .q-chip {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: $dark-texto;
+  }
+
+  .q-tab {
+    color: $dark-texto-suave;
+  }
+
+  .q-tab--active {
+    color: $dark-acento;
+  }
+
+  .q-toggle__track {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .q-tooltip {
+    background-color: #2A3350;
+    color: $dark-texto;
+  }
+
+  // --- Colores de marca con fondo oscuro -------------------------------
+  // Los tintes claros (bg-blue-1, bg-red-1…) se vuelven tintes oscuros y el
+  // texto pasa a su variante clara: los tonos de marca no alcanzan AA sobre
+  // blanco, y menos aún sobre un fondo oscuro.
+  .bg-blue-1 {
+    background-color: #1B2740 !important;
+  }
+
+  .text-blue-10 {
+    color: #8FB3DE !important;
+  }
+
+  .bg-red-1 {
+    background-color: #33191B !important;
+  }
+
+  .text-red-10 {
+    color: #E79A96 !important;
+  }
+
+  .bg-orange-1 {
+    background-color: #2E2716 !important;
+  }
+
+  .text-orange-10 {
+    color: #E0C58F !important;
+  }
+
+  .bg-grey-2 {
+    background-color: #1C2333 !important;
+  }
+
+  .bg-grey-3 {
+    background-color: #232B3D !important;
+  }
+
+  .text-grey-5,
+  .text-grey-7,
+  .text-grey-8,
+  .text-grey-9,
+  .text-grey {
+    color: $dark-texto-suave !important;
+  }
+
+  .text-positive {
+    color: #35C79A !important;
+  }
+
+  .text-negative {
+    color: #E8837E !important;
+  }
+
+  .text-warning {
+    color: #D9A05E !important;
+  }
+
+  // --- Superficies propias del sistema ---------------------------------
+  // El título de página (patrón .treasury-title) es negro corporativo: sobre
+  // el fondo oscuro no se lee.
+  .treasury-title {
+    color: $dark-texto;
+
+    // El badge `.subtitle` mantiene su fondo amarillo: su texto va en negro
+    // corporativo (regla de la base), no en un tono claro sobre ese fondo.
+  }
+
+  // Avisos del sistema: en claro son un tinte del azul con texto azul; en
+  // oscuro, una banda azul profunda con texto claro.
+  .alert {
+    &.alert-info {
+      border-color: rgba(110, 155, 200, 0.35);
+      background-color: #1B2740;
+      color: #8FB3DE;
+    }
+
+    &.alert-warning {
+      border-color: rgba(217, 160, 94, 0.35);
+      background-color: #2E2716;
+      color: #E0C58F;
+    }
+  }
+
+  .btn-block {
+    background-color: $dark;
+    border-color: $dark-borde;
+
+    .q-icon {
+      color: $dark-texto-suave;
+    }
+  }
+
+  .q-btn.bg-primary {
+    color: #8FB3DE;
+    background-color: #1B2740 !important;
+  }
+
+  .bg-info {
+    background-color: #2A3350 !important;
+    color: #C9C6E4;
+  }
+
   .bg-primary {
-    color: #3699ff;
-    background-color: #212e48 !important;
+    color: #8FB3DE;
+    background-color: #1B2740 !important;
 
     &.q-btn {
       background-color: var(--q-primary) !important;
@@ -80,7 +346,7 @@ body.body--dark {
 }
 
 .btn-block {
-  background-color: white;
+  background-color: var(--app-superficie);
   font-weight: bold;
   border: 1px solid transparent;
   font-size: 1rem;
@@ -89,16 +355,17 @@ body.body--dark {
     display: flex;
     flex-direction: column;
     position: relative;
+    font-family: $fuente-titulos, $fuente-texto, sans-serif;
 
     .q-icon {
       margin: 0;
-      color: $texto;
+      color: $texto-claro;
       font-size: 2.2rem;
     }
 
     .btn-block-detail {
       font-size: 0.8rem;
-      color: $warning;
+      color: $texto-claro;
       line-height: 1rem;
       margin: -5px 0 5px 0;
       font-weight: 500;
@@ -107,24 +374,24 @@ body.body--dark {
 
   &:hover {
     border-color: $warning-light;
-    background-color: white;
+    background-color: var(--app-superficie);
   }
 
   &.active {
-    background-color: $warning-light;
-    
+    // Amarillo corporativo con texto en negro corporativo (5.1:1).
+    background-color: $warning;
+
     .btn-block-detail {
-      color: white;
-      // font-weight: 600;
+      color: $negro-corporativo;
     }
     .q-btn__content {
-      color: white;
+      color: $negro-corporativo;
       .q-icon {
-        color: white;
+        color: $negro-corporativo;
       }
     }
   }
-  
+
   // &.closed {
   //   background-color: transparent;
   // }
@@ -136,6 +403,7 @@ body.body--dark {
 
 .treasury-title {
   position: relative;
+  font-family: $fuente-titulos, $fuente-texto, sans-serif;
   font-size: 1.3rem;
   font-weight: bold;
   color: $secondary;
@@ -146,7 +414,10 @@ body.body--dark {
     position: absolute;
     font-size: 1rem;
     background-color: $warning;
-    color: white;
+    // Sobre el amarillo corporativo va el NEGRO corporativo (5,1:1), el mismo
+    // criterio que usa `.btn-block.active`: con texto blanco el contraste es
+    // insuficiente y en dark mode quedaba claro sobre claro.
+    color: $negro-corporativo;
     right: 0;
     padding: 3px 8px;
   }
@@ -213,16 +484,16 @@ body.body--dark {
   list-style: none;
 
   em, span {
-    color: $texto;
+    color: $texto-claro;
   }
 }
 
 .treasury-observation {
-  color: $texto;
+  color: $texto-claro;
 }
 
 .treasury-empty {
-  color: $texto;
+  color: $texto-claro;
   font-size: 0.8rem;
   // text-align: center;
 }
@@ -272,7 +543,7 @@ body.body--dark {
 
 .treasury-department-item {
   position: relative;
-  
+
   .treasury-department-total {
     position: absolute;
     right: 0;
@@ -303,13 +574,13 @@ body.body--dark {
   border-radius: 4px;
   padding: 10px 15px;
   margin-bottom: 15px;
-  
+
   &.alert-info {
     border: 1px solid lighten($primary, 47%);
     background-color: lighten($primary, 55%);
     color: $primary;
   }
-  
+
   &.alert-warning {
     border: 1px solid lighten($warning-light, 35%);
     background-color: lighten($warning-light, 46%);
@@ -322,8 +593,8 @@ body.body--dark {
 }
 
 .q-header.q-header-main {
-  background-color: white;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: var(--app-superficie);
+  border-bottom: 1px solid var(--app-borde);
 }
 
 .row {
@@ -339,7 +610,7 @@ body.body--dark {
 @media (min-width: 600px) {
   .tithe-column {
     padding: 0px 0 0 20px;
-  }  
+  }
 }
 
 @media (max-width: $breakpoint-xs-max) {
@@ -380,7 +651,7 @@ body.body--dark {
       }
 
       .treasury-list-concepts {
-        padding: 4px 0 0 8px; 
+        padding: 4px 0 0 8px;
       }
 
       .text-texto {
@@ -390,9 +661,9 @@ body.body--dark {
       }
 
       &:last-child {
-        border-bottom: 1px solid $border !important;        
-      }   
-      
+        border-bottom: 1px solid $border !important;
+      }
+
       &.total {
         padding: 0;
 
@@ -445,3 +716,65 @@ body.body--dark {
     }
   }
 }
+// Contraste (WCAG AA) de las utilidades de color de Quasar.
+//
+// Los tonos de marca ($positive, $negative, $warning) dan 2.6:1 sobre fondo
+// claro: no alcanzan el mínimo de 4.5:1 para texto ni el de 3:1 para
+// iconos. Se sustituyen por sus variantes oscuras. Los FONDOS se oscurecen
+// para que el texto blanco que llevan encima siga siendo legible.
+.text-positive {
+  color: $positive-oscuro !important;
+}
+
+.text-negative {
+  color: $negative-oscuro !important;
+}
+
+.text-warning {
+  color: $warning !important;
+}
+
+.text-grey {
+  color: $texto-claro !important;
+}
+
+.bg-positive {
+  background-color: $positive-oscuro !important;
+}
+
+.bg-negative {
+  background-color: $negative-oscuro !important;
+}
+
+.bg-warning {
+  background-color: $warning !important;
+}
+
+
+/*
+ * Tintes de marca para las utilidades de color de Quasar.
+ *
+ * La paleta de Quasar es ajena a la marca (azules #1976d2, naranjas, grises
+ * fríos). Estas utilidades se sustituyen por tintes derivados del azul
+ * corporativo (#335781) y por los colores semánticos ya definidos, de modo
+ * que un `bg-blue-1` sea el azul de la iglesia y no el de Quasar.
+ */
+.text-blue-10 { color: $primary !important; }
+.bg-blue-1 { background-color: #E9EEF4 !important; }
+
+.text-red-10 { color: $negative-oscuro !important; }
+.bg-red-1 { background-color: #FBECEB !important; }
+
+.text-orange-10 { color: $negro-corporativo !important; }
+.bg-orange-1 { background-color: #F4F1E7 !important; }
+
+.text-brown-9 { color: $primary !important; }
+
+.text-grey-5 { color: #6E6F80 !important; }
+.text-grey-7 { color: $texto-claro !important; }
+.text-grey-8 { color: #56576B !important; }
+.text-grey-9 { color: #4A4B5E !important; }
+
+.bg-grey-2 { background-color: #F0F1F4 !important; }
+.bg-grey-3 { background-color: #E8EAF0 !important; }
+
