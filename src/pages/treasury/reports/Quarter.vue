@@ -96,7 +96,7 @@
                 no-caps
                 @click="$router.push(`/treasury/report/quarter/${item.id}`)"
                 class="full-width btn-block">
-                {{ quarters[JSON.parse(item.metadata)?.quarter - 1].label }}
+                {{ quarterLabel(item) }}
                 <span class="btn-block-detail">
                   <span class="text-warning">
                     {{ monthNames(item) }}
@@ -222,6 +222,20 @@ const monthCountOptions = [
 
 const router = useRouter()
 
+/**
+ * Meses que abren un trimestre de la gestión (diciembre, marzo, junio y
+ * septiembre). Con 3 meses el informe tiene que arrancar en uno de ellos.
+ */
+const quarterStartMonths = [12, 3, 6, 9]
+
+/** El último mes de inicio de trimestre que no pasa del mes dado. */
+const quarterStartBefore = (month: number) => {
+  const candidates = [...quarterStartMonths]
+    .map(start => (start <= month ? start : start - 12))
+    .sort((a, b) => b - a)
+  return candidates[0]
+}
+
 const report = ref<Report>()
 const reports = ref<ReportResponse>()
 const tab = ref<string>('automatic')
@@ -229,7 +243,7 @@ const year = ref<number>(new Date().getFullYear())
 const month = ref<number>(1)
 const quarter = ref<number>(1)
 const customYear = ref<number>(new Date().getFullYear())
-const customMonth = ref<number>(1)
+const customMonth = ref<number>(quarterStartBefore(new Date().getMonth() + 1))
 const customMonths = ref<number>(3)
 const render = ref<boolean>(false)
 const loading = ref<boolean>(false)
@@ -241,7 +255,6 @@ const years = getYears()
  * Meses que abren un trimestre de la gestión (diciembre, marzo, junio y
  * septiembre). Con 3 meses el informe tiene que arrancar en uno de ellos.
  */
-const quarterStartMonths = [12, 3, 6, 9]
 
 const customMonthOptions = computed(() => customMonths.value === 3
   ? months.filter(item => quarterStartMonths.includes(item.value))
@@ -250,6 +263,27 @@ const customMonthOptions = computed(() => customMonths.value === 3
 /** Los informes estándar (generados por el cron o a mano) y los personalizados. */
 const standardReports = computed<Report[]>(() => (reports.value?.rows ?? []).filter(item => origin(item) !== 'CUSTOM'))
 const customReports = computed<Report[]>(() => (reports.value?.rows ?? []).filter(item => origin(item) === 'CUSTOM'))
+
+/** El `metadata` puede venir como texto (jsonb) o como objeto. */
+const parseMetadata = (raw: unknown): Record<string, any> => {
+  if (!raw) {
+    return {}
+  }
+  if (typeof raw === 'object') {
+    return raw as Record<string, any>
+  }
+  try {
+    const parsed = JSON.parse(String(raw)) as unknown
+    return parsed && typeof parsed === 'object' ? parsed as Record<string, any> : {}
+  } catch {
+    return {}
+  }
+}
+
+const quarterLabel = (item: Report) => {
+  const quarter = Number(parseMetadata(item.metadata).quarter)
+  return quarters[quarter - 1]?.label ?? 'Informe trimestral'
+}
 
 const origin = (item: Report) => item.origin || 'MANUAL'
 const originLabel = (item: Report) => origin(item) === 'AUTO' ? 'Automático' : 'Manual'
@@ -278,8 +312,13 @@ const customPeriod = (item: Report) => {
   if (header.length === 0) {
     return `${item.year}`
   }
+  const first = header[0].split('-')
   const last = header[header.length - 1].split('-')
-  return `${last[1]}`
+  const firstName = monthsLiteral[Number(first[0]) - 1]
+  const lastName = monthsLiteral[Number(last[0]) - 1]
+  return first[1] === last[1]
+    ? `${firstName} - ${lastName} ${last[1]}`
+    : `${firstName} ${first[1]} - ${lastName} ${last[1]}`
 }
 
 const generateFirstReport = () => {
