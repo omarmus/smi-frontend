@@ -75,6 +75,16 @@
             </div>
           </div>
           <div class="row treasury-row" v-if="standardReports.length > 0">
+            <div class="col-xs-12 col-sm-4">
+              <q-select
+                filled
+                v-model="standardYear"
+                :options="standardYearOptions"
+                label="Gestión"
+                map-options
+                dense
+                emit-value />
+            </div>
             <div class="text-right q-mb-md col-xs-12">
               <q-btn
                 icon="check"
@@ -88,7 +98,7 @@
             </div>
             <div
               class="col-xs-6 col-sm-3 q-pa-sm"
-              v-for="item in standardReports"
+              v-for="item in filteredStandardReports"
               :key="item.id">
               <q-btn
                 flat
@@ -113,6 +123,9 @@
                 <q-icon name="width_normal" />
               </q-btn>
             </div>
+          </div>
+          <div class="alert alert-info" v-if="standardReports.length > 0 && filteredStandardReports.length === 0">
+            No hay informes trimestrales de la gestión {{ standardYear }}.
           </div>
         </q-tab-panel>
 
@@ -232,6 +245,7 @@ const tab = ref<string>('automatic')
 const year = ref<number>(new Date().getFullYear())
 const month = ref<number>(1)
 const quarter = ref<number>(1)
+const standardYear = ref<number>(0)
 const customYear = ref<number>(new Date().getFullYear())
 const customMonth = ref<number>(new Date().getMonth() + 1)
 const customMonths = ref<number>(3)
@@ -244,6 +258,32 @@ const years = getYears()
 /** Los informes estándar (generados por el cron o a mano) y los personalizados. */
 const standardReports = computed<Report[]>(() => (reports.value?.rows ?? []).filter(item => origin(item) !== 'CUSTOM'))
 const customReports = computed<Report[]>(() => (reports.value?.rows ?? []).filter(item => origin(item) === 'CUSTOM'))
+
+/**
+ * Gestión a la que pertenece un informe: la del último mes del rango.
+ * Un informe con mes 12 (diciembre) pertenece a la gestión siguiente.
+ */
+const management = (item: Report) => item.month > 11 ? item.year + 1 : item.year
+
+/** Gestiones que tienen informes estándar, de la más reciente a la más antigua. */
+const reportYears = computed<number[]>(() => {
+  const found = new Set<number>(standardReports.value.map(item => management(item)))
+  return [...found].sort((a, b) => b - a)
+})
+
+/** Opciones del filtro: los años del sistema más las gestiones con informes. */
+const standardYearOptions = computed<number[]>(() => {
+  const found = new Set<number>([...years, ...reportYears.value])
+  return [...found].sort((a, b) => b - a)
+})
+
+/** Informes estándar de la gestión seleccionada. */
+const filteredStandardReports = computed<Report[]>(() => {
+  if (!standardYear.value) {
+    return standardReports.value
+  }
+  return standardReports.value.filter(item => management(item) === standardYear.value)
+})
 
 /** El `metadata` puede venir como texto (jsonb) o como objeto. */
 const parseMetadata = (raw: unknown): Record<string, any> => {
@@ -369,6 +409,11 @@ const generateCustomReport = () => {
 const getReportsQuarter = async () => {
   loading.value = true
   reports.value = await http.get('reports?type=QUARTER&order=-id') as ReportResponse
+  // El filtro arranca en la última gestión con informes.
+  const found = (reports.value?.rows ?? [])
+    .filter(item => origin(item) !== 'CUSTOM')
+    .map(item => management(item))
+  standardYear.value = found.length > 0 ? Math.max(...found) : 0
   void nextTick(() => {
     loading.value = false
   })
