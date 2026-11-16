@@ -85,7 +85,7 @@
                 dense
                 emit-value />
             </div>
-            <div class="text-right q-mb-md col-xs-12">
+            <div class="text-right q-mb-md col-xs-12 col-sm-8">
               <q-btn
                 icon="check"
                 no-caps
@@ -131,8 +131,7 @@
 
         <q-tab-panel name="custom" class="bg-transparent">
           <div class="alert alert-info">
-            Elegí el mes y la gestión del informe, y cuántos meses entran (3 por defecto).
-            Con 3 meses, el mes inicial tiene que ser diciembre, marzo, junio o septiembre.
+            Elegí la gestión y el mes que quieras, y cuántos meses entran (3 por defecto).
             Si a algún mes le faltan datos, no se genera.
           </div>
           <div class="row q-col-gutter-sm">
@@ -166,7 +165,14 @@
                 dense
                 emit-value />
             </div>
-            <div class="text-right q-mt-xs col-xs-12">
+          </div>
+          <div class="row q-col-gutter-sm">
+            <div class="col-xs-12 col-sm-8">
+              <div class="alert alert-info q-ma-none">
+                Este informe va a cubrir: <strong>{{ customRange }}</strong>
+              </div>
+            </div>
+            <div class="text-right q-mt-xs col-xs-12 col-sm-4">
               <q-btn
                 icon="check"
                 no-caps
@@ -177,9 +183,6 @@
                 Generar informe personalizado
               </q-btn>
             </div>
-          </div>
-          <div class="alert alert-info q-mt-sm">
-            Este informe va a cubrir: <strong>{{ customRange }}</strong>
           </div>
           <div class="row treasury-row" v-if="customReports.length > 0">
             <div
