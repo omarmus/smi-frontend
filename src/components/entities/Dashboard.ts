@@ -34,6 +34,8 @@ export interface DashboardLocalCash {
   period: { year: number, month: number } | null
   periodLabel: string | null
   hasBalance: boolean
+  /** Saldo de cada departamento local de la iglesia. */
+  departments: Array<{ id: number, name: string, amount: number }>
 }
 
 export interface DashboardMembers {

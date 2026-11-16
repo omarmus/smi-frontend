@@ -69,7 +69,7 @@
     <template v-else-if="data">
       <div class="row q-col-gutter-md q-mb-md">
         <!-- Caja local de la iglesia de la sesión: la primera estadística -->
-        <div class="col-xs-12 col-md-4">
+        <div class="col-xs-12">
           <q-card flat bordered class="dashboard__card">
             <q-card-section class="q-pa-md">
               <div class="dashboard__card-head">
@@ -77,36 +77,52 @@
                 <span class="dashboard__card-note">{{ data.localCash.churchName || 'Mi iglesia' }}</span>
               </div>
 
-              <table class="dashboard__rows">
-                <caption class="dashboard__visually-hidden">
-                  Saldo de la caja local de la iglesia de la sesión
-                </caption>
-                <tbody>
-                  <tr class="dashboard__rows-total">
-                    <th scope="row">Saldo en caja</th>
-                    <td :class="netClass(data.localCash.amount)">
+              <div class="row q-col-gutter-md">
+                <div class="col-xs-12 col-sm-4">
+                  <div class="dashboard__cash-total">
+                    <span class="dashboard__cash-total-label">Saldo en caja</span>
+                    <span class="dashboard__cash-total-value" :class="netClass(data.localCash.amount)">
                       <q-icon
                         v-if="data.localCash.amount !== 0"
                         :name="data.localCash.amount > 0 ? 'arrow_upward' : 'arrow_downward'"
-                        size="13px" />
+                        size="15px" />
                       {{ format(data.localCash.amount) }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </span>
+                  </div>
 
-              <p v-if="!data.localCash.hasBalance" class="dashboard__empty">
-                Todavía no hay balances registrados para esta iglesia.
-              </p>
-              <p v-else class="dashboard__row-note q-mt-xs">
-                Último balance registrado: {{ data.localCash.periodLabel }}.
-              </p>
+                  <p v-if="!data.localCash.hasBalance" class="dashboard__empty">
+                    Todavía no hay balances registrados para esta iglesia.
+                  </p>
+                  <p v-else class="dashboard__row-note q-mt-xs">
+                    Último balance registrado: {{ data.localCash.periodLabel }}.
+                  </p>
+                </div>
+
+                <div class="col-xs-12 col-sm-8">
+                  <div class="dashboard__cash-depts">
+                    <div
+                      class="dashboard__cash-dept"
+                      v-for="department in data.localCash.departments"
+                      :key="department.id">
+                      <span class="dashboard__cash-dept-name">{{ department.name }}</span>
+                      <span class="dashboard__cash-dept-value" :class="netClass(department.amount)">
+                        {{ format(department.amount) }}
+                      </span>
+                    </div>
+                  </div>
+                  <p v-if="data.localCash.hasBalance && data.localCash.departments.length === 0" class="dashboard__row-note q-mt-xs">
+                    Sin departamentos locales con saldo registrado.
+                  </p>
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </div>
+      </div>
 
+      <div class="row q-col-gutter-md q-mb-md">
         <!-- Mes en curso -->
-        <div class="col-xs-12 col-md-4">
+        <div class="col-xs-12 col-md-7">
           <q-card flat bordered class="dashboard__card">
             <q-card-section class="q-pa-md">
               <div class="dashboard__card-head">
@@ -156,7 +172,7 @@
         </div>
 
         <!-- Acumulado y contexto de la iglesia / del alcance -->
-        <div class="col-xs-12 col-md-4">
+        <div class="col-xs-12 col-md-5">
           <q-card flat bordered class="dashboard__card">
             <q-card-section class="q-pa-md">
               <div class="dashboard__card-head">
@@ -548,6 +564,58 @@ onMounted(load)
     font-size: 0.78rem;
   }
 
+  // Caja local: el total destacado y el desglose por departamento.
+  &__cash-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid $border;
+
+    &-label {
+      font-size: 0.84rem;
+      color: $texto-claro;
+    }
+
+    &-value {
+      font-size: 1.45rem;
+      font-weight: bold;
+      color: $secondary;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  &__cash-depts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0 18px;
+  }
+
+  &__cash-dept {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 0;
+
+    &-name {
+      font-size: 0.86rem;
+      color: $texto-claro;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-value {
+      font-size: 0.92rem;
+      color: $secondary;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
   &__positive {
     color: $positive-oscuro;
   }
@@ -670,8 +738,21 @@ body.body--dark {
   .dashboard__row-note,
   .dashboard__muted,
   .dashboard__empty,
-  .dashboard__church-acronym {
+  .dashboard__church-acronym,
+  .dashboard__cash-total-label,
+  .dashboard__cash-dept-name {
     color: $dark-texto-suave;
+  }
+
+  .dashboard__cash-total,
+  .dashboard__cash-total-value,
+  .dashboard__cash-dept-value {
+    border-top-color: $dark-borde;
+    color: $dark-texto;
+  }
+
+  .dashboard__cash-total {
+    border-bottom-color: $dark-borde;
   }
 
   .dashboard__rows-total th,
