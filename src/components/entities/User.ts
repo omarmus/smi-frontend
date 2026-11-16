@@ -26,6 +26,8 @@ export interface User {
   person?: Person
   company?: Company
   association?: Company
+  /** País de la asociación (lo heredan las iglesias de la asociación). */
+  associationCountry?: string | null
   idAssociation?: number
   idUnion?: number
 }

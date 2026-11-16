@@ -24,6 +24,8 @@ interface UserResponse {
   permissions: []
   token: string,
   initial: boolean
+  /** País de la asociación (lo heredan las iglesias de la asociación). */
+  associationCountry?: string | null
 }
 
 export function initStorage (data: UserResponse) {
@@ -40,7 +42,8 @@ export function initStorage (data: UserResponse) {
       id_association: data.company.idAssociation,
       id_union: data.company.idUnion,
       money: data.company.money
-    }
+    },
+    associationCountry: data.associationCountry
   }
 
   storage.setUser(user)

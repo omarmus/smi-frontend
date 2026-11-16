@@ -28,7 +28,7 @@
         </q-btn>
       </template>
       <template v-slot:form="props">
-        <q-card class="modal-lg">
+        <q-card class="modal-md">
           <q-toolbar class="q-pa-md">
             <q-icon
               name="home_work"
@@ -129,28 +129,6 @@
                   <div class="col-xs-12 col-md-4">
                     <q-select
                       filled
-                      label="Departamento"
-                      v-model="company.department"
-                      :options="departmentOptions"
-                      emit-value
-                      map-options
-                      clearable
-                      @update:model-value="onDepartmentChange" />
-                  </div>
-                  <div class="col-xs-12 col-md-4">
-                    <q-select
-                      filled
-                      label="Provincia"
-                      v-model="company.province"
-                      :options="provinceOptions"
-                      emit-value
-                      map-options
-                      :disable="!company.department"
-                      clearable />
-                  </div>
-                  <div class="col-xs-12 col-md-4">
-                    <q-select
-                      filled
                       label="País"
                       v-model="company.country"
                       :options="countriesFilter"
@@ -170,6 +148,35 @@
                         </q-item>
                       </template>
                     </q-select>
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-select
+                      filled
+                      label="Departamento"
+                      v-model="company.department"
+                      :options="departmentOptions"
+                      emit-value
+                      map-options
+                      clearable
+                      @update:model-value="onDepartmentChange" />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-select
+                      filled
+                      label="Provincia"
+                      v-model="company.province"
+                      :options="provinceOptions"
+                      emit-value
+                      map-options
+                      :disable="!company.department"
+                      clearable />
+                  </div>
+                  <div class="col-xs-12 col-md-12">
+                    <q-input
+                      label="Dirección"
+                      filled
+                      v-model="company.address"
+                      :rules="rules.address" />
                   </div>
                   <div class="col-xs-12 col-md-12">
                     <MapPicker
@@ -208,13 +215,6 @@
                           @click="clearCoordinates" />
                       </div>
                     </div>
-                  </div>
-                  <div class="col-xs-12 col-md-12">
-                    <q-input
-                      label="Dirección"
-                      filled
-                      v-model="company.address"
-                      :rules="rules.address" />
                   </div>
                 </div>
               </q-tab-panel>
@@ -553,6 +553,12 @@ const filterCountries = (val: string, update: () => void) => {
 const isAssociationAdmin = [RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store.state.user.role.slug)
 
 const associationCountry = computed(() => {
+  // El storage ya trae el país de la asociación (va en el login); si no está,
+  // se busca en la lista de iglesias de la sesión.
+  const fromStorage = store.state.user?.user?.associationCountry
+  if (fromStorage) {
+    return fromStorage
+  }
   const idAssociation = store.state.user?.user?.idAssociation
   return companies.value?.find(item => item.id === idAssociation)?.country ?? ''
 })

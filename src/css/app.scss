@@ -187,6 +187,13 @@ body.body--dark {
     background-color: $dark;
   }
 
+  // El contenido de las pestañas (formularios con pestañas) es blanco por
+  // defecto en Quasar: sobre la tarjeta oscura deja texto claro sobre fondo
+  // blanco. Se deja transparente para que se vea la superficie oscura.
+  .q-tab-panels {
+    background: transparent;
+  }
+
   // Botones del diálogo: sobre la tarjeta oscura, la banda azul del tema
   // oscuro (#1B2740) se confunde con el fondo y el botón deja de leerse como
   // botón. Aquí va el azul de marca con texto blanco (8,6:1).
@@ -573,6 +580,13 @@ body.body--dark {
 .modal-lg {
   width: 100%;
   max-width: 960px !important;
+}
+
+/* Tamaño intermedio: entra la información sin que el formulario se pierda
+   en una pantalla grande. */
+.modal-md {
+  width: 100%;
+  max-width: 720px !important;
 }
 
 .modal-sm {
