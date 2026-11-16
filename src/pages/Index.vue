@@ -68,8 +68,45 @@
 
     <template v-else-if="data">
       <div class="row q-col-gutter-md q-mb-md">
+        <!-- Caja local de la iglesia de la sesión: la primera estadística -->
+        <div class="col-xs-12 col-md-4">
+          <q-card flat bordered class="dashboard__card">
+            <q-card-section class="q-pa-md">
+              <div class="dashboard__card-head">
+                <h2 class="dashboard__card-title">Caja local</h2>
+                <span class="dashboard__card-note">{{ data.localCash.churchName || 'Mi iglesia' }}</span>
+              </div>
+
+              <table class="dashboard__rows">
+                <caption class="dashboard__visually-hidden">
+                  Saldo de la caja local de la iglesia de la sesión
+                </caption>
+                <tbody>
+                  <tr class="dashboard__rows-total">
+                    <th scope="row">Saldo en caja</th>
+                    <td :class="netClass(data.localCash.amount)">
+                      <q-icon
+                        v-if="data.localCash.amount !== 0"
+                        :name="data.localCash.amount > 0 ? 'arrow_upward' : 'arrow_downward'"
+                        size="13px" />
+                      {{ format(data.localCash.amount) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p v-if="!data.localCash.hasBalance" class="dashboard__empty">
+                Todavía no hay balances registrados para esta iglesia.
+              </p>
+              <p v-else class="dashboard__row-note q-mt-xs">
+                Último balance registrado: {{ data.localCash.periodLabel }}.
+              </p>
+            </q-card-section>
+          </q-card>
+        </div>
+
         <!-- Mes en curso -->
-        <div class="col-xs-12 col-md-7">
+        <div class="col-xs-12 col-md-4">
           <q-card flat bordered class="dashboard__card">
             <q-card-section class="q-pa-md">
               <div class="dashboard__card-head">
@@ -119,17 +156,17 @@
         </div>
 
         <!-- Acumulado y contexto de la iglesia / del alcance -->
-        <div class="col-xs-12 col-md-5">
+        <div class="col-xs-12 col-md-4">
           <q-card flat bordered class="dashboard__card">
             <q-card-section class="q-pa-md">
               <div class="dashboard__card-head">
-                <h2 class="dashboard__card-title">Acumulado</h2>
-                <span class="dashboard__card-note">Histórico registrado</span>
+                <h2 class="dashboard__card-title">Acumulado histórico</h2>
+                <span class="dashboard__card-note">Suma histórica de ingresos y gastos</span>
               </div>
 
               <table class="dashboard__rows">
                 <caption class="dashboard__visually-hidden">
-                  Saldo acumulado de ingresos y gastos
+                  Saldo acumulado histórico de ingresos y gastos
                 </caption>
                 <tbody>
                   <tr>

@@ -27,6 +27,15 @@ export interface DashboardTotals {
   net: number
 }
 
+/** Saldo de la caja local de la iglesia de la sesión (último balance). */
+export interface DashboardLocalCash {
+  churchName: string | null
+  amount: number
+  period: { year: number, month: number } | null
+  periodLabel: string | null
+  hasBalance: boolean
+}
+
 export interface DashboardMembers {
   total: number
   baptized: number
@@ -69,6 +78,7 @@ export interface Dashboard {
     previous: DashboardPeriodSummary | null
   }
   balance: DashboardTotals
+  localCash: DashboardLocalCash
   series: DashboardPeriodSummary[]
   cards: DashboardCards
   companies: DashboardCompany[]
