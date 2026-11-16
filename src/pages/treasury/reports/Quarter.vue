@@ -165,6 +165,9 @@
               </q-btn>
             </div>
           </div>
+          <div class="alert alert-info q-mt-sm">
+            Este informe va a cubrir: <strong>{{ customRange }}</strong>
+          </div>
           <div class="row treasury-row" v-if="customReports.length > 0">
             <div
               class="col-xs-6 col-sm-3 q-pa-sm"
@@ -298,6 +301,24 @@ const customPeriod = (item: Report) => {
     ? `${firstName} - ${lastName} ${last[1]}`
     : `${firstName} ${first[1]} - ${lastName} ${last[1]}`
 }
+
+/** Meses que va a cubrir el informe personalizado con la selección actual. */
+const customRange = computed(() => {
+  const parts: string[] = []
+  let month = customMonth.value
+  let year = customYear.value
+
+  for (let index = 0; index < customMonths.value; index++) {
+    parts.push(`${monthsLiteral[month - 1]} ${year}`)
+    month++
+    if (month > 12) {
+      month = 1
+      year++
+    }
+  }
+
+  return parts.join(' · ')
+})
 
 const generateFirstReport = () => {
   Confirm('Va a crear el <strong>PRIMER INFORME TRIMESTRAL</strong>, esta operación se hará una única vez y no podrá revertirlo. ¿Deséa continuar?.', async () => {
