@@ -14,6 +14,9 @@ export interface Company {
   money?: string
   type?: string
   state?: string
+  /** Coordenadas de la iglesia (elegidas en el mapa). */
+  latitude?: number | null
+  longitude?: number | null
   idAssociation?: number
   idUnion?: number
   idCompany?: number

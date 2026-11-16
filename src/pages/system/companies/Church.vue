@@ -114,6 +114,44 @@
                     :rules="rules.email" />
                 </div>
                 <div class="col-xs-12 col-md-12">
+                  <div class="row q-col-gutter-md items-center">
+                    <div class="col-xs-12 col-md-5">
+                      <q-input
+                        label="Latitud"
+                        filled
+                        type="number"
+                        step="any"
+                        v-model.number="company.latitude"
+                        :rules="rules.latitude" />
+                    </div>
+                    <div class="col-xs-12 col-md-5">
+                      <q-input
+                        label="Longitud"
+                        filled
+                        type="number"
+                        step="any"
+                        v-model.number="company.longitude"
+                        :rules="rules.longitude" />
+                    </div>
+                    <div class="col-xs-12 col-md-2 text-right">
+                      <q-btn
+                        v-if="company.latitude !== null && company.latitude !== undefined"
+                        flat
+                        dense
+                        no-caps
+                        size="sm"
+                        color="secondary"
+                        label="Quitar punto"
+                        @click="clearCoordinates" />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xs-12 col-md-12 q-mb-md">
+                  <MapPicker
+                    v-model:latitude="company.latitude"
+                    v-model:longitude="company.longitude" />
+                </div>
+                <div class="col-xs-12 col-md-12">
                   <div class="row">
                     <div class="col-xs-6 col-md-6">
                       <h3 class="title-contacts">Contactos:</h3>
@@ -249,6 +287,7 @@ import { ref, onBeforeMount } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
+import MapPicker from '../../../components/common/map-picker/MapPicker.vue'
 import { Company } from '../../../components/entities/Company'
 import { Result } from '../../../components/entities/Entity'
 import { deleteItem, changeState } from '../../../components/plugins/crud'
@@ -362,7 +401,26 @@ const rules = {
   phones: [],
   address: [],
   web: [validation.url],
-  email: [validation.email]
+  email: [validation.email],
+  latitude: [(value: number | null) => isValidLatitude(value) || 'La latitud debe estar entre -90 y 90'],
+  longitude: [(value: number | null) => isValidLongitude(value) || 'La longitud debe estar entre -180 y 180']
+}
+
+const isValidLatitude = (value: number | null | undefined) =>
+  value === null || value === undefined || value === '' ||
+  (Number(value) >= -90 && Number(value) <= 90)
+
+const isValidLongitude = (value: number | null | undefined) =>
+  value === null || value === undefined || value === '' ||
+  (Number(value) >= -180 && Number(value) <= 180)
+
+/** Quita el punto del mapa: la iglesia queda sin coordenadas. */
+const clearCoordinates = () => {
+  if (!company.value) {
+    return
+  }
+  company.value.latitude = null
+  company.value.longitude = null
 }
 
 const company = ref<Company>()
