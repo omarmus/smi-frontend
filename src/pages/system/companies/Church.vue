@@ -44,129 +44,170 @@
               icon="close"
               @click="props.close" />
           </q-toolbar>
-          <q-card-section>
-            <q-form @submit="save(props)">
-              <div class="row q-col-gutter-md">
-                <div class="col-xs-12 col-md-12">
-                  <q-input
-                    label="Nombre"
-                    filled
-                    v-model="company.name"
-                    :rules="rules.name"
-                    :disable="!(isAdmin || isSuperAdmin)"
-                    autofocus />
-                </div>
-                <div
-                  v-if="isAdmin || isSuperAdmin"
-                  class="col-xs-12 col-md-6">
-                  <q-select
-                    label="Tipo"
-                    filled
-                    v-model="company.type"
-                    :options="types"
-                    :rules="rules.type"
-                    emit-value
-                    map-options />
-                </div>
-                <div
-                  v-if="isAdmin || isSuperAdmin"
-                  class="col-xs-12 col-md-6">
-                  <q-select
-                    label="Misión"
-                    filled
-                    v-model="company.idCompany"
-                    :options="companies.filter(c => ['MISSION'].includes(c.type))"
-                    :rules="rules.type"
-                    :disable="!['CHURCH', 'GROUP'].includes(company.type)"
-                    option-value="id"
-                    option-label="name"
-                    emit-value
-                    map-options />
-                </div>
-                <div
-                  class="col-xs-12 col-md-12"
-                  v-if="!['CHURCH', 'GROUP'].includes(company.type)">
-                  <q-input
-                    label="Descripción"
-                    filled
-                    v-model="company.description"
-                    :rules="rules.description" />
-                </div>
-                <div class="col-xs-12 col-md-12">
-                  <q-input
-                    label="Dirección"
-                    filled
-                    v-model="company.address"
-                    :rules="rules.address" />
-                </div>
-                <div class="col-xs-12 col-md-6">
-                  <q-input
-                    label="Teléfonos"
-                    filled
-                    v-model="company.phones"
-                    :rules="rules.phones" />
-                </div>
-                <div class="col-xs-12 col-md-6">
-                  <q-input
-                    label="Correo electrónico de contacto"
-                    filled
-                    v-model="company.email"
-                    :rules="rules.email" />
-                </div>
-                <div class="col-xs-12 col-md-12">
-                  <div class="row q-col-gutter-md items-center">
-                    <div class="col-xs-12 col-md-5">
-                      <q-input
-                        label="Latitud"
-                        filled
-                        type="number"
-                        step="any"
-                        v-model.number="company.latitude"
-                        :rules="rules.latitude" />
-                    </div>
-                    <div class="col-xs-12 col-md-5">
-                      <q-input
-                        label="Longitud"
-                        filled
-                        type="number"
-                        step="any"
-                        v-model.number="company.longitude"
-                        :rules="rules.longitude" />
-                    </div>
-                    <div class="col-xs-12 col-md-2 text-right">
-                      <q-btn
-                        v-if="company.latitude !== null && company.latitude !== undefined"
-                        flat
-                        dense
-                        no-caps
-                        size="sm"
-                        color="secondary"
-                        label="Quitar punto"
-                        @click="clearCoordinates" />
-                    </div>
+          <q-tabs
+            v-model="tab"
+            inline-label
+            no-caps
+            dense
+            align="justify"
+            indicator-color="warning"
+            class="bg-secondary text-white"
+            :breakpoint="0">
+            <q-tab name="general" icon="badge" label="Datos generales" />
+            <q-tab name="location" icon="location_on" label="Datos de ubicación" />
+            <q-tab name="contacts" icon="contacts" label="Contactos" />
+          </q-tabs>
+          <q-separator />
+          <q-form @submit="save(props)" ref="myForm">
+            <q-tab-panels v-model="tab" animated>
+              <q-tab-panel name="general">
+                <div class="row q-col-gutter-md">
+                  <div class="col-xs-12 col-md-12">
+                    <q-input
+                      label="Nombre"
+                      filled
+                      v-model="company.name"
+                      :rules="rules.name"
+                      :disable="!(isAdmin || isSuperAdmin)"
+                      autofocus />
+                  </div>
+                  <div
+                    v-if="isAdmin || isSuperAdmin"
+                    class="col-xs-12 col-md-6">
+                    <q-select
+                      label="Tipo"
+                      filled
+                      v-model="company.type"
+                      :options="types"
+                      :rules="rules.type"
+                      emit-value
+                      map-options />
+                  </div>
+                  <div
+                    v-if="isAdmin || isSuperAdmin"
+                    class="col-xs-12 col-md-6">
+                    <q-select
+                      label="Misión"
+                      filled
+                      v-model="company.idCompany"
+                      :options="companies.filter(c => ['MISSION'].includes(c.type))"
+                      :rules="rules.type"
+                      :disable="!['CHURCH', 'GROUP'].includes(company.type)"
+                      option-value="id"
+                      option-label="name"
+                      emit-value
+                      map-options />
+                  </div>
+                  <div
+                    class="col-xs-12 col-md-12"
+                    v-if="!['CHURCH', 'GROUP'].includes(company.type)">
+                    <q-input
+                      label="Descripción"
+                      filled
+                      v-model="company.description"
+                      :rules="rules.description" />
+                  </div>
+                  <div class="col-xs-12 col-md-6">
+                    <q-input
+                      label="Teléfonos"
+                      filled
+                      v-model="company.phones"
+                      :rules="rules.phones" />
+                  </div>
+                  <div class="col-xs-12 col-md-6">
+                    <q-input
+                      label="Correo electrónico de contacto"
+                      filled
+                      v-model="company.email"
+                      :rules="rules.email" />
                   </div>
                 </div>
-                <div class="col-xs-12 col-md-12 q-mb-md">
-                  <MapPicker
-                    v-model:latitude="company.latitude"
-                    v-model:longitude="company.longitude" />
+              </q-tab-panel>
+
+              <q-tab-panel name="location">
+                <div class="row q-col-gutter-md">
+                  <div class="col-xs-12 col-md-12">
+                    <q-input
+                      label="Dirección"
+                      filled
+                      v-model="company.address"
+                      :rules="rules.address" />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-input
+                      label="Departamento"
+                      filled
+                      v-model="company.department" />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-input
+                      label="Provincia"
+                      filled
+                      v-model="company.province" />
+                  </div>
+                  <div class="col-xs-12 col-md-4">
+                    <q-input
+                      label="País"
+                      filled
+                      v-model="company.country"
+                      hint="Por defecto, el país de la asociación" />
+                  </div>
+                  <div class="col-xs-12 col-md-12">
+                    <div class="row q-col-gutter-md items-center">
+                      <div class="col-xs-12 col-md-5">
+                        <q-input
+                          label="Latitud"
+                          filled
+                          type="number"
+                          step="any"
+                          v-model.number="company.latitude"
+                          :rules="rules.latitude" />
+                      </div>
+                      <div class="col-xs-12 col-md-5">
+                        <q-input
+                          label="Longitud"
+                          filled
+                          type="number"
+                          step="any"
+                          v-model.number="company.longitude"
+                          :rules="rules.longitude" />
+                      </div>
+                      <div class="col-xs-12 col-md-2 text-right">
+                        <q-btn
+                          v-if="company.latitude !== null && company.latitude !== undefined"
+                          flat
+                          dense
+                          no-caps
+                          size="sm"
+                          color="secondary"
+                          label="Quitar punto"
+                          @click="clearCoordinates" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xs-12 col-md-12 q-mb-md">
+                    <MapPicker
+                      v-model:latitude="company.latitude"
+                      v-model:longitude="company.longitude" />
+                  </div>
                 </div>
-                <div class="col-xs-12 col-md-12">
-                  <div class="row">
-                    <div class="col-xs-6 col-md-6">
-                      <h3 class="title-contacts">Contactos:</h3>
-                    </div>
-                    <div class="col-xs-6 col-md-6 text-right">
-                      <q-btn
-                        class="q-mt-md"
-                        rounded
-                        label="Agregar contacto"
-                        size="sm"
-                        icon="add"
-                        color="positive"
-                        no-caps
-                        @click="addContact" />
-                    </div>
+              </q-tab-panel>
+
+              <q-tab-panel name="contacts">
+                <div class="row">
+                  <div class="col-xs-6 col-md-6">
+                    <h3 class="title-contacts">Contactos:</h3>
+                  </div>
+                  <div class="col-xs-6 col-md-6 text-right">
+                    <q-btn
+                      class="q-mt-md"
+                      rounded
+                      label="Agregar contacto"
+                      size="sm"
+                      icon="add"
+                      color="positive"
+                      no-caps
+                      @click="addContact" />
                   </div>
                 </div>
                 <div class="col-xs-12 col-md-12" v-if="company?.info?.contacts">
@@ -201,20 +242,32 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xs-12 text-right q-gutter-sm">
-                  <q-btn
-                    icon="close"
-                    label="Cancelar" color="secondary" flat no-caps
-                    @click="props.close" />
-                  <q-btn
-                    icon="check"
-                    color="primary"
-                    label="Guardar" no-caps
-                    type="submit" />
-                </div>
-              </div>
-            </q-form>
-          </q-card-section>
+              </q-tab-panel>
+            </q-tab-panels>
+            <q-card-actions align="right">
+              <q-btn
+                v-if="tab !== 'general'"
+                label="Anterior"
+                no-caps
+                icon="navigate_before"
+                @click="previous" />
+              <q-btn
+                v-if="tab !== 'contacts'"
+                label="Siguiente"
+                no-caps
+                icon="navigate_next"
+                @click="next" />
+              <q-btn
+                icon="close"
+                label="Cancelar" color="secondary" flat no-caps
+                @click="props.close" />
+              <q-btn
+                icon="check"
+                color="primary"
+                label="Guardar" no-caps
+                type="submit" />
+            </q-card-actions>
+          </q-form>
         </q-card>
       </template>
       <template v-slot:row="props">
@@ -425,6 +478,7 @@ const clearCoordinates = () => {
 
 const company = ref<Company>()
 const companies = ref<Company[]>()
+const tab = ref<string>('general')
 
 const getCompanies = async () => {
   const items = await http.get('companies') as Result<Company>
@@ -442,8 +496,16 @@ const openModal = async (open: () => void, id?: number) => {
       }
     }
   } else {
+    // Iglesia nueva: el país y la ubicación se completan con los datos de la
+    // asociación y del usuario en sesión (el backend también los hereda).
+    const user = store.state.user?.user
+    const association = companies.value?.find(item => item.id === user?.idAssociation)
+
     company.value = {
       type: 'CHURCH',
+      country: association?.country ?? '',
+      department: user?.person?.department ?? '',
+      province: user?.person?.province ?? '',
       info: {
         contacts: [
           { id: uuidv4(), name: '', phone: '' }
@@ -451,7 +513,25 @@ const openModal = async (open: () => void, id?: number) => {
       }
     }
   }
+  tab.value = 'general'
   open()
+}
+
+/** Pestañas del formulario: siguiente y anterior. */
+const TABS = ['general', 'location', 'contacts']
+
+const next = () => {
+  const index = TABS.indexOf(tab.value)
+  if (index < TABS.length - 1) {
+    tab.value = TABS[index + 1]
+  }
+}
+
+const previous = () => {
+  const index = TABS.indexOf(tab.value)
+  if (index > 0) {
+    tab.value = TABS[index - 1]
+  }
 }
 
 const addContact = () => {

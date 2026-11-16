@@ -17,6 +17,10 @@ export interface Company {
   /** Coordenadas de la iglesia (elegidas en el mapa). */
   latitude?: number | null
   longitude?: number | null
+  /** Ubicación administrativa de la iglesia. */
+  country?: string
+  department?: string
+  province?: string
   idAssociation?: number
   idUnion?: number
   idCompany?: number
