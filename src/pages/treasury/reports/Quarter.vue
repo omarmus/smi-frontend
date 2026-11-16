@@ -22,10 +22,11 @@
 
       <q-tab-panels
         v-model="tab"
+        class="bg-transparent"
         animated
         transition-prev="jump-up"
         transition-next="jump-up">
-        <q-tab-panel name="automatic">
+        <q-tab-panel name="automatic" class="bg-transparent">
           <div class="alert alert-info" v-if="standardReports.length === 0">
             Los informes trimestrales se generan solos cuando los 3 meses del trimestre ya tienen datos.
             También podés generar el primero a mano.
@@ -115,7 +116,7 @@
           </div>
         </q-tab-panel>
 
-        <q-tab-panel name="custom">
+        <q-tab-panel name="custom" class="bg-transparent">
           <div class="alert alert-info">
             Elegí el mes y la gestión del informe, y cuántos meses entran (3 por defecto).
             Con 3 meses, el mes inicial tiene que ser diciembre, marzo, junio o septiembre.
@@ -222,20 +223,6 @@ const monthCountOptions = [
 
 const router = useRouter()
 
-/**
- * Meses que abren un trimestre de la gestión (diciembre, marzo, junio y
- * septiembre). Con 3 meses el informe tiene que arrancar en uno de ellos.
- */
-const quarterStartMonths = [12, 3, 6, 9]
-
-/** El último mes de inicio de trimestre que no pasa del mes dado. */
-const quarterStartBefore = (month: number) => {
-  const candidates = [...quarterStartMonths]
-    .map(start => (start <= month ? start : start - 12))
-    .sort((a, b) => b - a)
-  return candidates[0]
-}
-
 const report = ref<Report>()
 const reports = ref<ReportResponse>()
 const tab = ref<string>('automatic')
@@ -243,22 +230,13 @@ const year = ref<number>(new Date().getFullYear())
 const month = ref<number>(1)
 const quarter = ref<number>(1)
 const customYear = ref<number>(new Date().getFullYear())
-const customMonth = ref<number>(quarterStartBefore(new Date().getMonth() + 1))
+const customMonth = ref<number>(new Date().getMonth() + 1)
 const customMonths = ref<number>(3)
 const render = ref<boolean>(false)
 const loading = ref<boolean>(false)
 
 const months = monthsLiteral.map((item, index) => ({ value: index + 1, label: item }))
 const years = getYears()
-
-/**
- * Meses que abren un trimestre de la gestión (diciembre, marzo, junio y
- * septiembre). Con 3 meses el informe tiene que arrancar en uno de ellos.
- */
-
-const customMonthOptions = computed(() => customMonths.value === 3
-  ? months.filter(item => quarterStartMonths.includes(item.value))
-  : months)
 
 /** Los informes estándar (generados por el cron o a mano) y los personalizados. */
 const standardReports = computed<Report[]>(() => (reports.value?.rows ?? []).filter(item => origin(item) !== 'CUSTOM'))
