@@ -137,7 +137,7 @@
               <q-select
                 filled
                 v-model="customMonth"
-                :options="customMonthOptions"
+                :options="months"
                 label="Mes"
                 map-options
                 dense
