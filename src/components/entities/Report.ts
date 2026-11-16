@@ -8,6 +8,11 @@ export interface Report {
   year: number
   month: number
   type: string
+  /**
+   * Origen del informe: `AUTO` (cron), `CUSTOM` (personalizado) o `MANUAL`.
+   * Los informes anteriores a la columna se tratan como `MANUAL`.
+   */
+  origin?: 'AUTO' | 'CUSTOM' | 'MANUAL' | string
   userCreated?: number
   userUpdated?: number
   createAt?: Date

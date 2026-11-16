@@ -17,16 +17,19 @@
         >
           &nbsp;Imprimir
         </q-btn>
+        <q-badge
+          class="q-ml-sm"
+          :color="origin === 'CUSTOM' ? 'primary' : (origin === 'AUTO' ? 'positive' : 'grey')"
+          :label="originLabel" />
       </div>
     </div>
     <div class="row" id="report-quarter">
       <div class="col-12">
         <h2 class="text-center report-title">
-          INFORME TRIMESTRAL
+          {{ reportTitle }}
           <strong>{{ store.state.user.user.company?.name }}</strong>
           <span>
-            <!-- {{ quarter.GLOBAL.entries.header.map((head) => monthsLiteral[Number(head.split('-')[0]) - 1]).join(' | ') }} <br> -->
-            {{ getQuarterLabel }} - {{ report.month > 11 ? report.year + 1 : report.year }}
+            {{ periodLabel }}
           </span>
         </h2>
         <h3 class="text-primary flow-title">OFRENDAS ENVIADAS A LA ASOCIACIÓN BOLIVIANA</h3>
@@ -39,7 +42,7 @@
                   class="text-right text-secondary"
                   v-for="head in quarter.GLOBAL.entries.header"
                   :key="head"><strong>{{ monthsLiteral[Number(head.split('-')[0]) - 1] }}</strong></th>
-                <th class="text-right text-primary"><strong>Total trimestre</strong></th>
+                <th class="text-right text-primary"><strong>{{ totalLabel }}</strong></th>
               </tr>
             </thead>
             <tbody>
@@ -60,7 +63,7 @@
                 </td>
                 <td class="text-right text-primary">
                   <div class="flow-row-table">
-                    <span class="text-hidden">Total trimestre:</span>
+                    <span class="text-hidden">{{ totalLabel }}:</span>
                     <strong class="flow-head-table">{{ item.total.toFixed(2) }}</strong>
                   </div>
                 </td>
@@ -77,8 +80,8 @@
                   v-for="(foot, index) in quarter.GLOBAL.entries.footer"
                   :key="index">
                   <div class="flow-row-table">
-                    <span class="text-hidden" v-if="index >= 0 && index <= 2">{{ monthsLiteral[Number(quarter.LOCAL.entries.header[index].split('-')[0]) - 1] }}:</span>
-                    <span class="text-hidden" v-if="index === quarter.GLOBAL.entries.footer.length - 1">Total trimestre:</span>
+                    <span class="text-hidden" v-if="index <= monthCount - 1">{{ monthsLiteral[Number(quarter.LOCAL.entries.header[index].split('-')[0]) - 1] }}:</span>
+                    <span class="text-hidden" v-if="index === quarter.GLOBAL.entries.footer.length - 1">{{ totalLabel }}:</span>
                     <strong class="flow-head-table">{{ foot.toFixed(2) }}</strong>
                   </div>
                 </th>
@@ -97,7 +100,7 @@
                 <th class="bg-warning text-white">
                   <strong>SALDO ANTERIOR</strong>
                 </th>
-                <th colspan="4" class="bg-positive text-white">
+                <th :colspan="monthCount" class="bg-positive text-white">
                   <strong>INGRESOS TRIMESTRE</strong>
                 </th>
                 <th class="bg-negative text-white">
@@ -178,7 +181,7 @@
                   :key="index">
                   <div class="flow-row-table">
                     <span class="text-hidden" v-if="index === 0">Saldo {{ monthsLiteral[monthPrev] }}:</span>
-                    <span class="text-hidden" v-if="index >= 1 && index <= 3">{{ monthsLiteral[Number(quarter.LOCAL.entries.header[index - 1].split('-')[0]) - 1] }}:</span>
+                    <span class="text-hidden" v-if="index >= 1 && index <= monthCount">{{ monthsLiteral[Number(quarter.LOCAL.entries.header[index - 1].split('-')[0]) - 1] }}:</span>
                     <span class="text-hidden" v-if="index === quarter.LOCAL.entries.footer.length - 3">Ingreso total:</span>
                     <span class="text-hidden" v-if="index === quarter.LOCAL.entries.footer.length - 2">Gasto total:</span>
                     <span class="text-hidden" v-if="index === quarter.LOCAL.entries.footer.length - 1">Saldo total:</span>
@@ -216,21 +219,63 @@ const quarters = [
 ]
 
 const monthPrev = computed(() => {
-  if (!report.value) {
+  const header = quarter.value?.GLOBAL?.entries?.header ?? []
+  const first = Number(String(header[0] ?? '').split('-')[0])
+  if (!first) {
     return 0
   }
-  if (report.value.month - 2 < 0) {
-    return 11
-  }
-  return report.value.month - 2
+  // El saldo anterior es el del mes previo al PRIMER mes del informe.
+  return ((first - 2) + 12) % 12
 })
 
-const getQuarterLabel = computed(() => {
-  if (!report.value) {
-    return ''
+/** Cantidad de meses que incluye el informe (1, 2 o 3). */
+const monthCount = computed(() => quarter.value?.GLOBAL?.entries?.header?.length ?? 3)
+
+const metadata = computed(() => {
+  const raw = report.value?.metadata
+  if (!raw) {
+    return {} as { quarter?: number, custom?: boolean }
   }
-  const metadata = JSON.parse(report.value.metadata) as { quarter: number }
-  return quarters[metadata.quarter - 1]
+  if (typeof raw === 'object') {
+    return raw as { quarter?: number, custom?: boolean }
+  }
+  try {
+    return JSON.parse(String(raw)) as { quarter?: number, custom?: boolean }
+  } catch {
+    return {} as { quarter?: number, custom?: boolean }
+  }
+})
+
+const origin = computed(() => report.value?.origin || 'MANUAL')
+const originLabel = computed(() => origin.value === 'AUTO'
+  ? 'Automático'
+  : (origin.value === 'CUSTOM' ? 'Personalizado' : 'Manual'))
+const reportTitle = computed(() => origin.value === 'CUSTOM'
+  ? 'INFORME TRIMESTRAL PERSONALIZADO'
+  : 'INFORME TRIMESTRAL')
+const totalLabel = computed(() => origin.value === 'CUSTOM' ? 'Total periodo' : 'Total trimestre')
+
+const periodLabel = computed(() => {
+  const header = quarter.value?.GLOBAL?.entries?.header ?? []
+
+  if (origin.value === 'CUSTOM') {
+    if (header.length === 0) {
+      return ''
+    }
+    const first = header[0].split('-')
+    const last = header[header.length - 1].split('-')
+    const firstName = monthsLiteral[Number(first[0]) - 1]
+    const lastName = monthsLiteral[Number(last[0]) - 1]
+    return first[1] === last[1]
+      ? `${firstName} - ${lastName} ${last[1]}`
+      : `${firstName} ${first[1]} - ${lastName} ${last[1]}`
+  }
+
+  const quarterLabel = quarters[Number(metadata.value.quarter) - 1] ?? ''
+  const year = report.value
+    ? (report.value.month > 11 ? report.value.year + 1 : report.value.year)
+    : 0
+  return `${quarterLabel} - ${year}`
 })
 
 const getReportQuarter = async (id: string) => {
