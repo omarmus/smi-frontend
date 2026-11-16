@@ -166,7 +166,7 @@
                 emit-value />
             </div>
           </div>
-          <div class="row q-col-gutter-sm">
+          <div class="row q-col-gutter-sm q-pt-2">
             <div class="col-xs-12 col-sm-8">
               <div class="alert alert-info q-ma-none">
                 Este informe va a cubrir: <strong>{{ customRange }}</strong>
