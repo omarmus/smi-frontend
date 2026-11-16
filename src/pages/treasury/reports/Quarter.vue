@@ -118,6 +118,7 @@
         <q-tab-panel name="custom">
           <div class="alert alert-info">
             Elegí el mes y la gestión del informe, y cuántos meses entran (3 por defecto).
+            Con 3 meses, el mes inicial tiene que ser diciembre, marzo, junio o septiembre.
             Si a algún mes le faltan datos, no se genera.
           </div>
           <div class="row q-col-gutter-sm">
@@ -135,7 +136,7 @@
               <q-select
                 filled
                 v-model="customMonth"
-                :options="months"
+                :options="customMonthOptions"
                 label="Mes"
                 map-options
                 dense
@@ -235,6 +236,16 @@ const loading = ref<boolean>(false)
 
 const months = monthsLiteral.map((item, index) => ({ value: index + 1, label: item }))
 const years = getYears()
+
+/**
+ * Meses que abren un trimestre de la gestión (diciembre, marzo, junio y
+ * septiembre). Con 3 meses el informe tiene que arrancar en uno de ellos.
+ */
+const quarterStartMonths = [12, 3, 6, 9]
+
+const customMonthOptions = computed(() => customMonths.value === 3
+  ? months.filter(item => quarterStartMonths.includes(item.value))
+  : months)
 
 /** Los informes estándar (generados por el cron o a mano) y los personalizados. */
 const standardReports = computed<Report[]>(() => (reports.value?.rows ?? []).filter(item => origin(item) !== 'CUSTOM'))
