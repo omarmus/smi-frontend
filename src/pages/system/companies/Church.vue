@@ -28,7 +28,7 @@
         </q-btn>
       </template>
       <template v-slot:form="props">
-        <q-card>
+        <q-card class="modal-lg">
           <q-toolbar class="q-pa-md">
             <q-icon
               name="home_work"
@@ -126,35 +126,59 @@
 
               <q-tab-panel name="location">
                 <div class="row q-col-gutter-md">
-                  <div class="col-xs-12 col-md-12">
-                    <q-input
-                      label="Dirección"
-                      filled
-                      v-model="company.address"
-                      :rules="rules.address" />
-                  </div>
                   <div class="col-xs-12 col-md-4">
-                    <q-input
+                    <q-select
+                      filled
                       label="Departamento"
-                      filled
-                      v-model="company.department" />
+                      v-model="company.department"
+                      :options="departmentOptions"
+                      emit-value
+                      map-options
+                      clearable
+                      @update:model-value="onDepartmentChange" />
                   </div>
                   <div class="col-xs-12 col-md-4">
-                    <q-input
+                    <q-select
+                      filled
                       label="Provincia"
-                      filled
-                      v-model="company.province" />
+                      v-model="company.province"
+                      :options="provinceOptions"
+                      emit-value
+                      map-options
+                      :disable="!company.department"
+                      clearable />
                   </div>
                   <div class="col-xs-12 col-md-4">
-                    <q-input
-                      label="País"
+                    <q-select
                       filled
+                      label="País"
                       v-model="company.country"
-                      hint="Por defecto, el país de la asociación" />
+                      :options="countriesFilter"
+                      option-value="value"
+                      option-label="label"
+                      use-input
+                      input-debounce="0"
+                      @filter="filterCountries"
+                      :disable="isAssociationAdmin"
+                      emit-value
+                      map-options>
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey">
+                            Sin resultados
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
+                  </div>
+                  <div class="col-xs-12 col-md-12">
+                    <MapPicker
+                      v-model:latitude="company.latitude"
+                      v-model:longitude="company.longitude" />
                   </div>
                   <div class="col-xs-12 col-md-12">
                     <div class="row q-col-gutter-md items-center">
-                      <div class="col-xs-12 col-md-5">
+                      <div class="col-xs-12 col-md-4">
                         <q-input
                           label="Latitud"
                           filled
@@ -163,7 +187,7 @@
                           v-model.number="company.latitude"
                           :rules="rules.latitude" />
                       </div>
-                      <div class="col-xs-12 col-md-5">
+                      <div class="col-xs-12 col-md-4">
                         <q-input
                           label="Longitud"
                           filled
@@ -172,7 +196,7 @@
                           v-model.number="company.longitude"
                           :rules="rules.longitude" />
                       </div>
-                      <div class="col-xs-12 col-md-2 text-right">
+                      <div class="col-xs-12 col-md-4 text-right">
                         <q-btn
                           v-if="company.latitude !== null && company.latitude !== undefined"
                           flat
@@ -185,10 +209,12 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-xs-12 col-md-12 q-mb-md">
-                    <MapPicker
-                      v-model:latitude="company.latitude"
-                      v-model:longitude="company.longitude" />
+                  <div class="col-xs-12 col-md-12">
+                    <q-input
+                      label="Dirección"
+                      filled
+                      v-model="company.address"
+                      :rules="rules.address" />
                   </div>
                 </div>
               </q-tab-panel>
@@ -336,7 +362,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount } from 'vue'
+import { ref, computed, onBeforeMount } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
@@ -348,6 +374,8 @@ import validation from '../../../components/plugins/validation'
 import { uuidv4 } from '../../../components/plugins/util'
 import { RoleSlug } from '../../../components/entities/Permission'
 import { useStore } from '../../../store'
+import boliviaDepartamentosProvincias from '../../../data/bolivia-departamentos-provincias.json'
+import { getCountries } from '../../../components/plugins/countries'
 
 const store = useStore()
 
@@ -480,6 +508,55 @@ const company = ref<Company>()
 const companies = ref<Company[]>()
 const tab = ref<string>('general')
 
+/** Departamento y provincia: los mismos datos del modal de usuario. */
+const departmentOptions = boliviaDepartamentosProvincias.map((item: { id: number, department: string }) => ({
+  label: item.department,
+  value: item.department
+}))
+
+const provinceOptions = computed(() => {
+  const department = company.value?.department
+  if (!department) {
+    return []
+  }
+  const found = boliviaDepartamentosProvincias.find(
+    (item: { department: string }) => item.department === department
+  )
+  return (found?.provinces ?? []).map((item: { id: number, name: string }) => ({
+    label: item.name,
+    value: item.name
+  }))
+})
+
+const onDepartmentChange = () => {
+  if (company.value) {
+    company.value.province = undefined
+  }
+}
+
+/** Países: la lista que ya usa el modal de usuario (nacionalidad). */
+const countryOptions = getCountries().map(item => ({
+  label: item.country,
+  value: item.country
+}))
+const countriesFilter = ref(countryOptions)
+
+const filterCountries = (val: string, update: () => void) => {
+  update(() => {
+    countriesFilter.value = val
+      ? countryOptions.filter(item => item.label.toLowerCase().includes(val.toLowerCase()))
+      : countryOptions
+  })
+}
+
+/** El admin de asociación no puede cambiar el país: es el de su asociación. */
+const isAssociationAdmin = [RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store.state.user.role.slug)
+
+const associationCountry = computed(() => {
+  const idAssociation = store.state.user?.user?.idAssociation
+  return companies.value?.find(item => item.id === idAssociation)?.country ?? ''
+})
+
 const getCompanies = async () => {
   const items = await http.get('companies') as Result<Company>
   companies.value = items.rows
@@ -499,11 +576,10 @@ const openModal = async (open: () => void, id?: number) => {
     // Iglesia nueva: el país y la ubicación se completan con los datos de la
     // asociación y del usuario en sesión (el backend también los hereda).
     const user = store.state.user?.user
-    const association = companies.value?.find(item => item.id === user?.idAssociation)
 
     company.value = {
       type: 'CHURCH',
-      country: association?.country ?? '',
+      country: associationCountry.value,
       department: user?.person?.department ?? '',
       province: user?.person?.province ?? '',
       info: {
@@ -513,6 +589,12 @@ const openModal = async (open: () => void, id?: number) => {
       }
     }
   }
+
+  // El admin de asociación trabaja siempre con el país de su asociación.
+  if (isAssociationAdmin) {
+    company.value.country = associationCountry.value
+  }
+
   tab.value = 'general'
   open()
 }
