@@ -18,10 +18,13 @@ const props = withDefaults(defineProps<{
   latitude?: number | null
   longitude?: number | null
   zoom?: number
+  /** Centro sugerido (por ejemplo, el departamento elegido): mueve el mapa. */
+  center?: { lat: number, lng: number, zoom?: number } | null
 }>(), {
   latitude: null,
   longitude: null,
-  zoom: 16
+  zoom: 16,
+  center: null
 })
 
 type MapPickerEmits = {
@@ -92,6 +95,11 @@ onMounted(() => {
     hasPoint() ? props.zoom : 5
   )
 
+  // Si viene un centro (el departamento elegido), el mapa abre ahí.
+  if (props.center) {
+    map.setView([props.center.lat, props.center.lng], props.center.zoom ?? props.zoom)
+  }
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap'
@@ -117,6 +125,14 @@ watch(() => [props.latitude, props.longitude], () => {
   if (!position || position.lat !== lat || position.lng !== lng) {
     setMarker(lat, lng)
   }
+})
+
+// Un centro nuevo (por ejemplo, el departamento elegido) mueve el mapa.
+watch(() => props.center, center => {
+  if (!center || !map) {
+    return
+  }
+  map.setView([center.lat, center.lng], center.zoom ?? props.zoom)
 })
 
 onBeforeUnmount(() => {

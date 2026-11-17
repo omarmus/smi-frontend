@@ -2,6 +2,8 @@
   {
     "id": 1,
     "department": "Beni",
+    "latitude": -14.8333,
+    "longitude": -64.7833,
     "provinces": [
       { "id": 1, "name": "Cercado" },
       { "id": 2, "name": "Iténez" },
@@ -16,6 +18,8 @@
   {
     "id": 2,
     "department": "Chuquisaca",
+    "latitude": -19.0333,
+    "longitude": -65.2667,
     "provinces": [
       { "id": 9, "name": "Belisario Boeto" },
       { "id": 10, "name": "Hernando Siles" },
@@ -32,6 +36,8 @@
   {
     "id": 3,
     "department": "Cochabamba",
+    "latitude": -17.3895,
+    "longitude": -66.1568,
     "provinces": [
       { "id": 19, "name": "Arani" },
       { "id": 20, "name": "Arque" },
@@ -54,6 +60,8 @@
   {
     "id": 4,
     "department": "La Paz",
+    "latitude": -16.4897,
+    "longitude": -68.1193,
     "provinces": [
       { "id": 35, "name": "Iturralde" },
       { "id": 36, "name": "Aroma" },
@@ -80,6 +88,8 @@
   {
     "id": 5,
     "department": "Oruro",
+    "latitude": -17.9667,
+    "longitude": -67.1167,
     "provinces": [
       { "id": 55, "name": "Sabaya" },
       { "id": 56, "name": "Carangas" },
@@ -102,6 +112,8 @@
   {
     "id": 6,
     "department": "Pando",
+    "latitude": -11.0333,
+    "longitude": -68.7667,
     "provinces": [
       { "id": 71, "name": "Abuná" },
       { "id": 72, "name": "General Federico Román" },
@@ -113,6 +125,8 @@
   {
     "id": 7,
     "department": "Potosí",
+    "latitude": -19.5833,
+    "longitude": -65.75,
     "provinces": [
       { "id": 76, "name": "Alonso de Ibáñez" },
       { "id": 77, "name": "Quijarro" },
@@ -135,6 +149,8 @@
   {
     "id": 8,
     "department": "Santa Cruz",
+    "latitude": -17.7833,
+    "longitude": -63.1821,
     "provinces": [
       { "id": 92, "name": "Andrés Ibáñez" },
       { "id": 93, "name": "Ángel Sandóval" },
@@ -156,6 +172,8 @@
   {
     "id": 9,
     "department": "Tarija",
+    "latitude": -21.5333,
+    "longitude": -64.7333,
     "provinces": [
       { "id": 107, "name": "Arce" },
       { "id": 108, "name": "O'Connor" },

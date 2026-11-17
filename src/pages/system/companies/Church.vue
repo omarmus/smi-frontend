@@ -181,7 +181,8 @@
                   <div class="col-xs-12 col-md-12">
                     <MapPicker
                       v-model:latitude="company.latitude"
-                      v-model:longitude="company.longitude" />
+                      v-model:longitude="company.longitude"
+                      :center="mapCenter" />
                   </div>
                   <div class="col-xs-12 col-md-12">
                     <div class="row q-col-gutter-md items-center">
@@ -528,10 +529,18 @@ const provinceOptions = computed(() => {
   }))
 })
 
-const onDepartmentChange = () => {
+const onDepartmentChange = (department?: string) => {
   if (company.value) {
     company.value.province = undefined
   }
+
+  // El mapa se centra en el departamento elegido.
+  const found = boliviaDepartamentosProvincias.find(
+    (item: { department: string }) => item.department === department
+  )
+  mapCenter.value = found?.latitude !== undefined && found?.longitude !== undefined
+    ? { lat: found.latitude, lng: found.longitude, zoom: 10 }
+    : null
 }
 
 /** Países: la lista que ya usa el modal de usuario (nacionalidad). */
@@ -548,6 +557,9 @@ const filterCountries = (val: string, update: () => void) => {
       : countryOptions
   })
 }
+
+/** Centro que se le pasa al mapa (el departamento elegido). */
+const mapCenter = ref<{ lat: number, lng: number, zoom: number } | null>(null)
 
 /** El admin de asociación no puede cambiar el país: es el de su asociación. */
 const isAssociationAdmin = [RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store.state.user.role.slug)
@@ -600,6 +612,14 @@ const openModal = async (open: () => void, id?: number) => {
   if (isAssociationAdmin) {
     company.value.country = associationCountry.value
   }
+
+  // Si la iglesia ya tiene departamento, el mapa abre en ese departamento.
+  const found = boliviaDepartamentosProvincias.find(
+    (item: { department: string }) => item.department === company.value?.department
+  )
+  mapCenter.value = found?.latitude !== undefined && found?.longitude !== undefined
+    ? { lat: found.latitude, lng: found.longitude, zoom: 10 }
+    : null
 
   tab.value = 'general'
   open()
