@@ -230,6 +230,23 @@ body.body--dark {
     color: $dark-acento;
   }
 
+  // La barra de pestañas con fondo de color (modales de iglesia y de
+  // usuarios): en oscuro, `bg-secondary` se invierte a una banda CLARA y el
+  // texto de la pestaña también era claro → sin contraste. Acá la banda va
+  // con el azul de banda del tema oscuro y el texto claro encima.
+  .q-tabs.bg-secondary {
+    background-color: #1B2740 !important;
+    color: $dark-texto !important;
+
+    .q-tab {
+      color: $dark-texto-suave;
+    }
+
+    .q-tab--active {
+      color: $dark-texto;
+    }
+  }
+
   .q-toggle__track {
     background-color: rgba(255, 255, 255, 0.16);
   }
