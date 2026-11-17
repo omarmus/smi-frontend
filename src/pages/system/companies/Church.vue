@@ -509,8 +509,27 @@ const company = ref<Company>()
 const companies = ref<Company[]>()
 const tab = ref<string>('general')
 
+/**
+ * Datos de Bolivia: departamentos con sus provincias y las coordenadas de
+ * la capital de cada departamento (para centrar el mapa).
+ */
+interface BoliviaProvincia {
+  id: number
+  name: string
+}
+
+interface BoliviaDepartamento {
+  id: number
+  department: string
+  latitude?: number
+  longitude?: number
+  provinces: BoliviaProvincia[]
+}
+
+const departamentos = boliviaDepartamentosProvincias as BoliviaDepartamento[]
+
 /** Departamento y provincia: los mismos datos del modal de usuario. */
-const departmentOptions = boliviaDepartamentosProvincias.map((item: { id: number, department: string }) => ({
+const departmentOptions = departamentos.map(item => ({
   label: item.department,
   value: item.department
 }))
@@ -520,10 +539,8 @@ const provinceOptions = computed(() => {
   if (!department) {
     return []
   }
-  const found = boliviaDepartamentosProvincias.find(
-    (item: { department: string }) => item.department === department
-  )
-  return (found?.provinces ?? []).map((item: { id: number, name: string }) => ({
+  const found = departamentos.find(item => item.department === department)
+  return (found?.provinces ?? []).map(item => ({
     label: item.name,
     value: item.name
   }))
@@ -535,9 +552,7 @@ const onDepartmentChange = (department?: string) => {
   }
 
   // El mapa se centra en el departamento elegido.
-  const found = boliviaDepartamentosProvincias.find(
-    (item: { department: string }) => item.department === department
-  )
+  const found = departamentos.find(item => item.department === department)
   mapCenter.value = found?.latitude !== undefined && found?.longitude !== undefined
     ? { lat: found.latitude, lng: found.longitude, zoom: 10 }
     : null
@@ -614,9 +629,7 @@ const openModal = async (open: () => void, id?: number) => {
   }
 
   // Si la iglesia ya tiene departamento, el mapa abre en ese departamento.
-  const found = boliviaDepartamentosProvincias.find(
-    (item: { department: string }) => item.department === company.value?.department
-  )
+  const found = departamentos.find(item => item.department === company.value?.department)
   mapCenter.value = found?.latitude !== undefined && found?.longitude !== undefined
     ? { lat: found.latitude, lng: found.longitude, zoom: 10 }
     : null
