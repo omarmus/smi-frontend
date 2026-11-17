@@ -46,7 +46,8 @@
       </div>
 
       <!-- Lectura equivalente para lectores de pantalla -->
-      <table class="chart__table">
+      <div class="chart__sr">
+        <table class="chart__table">
         <caption class="chart__caption">Ingresos y gastos por mes cerrado</caption>
         <thead>
           <tr>
@@ -64,7 +65,8 @@
             <td>{{ format(item.net) }}</td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
     </template>
   </div>
 </template>
@@ -293,7 +295,11 @@ const shortLabel = (item: Props['series'][number]) => {
   }
 
   // Tabla equivalente: sólo para lectores de pantalla.
-  &__table {
+  //
+  // Va dentro de un contenedor con `overflow: hidden`: una <table> no baja de
+  // su ancho mínimo (los importes no parten línea), así que suelta se sale del
+  // viewport y aparece el scroll horizontal en mobile.
+  &__sr {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -303,6 +309,19 @@ const shortLabel = (item: Props['series'][number]) => {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+  }
+
+  &__table {
+    border-collapse: collapse;
+  }
+
+  // En mobile la tabla equivalente se oculta: con los importes completos
+  // (que no bajan de línea) se sale del ancho de la pantalla y aparece el
+  // scroll horizontal. El gráfico sigue mostrando los datos.
+  @media (max-width: 599.98px) {
+    &__sr {
+      display: none;
+    }
   }
 }
 
