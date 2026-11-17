@@ -271,4 +271,33 @@ onMounted(async () => {
     margin: 10px 0 0;
   }
 }
+
+// En dark mode los colores corporativos (azul de marca) no se leen sobre la
+// tarjeta oscura: el texto principal va en claro y las etiquetas en el tono
+// suave del tema.
+body.body--dark {
+  .company-detail {
+    &__title {
+      color: $dark-texto;
+    }
+
+    &__subtitle {
+      color: $dark-texto;
+    }
+
+    &__rows {
+      th {
+        color: $dark-texto-suave;
+      }
+
+      td {
+        color: $dark-texto;
+      }
+    }
+
+    &__empty {
+      color: $dark-texto-suave;
+    }
+  }
+}
 </style>
