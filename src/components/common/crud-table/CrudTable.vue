@@ -11,9 +11,10 @@
       <slot
         name="formInline"
         class="crud-table-form"
+        :open="openModal"
         :update="updateList"></slot>
     </div>
-    <div class="col-xs-12">
+    <div class="col-xs-12" v-if="!props.hideTable">
       <div
         inset
         class="full-width q-pb-md"
@@ -187,6 +188,9 @@ interface Props {
   labelSelection?: string
   buttonsHidden?: boolean,
   colsFilter?: string
+  /** Oculta la tabla (y la barra de botones): quedan solo el modal y el
+   *  slot `formInline`. Lo usa quien consulta en detalle y edita con el modal. */
+  hideTable?: boolean
 }
 
 interface Pagination {

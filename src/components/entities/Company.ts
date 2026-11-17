@@ -11,6 +11,11 @@ export interface Company {
   name: string
   description?: string
   acronym?: string
+  email?: string
+  phones?: string
+  address?: string
+  web?: string
+  subdomain?: string
   money?: string
   type?: string
   state?: string

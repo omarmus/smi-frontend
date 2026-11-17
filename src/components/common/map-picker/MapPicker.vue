@@ -3,7 +3,7 @@
     <div
       ref="mapElement"
       class="map-picker__map"></div>
-    <p class="map-picker__hint">
+    <p v-if="!readonly" class="map-picker__hint">
       Hacé clic en el mapa para ubicar la iglesia, o arrastrá el marcador.
     </p>
   </div>
@@ -20,11 +20,14 @@ const props = withDefaults(defineProps<{
   zoom?: number
   /** Centro sugerido (por ejemplo, el departamento elegido): mueve el mapa. */
   center?: { lat: number, lng: number, zoom?: number } | null
+  /** Solo mostrar: no se puede mover el marcador ni hacer clic. */
+  readonly?: boolean
 }>(), {
   latitude: null,
   longitude: null,
   zoom: 16,
-  center: null
+  center: null,
+  readonly: false
 })
 
 type MapPickerEmits = {
@@ -64,7 +67,10 @@ const setMarker = (lat: number, lng: number) => {
   }
 
   if (!marker) {
-    marker = L.marker([lat, lng], { icon: markerIcon(), draggable: true }).addTo(map)
+    marker = L.marker([lat, lng], {
+      icon: markerIcon(),
+      draggable: !props.readonly
+    }).addTo(map)
     marker.on('dragend', () => {
       const position = marker?.getLatLng()
       if (!position) {
@@ -105,7 +111,12 @@ onMounted(() => {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map)
 
-  map.on('click', (event: L.LeafletMouseEvent) => select(event.latlng.lat, event.latlng.lng))
+  map.on('click', (event: L.LeafletMouseEvent) => {
+    if (props.readonly) {
+      return
+    }
+    select(event.latlng.lat, event.latlng.lng)
+  })
 
   if (hasPoint()) {
     setMarker(Number(props.latitude), Number(props.longitude))

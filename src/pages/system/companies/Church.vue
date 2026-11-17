@@ -8,12 +8,21 @@
         @click="$router.push('/secretary')" />
       Iglesias
     </h2>
+
+    <!-- El rol de secretaría solo consulta los datos de su iglesia. -->
     <CrudTable
       :url="url"
       :filters="filters"
       :columns="columns"
+      :hide-table="isSecretary"
       order="id"
     >
+      <template v-slot:formInline="props">
+        <CompanyDetail
+          v-if="isSecretary && myCompanyId"
+          :company-id="myCompanyId"
+          @edit="openModal(props.open, myCompanyId)" />
+      </template>
       <template v-slot:buttons="props">
         <q-btn
           v-if="$store.state.user?.permissions?.includes('company:create')"
@@ -367,6 +376,7 @@ import { ref, computed, onBeforeMount } from 'vue'
 import { http } from 'boot/http'
 import { message } from 'boot/message'
 import CrudTable from '../../../components/common/crud-table/CrudTable.vue'
+import CompanyDetail from './CompanyDetail.vue'
 import MapPicker from '../../../components/common/map-picker/MapPicker.vue'
 import { Company } from '../../../components/entities/Company'
 import { Result } from '../../../components/entities/Entity'
@@ -384,6 +394,10 @@ const url = 'companies'
 
 const isSuperAdmin = [RoleSlug.SUPERADMINISTRATOR].includes(store.state.user.role.slug)
 const isAdmin = [RoleSlug.ADMINISTRATOR_UNION, RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store.state.user.role.slug)
+
+/** La secretaría ve los datos de su iglesia, no el listado administrable. */
+const isSecretary = [RoleSlug.SECRETARY].includes(store.state.user.role.slug)
+const myCompanyId = computed(() => store.state.user?.user?.company?.id)
 
 const columns = [
   {
