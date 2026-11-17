@@ -146,7 +146,7 @@
                       use-input
                       input-debounce="0"
                       @filter="filterCountries"
-                      :disable="isAssociationAdmin"
+                      :disable="!canEditCountry"
                       emit-value
                       map-options>
                       <template v-slot:no-option>
@@ -590,8 +590,11 @@ const filterCountries = (val: string, update: () => void) => {
 /** Centro que se le pasa al mapa (el departamento elegido). */
 const mapCenter = ref<{ lat: number, lng: number, zoom: number } | null>(null)
 
-/** El admin de asociación no puede cambiar el país: es el de su asociación. */
-const isAssociationAdmin = [RoleSlug.ADMINISTRATOR_ASSOCIATION].includes(store.state.user.role.slug)
+/**
+ * El PAÍS lo hereda la iglesia de la asociación a la que pertenece: solo el
+ * super administrador puede definirlo (el resto de roles lo ve fijo).
+ */
+const canEditCountry = computed(() => isSuperAdmin)
 
 const associationCountry = computed(() => {
   // El storage ya trae el país de la asociación (va en el login); si no está,
@@ -637,8 +640,9 @@ const openModal = async (open: () => void, id?: number) => {
     }
   }
 
-  // El admin de asociación trabaja siempre con el país de su asociación.
-  if (isAssociationAdmin) {
+  // El país lo hereda la iglesia de la asociación: queda fijo y deshabilitado
+  // para todos los roles salvo el super administrador.
+  if (!canEditCountry.value) {
     company.value.country = associationCountry.value
   }
 
