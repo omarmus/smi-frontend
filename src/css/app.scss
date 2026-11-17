@@ -370,6 +370,10 @@ body.body--dark {
 .container {
   width: 100%;
   // max-width: 980px;
+  // Sin `border-box`, el padding se suma al 100% y el contenedor se sale del
+  // viewport: en mobile aparecía un scroll horizontal.
+  max-width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
   padding: 15px 50px;
 }
